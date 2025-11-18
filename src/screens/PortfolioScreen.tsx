@@ -16,12 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
-import {
-  usePortfolioStore,
-  useActivePositions,
-  useUpcomingDividends,
-  type Transaction,
-} from "../state/portfolioStore";
+import { usePortfolioStore } from "../state/portfolioStore";
 import { cn } from "../utils/cn";
 
 interface PortfolioScreenProps {
@@ -33,14 +28,49 @@ export default function PortfolioScreen({ navigation }: PortfolioScreenProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedTab, setSelectedTab] = useState<"positions" | "dividends" | "calendar">("positions");
 
-  const activePositions = useActivePositions();
-  const upcomingDividends = useUpcomingDividends(30);
-  const { getTotalInvested, getTotalDividendIncome, getMonthlyDividends } =
-    usePortfolioStore();
+  // Use selectors properly to avoid infinite loops
+  const transactions = usePortfolioStore((state) => state.transactions);
+  const dividendPayouts = usePortfolioStore((state) => state.dividendPayouts);
 
-  const totalInvested = getTotalInvested();
-  const totalDividends = getTotalDividendIncome();
-  const monthlyDividends = getMonthlyDividends();
+  // Calculate values from state
+  const activePositions = transactions.filter((t) => !t.realized);
+  const totalInvested = activePositions.reduce(
+    (sum, t) => sum + t.purchasePrice * t.shares,
+    0
+  );
+  const totalDividends = dividendPayouts.reduce((sum, d) => sum + d.amount, 0);
+
+  // Get upcoming dividends
+  const today = new Date();
+  const futureDate = new Date();
+  futureDate.setDate(today.getDate() + 30);
+  const upcomingDividends = dividendPayouts
+    .filter((d) => {
+      const paymentDate = new Date(d.paymentDate);
+      return paymentDate >= today && paymentDate <= futureDate;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime()
+    );
+
+  // Get monthly dividends
+  const monthlyMap = new Map<string, typeof dividendPayouts>();
+  dividendPayouts.forEach((payout) => {
+    const date = new Date(payout.paymentDate);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    if (!monthlyMap.has(monthKey)) {
+      monthlyMap.set(monthKey, []);
+    }
+    monthlyMap.get(monthKey)!.push(payout);
+  });
+  const monthlyDividends = Array.from(monthlyMap.entries())
+    .map(([month, payouts]) => ({
+      month,
+      total: payouts.reduce((sum, p) => sum + p.amount, 0),
+      payouts,
+    }))
+    .sort((a, b) => a.month.localeCompare(b.month));
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
