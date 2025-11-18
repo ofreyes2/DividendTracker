@@ -1,0 +1,67 @@
+# Dividend Stock Tickers
+# Add one ticker symbol per line
+# Lines starting with # are comments and will be ignored
+
+# Technology
+AAPL
+MSFT
+IBM
+CSCO
+INTC
+TXN
+QCOM
+AVGO
+
+# Healthcare
+JNJ
+PFE
+ABBV
+MRK
+BMY
+AMGN
+GILD
+LLY
+
+# Consumer Goods
+PG
+KO
+PEP
+PM
+MO
+CL
+
+# Energy
+XOM
+CVX
+COP
+KMI
+OKE
+
+# Financials
+JPM
+BAC
+USB
+WFC
+BLK
+
+# Utilities
+NEE
+DUK
+SO
+AEP
+D
+
+# Industrials
+MMM
+CAT
+UPS
+HON
+LMT
+
+# Telecommunications
+T
+VZ
+
+# Real Estate
+O
+STAG

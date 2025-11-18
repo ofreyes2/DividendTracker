@@ -312,24 +312,51 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
 }
 
 /**
- * Fetch multiple stocks in batch
+ * Fetch multiple stocks in batch with optimized rate limiting
  */
-export async function fetchMultipleStocks(symbols: string[]): Promise<DividendStock[]> {
+export async function fetchMultipleStocks(
+  symbols: string[],
+  onProgress?: (current: number, total: number, symbol: string) => void
+): Promise<DividendStock[]> {
   console.log(`Fetching data for ${symbols.length} stocks...`);
 
   const stocks: DividendStock[] = [];
 
-  // Fetch stocks one by one to avoid rate limiting
-  for (const symbol of symbols) {
+  // Fetch stocks with rate limiting - 5 requests per second
+  for (let i = 0; i < symbols.length; i++) {
+    const symbol = symbols[i];
+
+    if (onProgress) {
+      onProgress(i + 1, symbols.length, symbol);
+    }
+
     const stock = await fetchCompleteStockData(symbol);
     if (stock) {
       stocks.push(stock);
     }
 
-    // Small delay to avoid rate limiting (5 requests per second on free tier)
-    await new Promise(resolve => setTimeout(resolve, 250));
+    // Rate limiting: 5 requests per second = 200ms delay
+    if (i < symbols.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
   }
 
   console.log(`Successfully fetched ${stocks.length} out of ${symbols.length} stocks`);
   return stocks;
+}
+
+/**
+ * Filter stocks to only include those with ex-dividend dates today or in the future
+ */
+export function filterFutureExDividendStocks(stocks: DividendStock[]): DividendStock[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset to start of day for comparison
+
+  return stocks.filter(stock => {
+    const exDate = new Date(stock.exDividendDate);
+    exDate.setHours(0, 0, 0, 0);
+
+    // Only include stocks with ex-dividend date today or later
+    return exDate >= today;
+  });
 }

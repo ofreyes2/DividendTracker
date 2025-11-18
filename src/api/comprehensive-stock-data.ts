@@ -549,7 +549,7 @@ export async function enhanceAllStocksWithFinnHub(
 /**
  * Enhance stock data with real-time data from Polygon.io
  */
-import { fetchCompleteStockData } from "./polygon-api";
+import { fetchCompleteStockData, filterFutureExDividendStocks } from "./polygon-api";
 
 export async function enhanceStockWithPolygon(
   stock: DividendStock
@@ -571,10 +571,11 @@ export async function enhanceStockWithPolygon(
 }
 
 /**
- * Enhance all stocks with real-time Polygon.io data
+ * Enhance all stocks with real-time Polygon.io data and filter to future dates only
  */
 export async function enhanceAllStocksWithPolygon(
-  onProgress?: (current: number, total: number, symbol: string) => void
+  onProgress?: (current: number, total: number, symbol: string) => void,
+  filterToFutureDatesOnly: boolean = true
 ): Promise<DividendStock[]> {
   const enhancedStocks: DividendStock[] = [];
 
@@ -587,10 +588,102 @@ export async function enhanceAllStocksWithPolygon(
       onProgress(i + 1, ALL_DIVIDEND_STOCKS.length, stock.symbol);
     }
 
-    // Rate limiting - Polygon free tier allows 5 requests per second
+    // Rate limiting - 5 requests per second = 200ms delay
     if (i < ALL_DIVIDEND_STOCKS.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 250));
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
+  }
+
+  // Filter to only include stocks with ex-dividend dates today or in the future
+  if (filterToFutureDatesOnly) {
+    const filteredStocks = filterFutureExDividendStocks(enhancedStocks);
+    console.log(`Filtered from ${enhancedStocks.length} to ${filteredStocks.length} stocks (future ex-dates only)`);
+    return filteredStocks;
+  }
+
+  return enhancedStocks;
+}
+
+/**
+ * Load and enhance stocks from custom ticker list
+ */
+export async function loadStocksFromTickers(
+  tickers: string[],
+  onProgress?: (current: number, total: number, symbol: string) => void,
+  filterToFutureDatesOnly: boolean = true
+): Promise<DividendStock[]> {
+  const enhancedStocks: DividendStock[] = [];
+
+  for (let i = 0; i < tickers.length; i++) {
+    const ticker = tickers[i].trim().toUpperCase();
+
+    if (!ticker || ticker.startsWith("#")) {
+      continue; // Skip empty lines and comments
+    }
+
+    if (onProgress) {
+      onProgress(i + 1, tickers.length, ticker);
+    }
+
+    // Try to find in existing mock data first
+    const mockStock = ALL_DIVIDEND_STOCKS.find(s => s.symbol === ticker);
+    const stock = mockStock || {
+      symbol: ticker,
+      companyName: ticker,
+      sector: "Unknown",
+      industry: "Unknown",
+      indices: [],
+      marketCap: 0,
+      price: 0,
+      priceData: {
+        current: 0,
+        dayHigh: 0,
+        dayLow: 0,
+        week52High: 0,
+        week52Low: 0,
+        change: 0,
+        changePercent: 0,
+      },
+      volume: {
+        current: 0,
+        average: 0,
+      },
+      dividendAmount: 0,
+      dividendYield: 0,
+      exDividendDate: "2025-01-01",
+      recordDate: "2025-01-01",
+      paymentDate: "2025-01-01",
+      frequency: "quarterly" as const,
+      annualDividend: 0,
+      payoutRatio: 0,
+      dividendGrowth5Year: 0,
+      technicals: {
+        macd: { value: 0, signal: 0, histogram: 0 },
+        rsi: 50,
+        pegRatio: 1,
+        movingAverage50: 0,
+        movingAverage200: 0,
+      },
+      change: 0,
+      changePercent: 0,
+    } as DividendStock;
+
+    const enhanced = await enhanceStockWithPolygon(stock);
+    if (enhanced) {
+      enhancedStocks.push(enhanced);
+    }
+
+    // Rate limiting - 5 requests per second = 200ms delay
+    if (i < tickers.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+  }
+
+  // Filter to only include stocks with ex-dividend dates today or in the future
+  if (filterToFutureDatesOnly) {
+    const filteredStocks = filterFutureExDividendStocks(enhancedStocks);
+    console.log(`Filtered from ${enhancedStocks.length} to ${filteredStocks.length} stocks (future ex-dates only)`);
+    return filteredStocks;
   }
 
   return enhancedStocks;

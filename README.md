@@ -10,16 +10,27 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 
 ## Key Features
 
-### 0. **Real-Time Market Data (NEW 🆕)**
-- **Polygon.io Integration** - Optional real-time data fetching:
+### 0. **Real-Time Market Data with Auto-Refresh (NEW 🆕)**
+- **Polygon.io Integration** - Real-time data fetching:
   - Actual ex-dividend dates from market data
   - Live stock prices and volumes
   - Real technical indicators (RSI, MACD, Moving Averages)
   - Current market capitalization
-- **One-Click Loading** - Tap "Load Real-Time Data from Polygon.io" button
-- **Progress Tracking** - See loading progress as data is fetched
-- **Toggle Between Data Sources** - Switch between real-time and mock data
-- **Automatic Enhancement** - All features work seamlessly with live data
+- **Automatic Background Refresh** - Stocks refresh automatically:
+  - Daily auto-refresh by default (configurable)
+  - Automatically filters to show only future ex-dividend dates
+  - Stocks with past ex-dates are automatically removed
+- **Custom Ticker List** - Load any stocks you want:
+  - Edit `/tickers.txt` file with your preferred stock symbols
+  - Supports comments (lines starting with #)
+  - Automatically fetches dividend data for all tickers
+- **Smart Filtering** - Only shows relevant opportunities:
+  - Displays stocks with ex-dividend dates TODAY or FUTURE only
+  - Yesterday's opportunities automatically disappear
+  - Always see current and upcoming dividend capture trades
+- **Progress Tracking** - See loading progress as data is fetched (5 stocks per second)
+- **Persistent Storage** - Data cached locally between app sessions
+- **One-Click Manual Refresh** - Tap refresh icon to update anytime
 
 ### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks

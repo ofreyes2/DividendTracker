@@ -25,10 +25,10 @@ import {
   filterStocks,
   getAllSectors,
   getAllIndustries,
-  enhanceAllStocksWithPolygon,
   type DividendStock,
   type FilterOptions,
 } from "../api/comprehensive-stock-data";
+import { useStockDataStore } from "../state/stockDataStore";
 import { cn } from "../utils/cn";
 
 interface StockListScreenProps {
@@ -50,13 +50,31 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   const [pickerDate, setPickerDate] = useState(new Date());
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isLoadingRealData, setIsLoadingRealData] = useState(false);
-  const [realDataStocks, setRealDataStocks] = useState<DividendStock[]>([]);
-  const [loadingProgress, setLoadingProgress] = useState({ current: 0, total: 0, symbol: "" });
+
+  // Use stock data store
+  const {
+    stocks: storedStocks,
+    isRefreshing,
+    refreshProgress,
+    lastRefreshTime,
+    shouldAutoRefresh,
+    refreshStocks,
+  } = useStockDataStore();
+
+  // Auto-refresh on mount if needed
+  useEffect(() => {
+    if (shouldAutoRefresh()) {
+      console.log("Auto-refreshing stocks data...");
+      refreshStocks();
+    }
+  }, []);
+
+  // Use stored stocks or fallback to mock data
+  const availableStocks = storedStocks.length > 0 ? storedStocks : ALL_DIVIDEND_STOCKS;
 
   // Apply filters
   const filteredStocks = useMemo(() => {
-    let stocks = realDataStocks.length > 0 ? realDataStocks : ALL_DIVIDEND_STOCKS;
+    let stocks = availableStocks;
 
     // Apply search filter first
     if (searchQuery.trim()) {
@@ -100,22 +118,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
 
     // Apply custom filters
     return filterStocks(stocks, filters);
-  }, [filters, quickFilter, selectedDay, searchQuery, realDataStocks]);
-
-  // Load real data from Polygon.io
-  const loadRealData = async () => {
-    setIsLoadingRealData(true);
-    try {
-      const enhancedStocks = await enhanceAllStocksWithPolygon((current, total, symbol) => {
-        setLoadingProgress({ current, total, symbol });
-      });
-      setRealDataStocks(enhancedStocks);
-    } catch (error) {
-      console.error("Failed to load real data:", error);
-    } finally {
-      setIsLoadingRealData(false);
-    }
-  };
+  }, [filters, quickFilter, selectedDay, searchQuery, availableStocks]);
 
   const toggleStockSelection = (symbol: string) => {
     setSelectedStocks((prev) =>
@@ -188,9 +191,9 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         </View>
 
         {/* Load Real Data Button */}
-        {realDataStocks.length === 0 && !isLoadingRealData && (
+        {storedStocks.length === 0 && !isRefreshing && (
           <Pressable
-            onPress={loadRealData}
+            onPress={refreshStocks}
             className="bg-emerald-600 rounded-xl px-4 py-3 flex-row items-center justify-center mb-3 active:bg-emerald-700"
           >
             <Ionicons name="cloud-download" size={20} color="white" />
@@ -201,24 +204,24 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         )}
 
         {/* Loading Progress */}
-        {isLoadingRealData && (
+        {isRefreshing && (
           <View className="bg-blue-900/30 border border-blue-600 rounded-xl p-4 mb-3">
             <View className="flex-row items-center justify-between mb-2">
               <Text className="text-white font-semibold">
                 Loading Real Data...
               </Text>
               <Text className="text-blue-400 font-bold">
-                {loadingProgress.current}/{loadingProgress.total}
+                {refreshProgress.current}/{refreshProgress.total}
               </Text>
             </View>
             <Text className="text-slate-300 text-sm mb-2">
-              Fetching {loadingProgress.symbol}
+              Fetching {refreshProgress.symbol}
             </Text>
             <View className="bg-slate-700 rounded-full h-2 overflow-hidden">
               <View
                 className="bg-blue-500 h-2"
                 style={{
-                  width: `${(loadingProgress.current / loadingProgress.total) * 100}%`
+                  width: `${(refreshProgress.current / refreshProgress.total) * 100}%`
                 }}
               />
             </View>
@@ -226,16 +229,16 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         )}
 
         {/* Real Data Indicator */}
-        {realDataStocks.length > 0 && (
+        {storedStocks.length > 0 && (
           <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-2 flex-row items-center justify-between mb-3">
             <View className="flex-row items-center">
               <Ionicons name="checkmark-circle" size={20} color="#10b981" />
               <Text className="text-emerald-400 font-semibold ml-2">
-                Using Real-Time Data
+                Using Real-Time Data {lastRefreshTime && `(${new Date(lastRefreshTime).toLocaleDateString()})`}
               </Text>
             </View>
-            <Pressable onPress={() => setRealDataStocks([])}>
-              <Text className="text-slate-400 text-sm">Use Mock Data</Text>
+            <Pressable onPress={refreshStocks}>
+              <Ionicons name="refresh" size={20} color="#10b981" />
             </Pressable>
           </View>
         )}
