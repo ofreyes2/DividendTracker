@@ -249,6 +249,26 @@ export default function BulkCalculatorScreen({ navigation, route }: Props) {
                   </Text>
                 </View>
               </View>
+              <View className="pt-3 border-t border-slate-700 mb-3">
+                <View className="flex-row justify-between">
+                  <View className="flex-1">
+                    <Text className="text-slate-400 text-xs mb-1">
+                      Dividend/Share
+                    </Text>
+                    <Text className="text-white text-sm font-semibold">
+                      {formatCurrency(allocation.stock.dividendAmount)}
+                    </Text>
+                  </View>
+                  <View className="flex-1 items-end">
+                    <Text className="text-slate-400 text-xs mb-1">
+                      Ex-Dividend Date
+                    </Text>
+                    <Text className="text-blue-400 text-sm font-bold">
+                      {allocation.stock.exDividendDate}
+                    </Text>
+                  </View>
+                </View>
+              </View>
               <View className="pt-3 border-t border-slate-700">
                 <View className="flex-row justify-between">
                   <Text className="text-slate-400 text-xs">Volume (Safety)</Text>
