@@ -1,45 +1,95 @@
-# Dividend Calendar - AI-Powered Stock Screener
+# DIVIDEND STRATEGY CALENDAR - AI-Powered Stock Screener
 
 A professional dividend stock screening and analysis app with AI-powered investment recommendations. Filter stocks by ex-dividend dates, calculate investment returns, and get personalized AI analysis for your investment strategy.
 
 ## Overview
 
-This app helps dividend investors find opportunities by filtering stocks based on ex-dividend dates (today, tomorrow, this week, or custom dates). It features a comprehensive database of 30+ dividend-paying stocks, real-time filtering, bulk investment calculations, and AI-powered analysis to help you make informed investment decisions.
+This app helps dividend investors find opportunities by filtering stocks based on ex-dividend dates (today, tomorrow, this week, or specific day). It features a comprehensive database of 45+ dividend-paying stocks, real-time filtering, detailed stock information, bulk investment calculations, and AI-powered analysis to help you make informed investment decisions.
 
 ## Key Features
 
-### 1. **Dividend Calendar with Smart Filtering**
-- **Complete Stock Universe** - Browse all 30+ dividend-paying stocks
+### 1. **Dividend Strategy Calendar with Smart Filtering**
+- **Complete Stock Universe** - Browse all 45+ dividend-paying stocks
 - **Quick Filters** - Find stocks with ex-dividend dates:
+  - All stocks
   - Today
   - Tomorrow
   - This Week
-  - All stocks
-- **Advanced Filters** (coming soon) - Filter by:
+  - Specific Day (custom date picker)
+- **Advanced Filters** - Filter by:
   - Specific dates or date ranges
   - Month or quarter
   - Dividend yield ranges
-  - Sectors
-  - Market cap
+  - Sectors and industries
+  - Market indices
+  - Volume ranges
+  - Technical indicators (RSI, PEG ratio)
 
-### 2. **Comprehensive Stock Information**
-Each stock displays:
-- **Company Name** - Full company name, not just ticker
+### 2. **Comprehensive Stock Information on Cards**
+Each stock card displays:
+- **Company Name & Symbol** - Full company identification
 - **Current Price** - Real-time pricing with daily change
-- **Dividend Yield** - Percentage return from dividends
-- **Annual Dividend** - Total yearly dividend payment
-- **Ex-Dividend Date** - Key date for dividend eligibility
-- **Payment Frequency** - Monthly, quarterly, semi-annual, or annual
-- **Sector** - Industry classification
-- **Market Cap** - Company size
+- **Dividend Information**:
+  - Dividend Yield percentage
+  - Dividend Amount per Distribution
+  - Annual Dividend total
+  - Ex-Dividend Date
+- **Price Ranges**:
+  - Day High/Low
+  - 52-Week High/Low
+- **Volume Data**:
+  - Current Volume (in millions)
+  - Average Volume (30-day)
+- **Company Details**:
+  - Sector and Industry
+  - Stock Market Indices (S&P 500, Dow Jones, NASDAQ 100)
+- **Technical Rating**:
+  - RSI-based rating (Strong, Neutral, Overbought, Oversold)
+  - Color-coded indicators
 
-### 3. **Bulk Investment Calculator**
+### 3. **Detailed Stock Analysis Screen**
+Tap any stock card to view in-depth analysis:
+- **Price Information**:
+  - Current price with daily change
+  - Interactive price range visualizations
+  - Day and 52-week ranges with position indicators
+- **Key Metrics**:
+  - Market capitalization
+  - Dividend yield
+  - Payout ratio
+  - 5-year dividend growth rate
+  - Volume statistics
+- **Dividend Details**:
+  - Payment frequency
+  - Dividend per payment
+  - Annual dividend
+  - Important dates (Ex-dividend, Record, Payment)
+- **Technical Analysis**:
+  - Overall technical rating
+  - RSI (Relative Strength Index)
+  - MACD indicators
+  - PEG Ratio
+  - 50-day and 200-day moving averages
+  - Key technical signals with interpretation
+- **Company Information**:
+  - Complete sector and industry classification
+  - Stock market indices membership
+- **AI-Powered Analysis** (on-demand):
+  - Investment score (0-100)
+  - Buy/Hold/Avoid recommendation
+  - Risk level assessment
+  - Investment timeframe
+  - Strengths and concerns
+  - Detailed reasoning
+
+### 4. **Bulk Investment Calculator**
 - **Multi-Stock Selection** - Select any number of stocks from filtered results
 - **Equal Distribution** - Automatically divides investment equally across selected stocks
 - **Whole Share Calculations** - Shows exactly how many shares you can purchase
 - **Detailed Breakdown** - Per-stock investment details:
   - Amount invested
   - Shares purchased
+  - Dividend per payment
   - Annual dividend income
   - Monthly dividend income
 - **Portfolio Summary**:
@@ -48,7 +98,7 @@ Each stock displays:
   - Total annual dividends
   - Expected monthly income
 
-### 4. **AI-Powered Analysis (GPT-4o)**
+### 5. **AI-Powered Bulk Analysis (GPT-4o)**
 - **Smart Recommendations** - AI analyzes all selected stocks
 - **Three Investment Scenarios**:
   - **Best Buys** - Top-rated stocks by overall score
@@ -63,17 +113,19 @@ Each stock displays:
   - Detailed reasoning
 - **Expected Returns** - AI-calculated expected return percentages
 
-### 5. **Beautiful Professional UI**
+### 6. **Beautiful Professional UI**
 - Dark theme optimized for financial data
-- Stock selection with checkboxes
+- Tap stock cards to view detailed analysis
+- Checkbox selection for bulk operations
 - Real-time calculations
 - Smooth animations
 - Native iOS design patterns
 - Color-coded indicators
+- Visual progress bars for price ranges
 
 ## Available Stocks
 
-The app includes 30+ dividend stocks across multiple sectors:
+The app includes 45+ dividend stocks across multiple sectors with complete technical data:
 
 ### Technology
 - **AAPL** - Apple Inc. (0.54% yield)
@@ -125,38 +177,64 @@ The app includes 30+ dividend stocks across multiple sectors:
 
 ## User Workflow
 
-### Finding Dividend Opportunities
+### Browsing and Filtering Stocks
 
-1. **Open App** → See all dividend stocks
-2. **Apply Quick Filter** → Tap "Today" to see stocks going ex-dividend today
-3. **Review Options** → See stock names, prices, yields, and ex-dividend dates
-4. **Select Stocks** → Tap checkboxes to select interesting opportunities
-5. **Enter Investment** → Input your total investment amount at the top
+1. **Open App** → See DIVIDEND STRATEGY CALENDAR with all stocks
+2. **Apply Quick Filter** → Tap "Today", "Tomorrow", "Week", or "Day" for specific dates
+3. **Custom Day Filter** → Select "Day" and enter specific date (YYYY-MM-DD format)
+4. **Review Stock Cards** → See comprehensive information:
+   - Price with daily change
+   - Dividend yield, distribution amount, and annual dividend
+   - Day high/low and 52-week high/low
+   - Volume data
+   - Sector, industry, and indices
+   - Technical rating based on RSI
+5. **Tap Any Stock** → View detailed analysis screen
 
-### Calculating Returns
+### Viewing Detailed Stock Analysis
 
-6. **Tap "Calculate"** → Opens bulk calculator
-7. **View Breakdown** → See per-stock allocation:
-   - How many shares of each stock
-   - Investment amount per stock
-   - Annual and monthly dividend income per stock
-8. **Review Summary** → Total monthly dividend income from all stocks
+6. **Stock Detail Screen** → Comprehensive analysis:
+   - Price ranges with visual indicators
+   - Complete dividend information with all important dates
+   - Technical analysis with RSI, MACD, PEG ratio, moving averages
+   - Company information and index membership
+7. **Request AI Analysis** → Tap "AI Analyze" button for in-depth AI evaluation
+8. **Review AI Insights**:
+   - Investment score (0-100)
+   - Buy/Hold/Avoid recommendation
+   - Risk assessment
+   - Strengths and concerns
+   - Detailed reasoning
+9. **Navigate Back** → Return to calendar to explore more stocks
 
-### Getting AI Recommendations
+### Calculating Portfolio Returns
 
-9. **Tap "AI Analyze"** → Launches AI analysis
-10. **Wait for Analysis** → AI analyzes all selected stocks (10-20 seconds)
-11. **Review Scenarios**:
+10. **Select Multiple Stocks** → Tap checkboxes on stock cards (doesn't navigate to detail)
+11. **Enter Investment** → Input your total investment amount at the top
+12. **Tap "Calculate"** → Opens bulk calculator
+13. **View Breakdown** → See per-stock allocation:
+    - How many shares of each stock
+    - Investment amount per stock
+    - Dividend per payment
+    - Annual and monthly dividend income per stock
+14. **Review Summary** → Total monthly dividend income from all stocks
+
+### Getting AI Investment Recommendations
+
+15. **Select Stocks** → Choose multiple stocks via checkboxes
+16. **Tap "AI Analyze"** → Launches bulk AI analysis
+17. **Wait for Analysis** → AI analyzes all selected stocks (10-20 seconds)
+18. **Review Scenarios**:
     - **Best Buys** - Highest-rated stocks overall
     - **High Yield** - Maximum dividend income
     - **Low Risk** - Safest dividend payers
-12. **Read Details** → For each recommended stock:
+19. **Read Details** → For each recommended stock:
     - Investment score
     - Buy/Hold/Avoid recommendation
     - Risk level
     - Pros and cons
     - Detailed reasoning
-13. **Make Decision** → Use AI insights to refine your selection
+20. **Make Decision** → Use AI insights to refine your selection
 
 ## Tech Stack
 
@@ -174,11 +252,13 @@ The app includes 30+ dividend stocks across multiple sectors:
 ```
 src/
 ├── api/
-│   ├── comprehensive-stock-data.ts  # Complete stock database & filtering
+│   ├── comprehensive-stock-data.ts  # Complete stock database with 45+ stocks
+│   │                                 # Technical indicators, volume, price ranges
 │   ├── ai-analysis.ts               # AI-powered stock analysis
 │   └── chat-service.ts              # OpenAI API integration
 ├── screens/
 │   ├── StockListScreen.tsx          # Main calendar/filter screen
+│   ├── StockDetailScreen.tsx        # Detailed stock analysis screen
 │   ├── BulkCalculatorScreen.tsx     # Investment calculator
 │   └── AIAnalysisScreen.tsx         # AI analysis & recommendations
 ├── navigation/
@@ -192,36 +272,69 @@ src/
 **DividendStock**:
 ```typescript
 {
-  symbol: string;           // "AAPL"
-  companyName: string;      // "Apple Inc."
-  price: number;            // 178.45
-  change: number;           // 2.15
-  changePercent: number;    // 1.22
-  dividendAmount: number;   // 0.24 (per payment)
-  dividendYield: number;    // 0.54
-  exDividendDate: string;   // "2025-11-18"
-  recordDate: string;       // "2025-11-19"
-  paymentDate: string;      // "2025-11-26"
-  frequency: string;        // "quarterly"
-  annualDividend: number;   // 0.96
-  sector: string;           // "Technology"
-  marketCap: number;        // 2800 (billions)
+  symbol: string;                    // "AAPL"
+  companyName: string;               // "Apple Inc."
+  sector: string;                    // "Technology"
+  industry: string;                  // "Consumer Electronics"
+  indices: string[];                 // ["S&P 500", "Dow Jones", "NASDAQ 100"]
+  marketCap: number;                 // 2800 (billions)
+
+  // Price information
+  price: number;                     // 178.45
+  priceData: {
+    current: number;                 // 178.45
+    dayHigh: number;                 // 180.60
+    dayLow: number;                  // 176.73
+    week52High: number;              // 250.78
+    week52Low: number;               // 139.04
+    change: number;                  // 2.15
+    changePercent: number;           // 1.22
+  };
+
+  // Volume
+  volume: {
+    current: number;                 // 58.5 (millions)
+    average: number;                 // 52.3 (millions)
+  };
+
+  // Dividend information
+  dividendAmount: number;            // 0.24 (per payment)
+  dividendYield: number;             // 0.54
+  exDividendDate: string;            // "2025-11-18"
+  recordDate: string;                // "2025-11-19"
+  paymentDate: string;               // "2025-11-26"
+  frequency: string;                 // "quarterly"
+  annualDividend: number;            // 0.96
+  payoutRatio: number;               // 45 (percentage)
+  dividendGrowth5Year: number;       // 8.5 (percentage)
+
+  // Technical indicators
+  technicals: {
+    macd: { value, signal, histogram };
+    rsi: number;                     // 0-100
+    pegRatio: number;
+    movingAverage50: number;
+    movingAverage200: number;
+  };
 }
 ```
 
 ### API Services
 
 **Stock Data API** (`comprehensive-stock-data.ts`):
-- `ALL_DIVIDEND_STOCKS` - Complete stock database
-- `filterStocks(stocks, filters)` - Apply filtering criteria
+- `ALL_DIVIDEND_STOCKS` - Complete stock database with 45+ stocks
+- `filterStocks(stocks, filters)` - Apply advanced filtering criteria
 - `getStocksExDividendToday()` - Stocks going ex-dividend today
 - `getStocksExDividendTomorrow()` - Tomorrow's opportunities
 - `getStocksExDividendThisWeek()` - This week's opportunities
+- `getAllSectors()` - Get unique sectors
+- `getAllIndustries()` - Get unique industries
+- `getAllIndices()` - Get unique market indices
 - `calculateBulkInvestment()` - Calculate investment allocations
 
 **AI Analysis API** (`ai-analysis.ts`):
-- `analyzeStock()` - Analyze single stock
-- `analyzeStocksInBulk()` - Analyze multiple stocks with scenarios
+- `analyzeStock(stock, investmentAmount)` - Analyze single stock with AI
+- `analyzeStocksInBulk(stocks, investmentAmount)` - Analyze multiple stocks with scenarios
 - `getQuickRecommendation()` - Fast AI recommendation
 
 ## Design Philosophy
@@ -278,9 +391,12 @@ src/
 
 ## Future Enhancements
 
+- [x] Custom date/day filters
+- [x] Detailed stock analysis screen
+- [x] Technical indicators (RSI, MACD, PEG)
+- [x] Volume and price range data
+- [x] Individual stock AI analysis
 - [ ] Real-time stock data API integration
-- [ ] Custom date range filters
-- [ ] Sector and yield range filters
 - [ ] Historical dividend data and charts
 - [ ] Dividend reinvestment (DRIP) calculations
 - [ ] Tax implications calculator
@@ -289,14 +405,20 @@ src/
 - [ ] Save and compare multiple portfolios
 - [ ] Dividend payment calendar view
 - [ ] Integration with brokerage APIs
+- [ ] Watchlist functionality
+- [ ] Price alerts
 
 ## Notes
 
-- Stock data is currently mock data with realistic values
+- Stock data includes realistic mock values with complete technical indicators
 - Ex-dividend dates are set to current week for demo purposes
-- AI analysis uses OpenAI GPT-4o API
+- Technical indicators (RSI, MACD, PEG) are generated algorithmically
+- Volume data is simulated in millions of shares
+- AI analysis uses OpenAI GPT-4o API for both individual and bulk analysis
 - All calculations are client-side for instant feedback
-- Designed for iOS-first experience
+- Designed for iOS-first experience with native navigation
+- Stock cards are tappable for detailed analysis
+- Checkbox selection for bulk operations
 
 ---
 

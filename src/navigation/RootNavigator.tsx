@@ -6,12 +6,16 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import StockListScreen from "../screens/StockListScreen";
+import StockDetailScreen from "../screens/StockDetailScreen";
 import BulkCalculatorScreen from "../screens/BulkCalculatorScreen";
 import AIAnalysisScreen from "../screens/AIAnalysisScreen";
 import type { DividendStock } from "../api/comprehensive-stock-data";
 
 export type RootStackParamList = {
   StockList: undefined;
+  StockDetail: {
+    stock: DividendStock;
+  };
   BulkCalculator: {
     stocks: DividendStock[];
     investmentAmount: number;
@@ -34,6 +38,7 @@ export default function RootNavigator() {
       initialRouteName="StockList"
     >
       <Stack.Screen name="StockList" component={StockListScreen} />
+      <Stack.Screen name="StockDetail" component={StockDetailScreen} />
       <Stack.Screen
         name="BulkCalculator"
         component={BulkCalculatorScreen}

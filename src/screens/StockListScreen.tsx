@@ -35,9 +35,10 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   const [filters, setFilters] = useState<FilterOptions>({});
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [quickFilter, setQuickFilter] = useState<
-    "all" | "today" | "tomorrow" | "week"
+    "all" | "today" | "tomorrow" | "week" | "day"
   >("all");
   const [investmentAmount, setInvestmentAmount] = useState("10000");
+  const [selectedDay, setSelectedDay] = useState<string>("");
 
   // Apply filters
   const filteredStocks = useMemo(() => {
@@ -59,11 +60,13 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         const exDate = new Date(s.exDividendDate);
         return exDate >= new Date(today) && exDate <= endOfWeek;
       });
+    } else if (quickFilter === "day" && selectedDay) {
+      stocks = stocks.filter((s) => s.exDividendDate === selectedDay);
     }
 
     // Apply custom filters
     return filterStocks(stocks, filters);
-  }, [filters, quickFilter]);
+  }, [filters, quickFilter, selectedDay]);
 
   const toggleStockSelection = (symbol: string) => {
     setSelectedStocks((prev) =>
@@ -102,7 +105,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         className="px-6 pb-4 bg-[#1a2332] border-b border-slate-700"
       >
         <Text className="text-white text-3xl font-bold mb-2">
-          Dividend Calendar
+          DIVIDEND STRATEGY CALENDAR
         </Text>
         <Text className="text-slate-400 text-base mb-4">
           {filteredStocks.length} stocks found
@@ -121,7 +124,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           >
             <Text
               className={cn(
-                "text-center font-semibold",
+                "text-center font-semibold text-xs",
                 quickFilter === "all" ? "text-white" : "text-slate-400"
               )}
             >
@@ -139,7 +142,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           >
             <Text
               className={cn(
-                "text-center font-semibold",
+                "text-center font-semibold text-xs",
                 quickFilter === "today" ? "text-white" : "text-slate-400"
               )}
             >
@@ -157,7 +160,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           >
             <Text
               className={cn(
-                "text-center font-semibold",
+                "text-center font-semibold text-xs",
                 quickFilter === "tomorrow" ? "text-white" : "text-slate-400"
               )}
             >
@@ -175,14 +178,48 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           >
             <Text
               className={cn(
-                "text-center font-semibold",
+                "text-center font-semibold text-xs",
                 quickFilter === "week" ? "text-white" : "text-slate-400"
               )}
             >
-              This Week
+              Week
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setQuickFilter("day")}
+            className={cn(
+              "flex-1 py-3 rounded-xl border",
+              quickFilter === "day"
+                ? "bg-blue-600 border-blue-600"
+                : "bg-slate-800 border-slate-700"
+            )}
+          >
+            <Text
+              className={cn(
+                "text-center font-semibold text-xs",
+                quickFilter === "day" ? "text-white" : "text-slate-400"
+              )}
+            >
+              Day
             </Text>
           </Pressable>
         </View>
+
+        {/* Day Picker - shown when "Day" filter is selected */}
+        {quickFilter === "day" && (
+          <View className="bg-slate-800 rounded-xl p-4 mb-3">
+            <Text className="text-slate-400 text-xs mb-2">
+              Select Ex-Dividend Date
+            </Text>
+            <TextInput
+              value={selectedDay}
+              onChangeText={setSelectedDay}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor="#64748b"
+              className="text-white text-base font-semibold bg-slate-700 rounded-lg p-3"
+            />
+          </View>
+        )}
 
         {/* Investment Amount Input */}
         <View className="bg-slate-800 rounded-xl p-4 mb-3">
@@ -231,70 +268,88 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 key={stock.symbol}
                 entering={FadeInDown.delay(index * 30)}
               >
-                <Pressable
-                  onPress={() => toggleStockSelection(stock.symbol)}
-                  className={cn(
-                    "rounded-2xl p-4 mb-3 border",
-                    selectedStocks.includes(stock.symbol)
-                      ? "bg-blue-900/30 border-blue-600"
-                      : "bg-[#1e293b] border-slate-700"
-                  )}
-                >
-                  {/* Header Row */}
-                  <View className="flex-row items-center justify-between mb-3">
-                    <View className="flex-row items-center flex-1">
-                      {/* Checkbox */}
-                      <View
-                        className={cn(
-                          "w-6 h-6 rounded-md border-2 items-center justify-center mr-3",
-                          selectedStocks.includes(stock.symbol)
-                            ? "bg-blue-600 border-blue-600"
-                            : "border-slate-600"
-                        )}
-                      >
-                        {selectedStocks.includes(stock.symbol) && (
-                          <Ionicons name="checkmark" size={16} color="white" />
-                        )}
+                <View className="relative">
+                  {/* Background Pressable for navigation */}
+                  <Pressable
+                    onPress={() => navigation.navigate("StockDetail", { stock })}
+                    className={cn(
+                      "rounded-2xl p-4 mb-3 border",
+                      selectedStocks.includes(stock.symbol)
+                        ? "bg-blue-900/30 border-blue-600"
+                        : "bg-[#1e293b] border-slate-700"
+                    )}
+                  >
+                    {/* Header Row */}
+                    <View className="flex-row items-center justify-between mb-3">
+                      <View className="flex-row items-center flex-1">
+                        {/* Checkbox - Separate Pressable to stop propagation */}
+                        <Pressable
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            toggleStockSelection(stock.symbol);
+                          }}
+                          className="mr-3"
+                        >
+                          <View
+                            className={cn(
+                              "w-6 h-6 rounded-md border-2 items-center justify-center",
+                              selectedStocks.includes(stock.symbol)
+                                ? "bg-blue-600 border-blue-600"
+                                : "border-slate-600"
+                            )}
+                          >
+                            {selectedStocks.includes(stock.symbol) && (
+                              <Ionicons name="checkmark" size={16} color="white" />
+                            )}
+                          </View>
+                        </Pressable>
+
+                        <View className="flex-1">
+                          <Text className="text-white text-lg font-bold">
+                            {stock.symbol}
+                          </Text>
+                          <Text
+                            className="text-slate-400 text-sm"
+                            numberOfLines={1}
+                          >
+                            {stock.companyName}
+                          </Text>
+                        </View>
                       </View>
 
-                      <View className="flex-1">
-                        <Text className="text-white text-lg font-bold">
-                          {stock.symbol}
+                      <View className="items-end">
+                        <Text className="text-white text-xl font-bold">
+                          {formatCurrency(stock.price)}
                         </Text>
                         <Text
-                          className="text-slate-400 text-sm"
-                          numberOfLines={1}
+                          className={cn(
+                            "text-sm font-medium",
+                            stock.change >= 0
+                              ? "text-emerald-400"
+                              : "text-red-400"
+                          )}
                         >
-                          {stock.companyName}
+                          {stock.change >= 0 ? "+" : ""}
+                          {stock.change.toFixed(2)}
                         </Text>
                       </View>
                     </View>
 
-                    <View className="items-end">
-                      <Text className="text-white text-xl font-bold">
-                        {formatCurrency(stock.price)}
-                      </Text>
-                      <Text
-                        className={cn(
-                          "text-sm font-medium",
-                          stock.change >= 0
-                            ? "text-emerald-400"
-                            : "text-red-400"
-                        )}
-                      >
-                        {stock.change >= 0 ? "+" : ""}
-                        {stock.change.toFixed(2)}
-                      </Text>
-                    </View>
-                  </View>
-
                   {/* Dividend Info */}
-                  <View className="bg-slate-800/50 rounded-xl p-3">
+                  <View className="bg-slate-800/50 rounded-xl p-3 mb-2">
                     <View className="flex-row justify-between mb-2">
                       <View>
                         <Text className="text-slate-400 text-xs">Yield</Text>
                         <Text className="text-emerald-400 text-lg font-bold">
                           {stock.dividendYield.toFixed(2)}%
+                        </Text>
+                      </View>
+                      <View className="items-center">
+                        <Text className="text-slate-400 text-xs">
+                          Distribution
+                        </Text>
+                        <Text className="text-white text-base font-semibold">
+                          {formatCurrency(stock.dividendAmount)}
                         </Text>
                       </View>
                       <View className="items-center">
@@ -310,16 +365,101 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                         </Text>
                       </View>
                     </View>
-                    <View className="flex-row justify-between items-center pt-2 border-t border-slate-700">
+                  </View>
+
+                  {/* Price & Volume Info */}
+                  <View className="bg-slate-800/30 rounded-xl p-3 mb-2">
+                    <View className="flex-row justify-between mb-2">
+                      <View className="flex-1">
+                        <Text className="text-slate-400 text-xs">
+                          Day Range
+                        </Text>
+                        <Text className="text-white text-sm font-semibold">
+                          {formatCurrency(stock.priceData.dayLow)} -{" "}
+                          {formatCurrency(stock.priceData.dayHigh)}
+                        </Text>
+                      </View>
+                      <View className="flex-1 items-end">
+                        <Text className="text-slate-400 text-xs">
+                          52-Week Range
+                        </Text>
+                        <Text className="text-white text-sm font-semibold">
+                          {formatCurrency(stock.priceData.week52Low)} -{" "}
+                          {formatCurrency(stock.priceData.week52High)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="flex-row justify-between">
+                      <View>
+                        <Text className="text-slate-400 text-xs">Volume</Text>
+                        <Text className="text-white text-sm font-semibold">
+                          {stock.volume.current.toFixed(1)}M
+                        </Text>
+                      </View>
+                      <View className="items-end">
+                        <Text className="text-slate-400 text-xs">
+                          Avg Volume
+                        </Text>
+                        <Text className="text-white text-sm font-semibold">
+                          {stock.volume.average.toFixed(1)}M
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Company Details */}
+                  <View className="flex-row justify-between items-center pt-2 border-t border-slate-700">
+                    <View className="flex-1">
                       <Text className="text-slate-500 text-xs">
-                        {stock.sector}
+                        {stock.sector} • {stock.industry}
                       </Text>
-                      <Text className="text-slate-500 text-xs capitalize">
-                        {stock.frequency}
-                      </Text>
+                      {stock.indices.length > 0 && (
+                        <Text className="text-slate-500 text-xs mt-1">
+                          {stock.indices.join(" • ")}
+                        </Text>
+                      )}
+                    </View>
+                    <View className="items-end">
+                      <Text className="text-slate-400 text-xs">Rating</Text>
+                      <View className="flex-row items-center mt-1">
+                        <Ionicons
+                          name="star"
+                          size={14}
+                          color={
+                            stock.technicals.rsi >= 70
+                              ? "#ef4444"
+                              : stock.technicals.rsi >= 50
+                              ? "#10b981"
+                              : stock.technicals.rsi >= 30
+                              ? "#3b82f6"
+                              : "#ef4444"
+                          }
+                        />
+                        <Text
+                          className={cn(
+                            "text-sm font-bold ml-1",
+                            stock.technicals.rsi >= 70
+                              ? "text-red-400"
+                              : stock.technicals.rsi >= 50
+                              ? "text-emerald-400"
+                              : stock.technicals.rsi >= 30
+                              ? "text-blue-400"
+                              : "text-red-400"
+                          )}
+                        >
+                          {stock.technicals.rsi >= 70
+                            ? "Overbought"
+                            : stock.technicals.rsi >= 50
+                            ? "Strong"
+                            : stock.technicals.rsi >= 30
+                            ? "Neutral"
+                            : "Oversold"}
+                        </Text>
+                      </View>
                     </View>
                   </View>
                 </Pressable>
+                </View>
               </Animated.View>
             ))
           )}
