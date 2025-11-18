@@ -5,14 +5,21 @@
 
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import DividendScreener from "../screens/DividendScreener";
-import AddStockModal from "../screens/AddStockModal";
-import InvestmentCalculator from "../screens/InvestmentCalculator";
+import StockListScreen from "../screens/StockListScreen";
+import BulkCalculatorScreen from "../screens/BulkCalculatorScreen";
+import AIAnalysisScreen from "../screens/AIAnalysisScreen";
+import type { DividendStock } from "../api/comprehensive-stock-data";
 
 export type RootStackParamList = {
-  DividendScreener: undefined;
-  AddStockModal: undefined;
-  InvestmentCalculator: undefined;
+  StockList: undefined;
+  BulkCalculator: {
+    stocks: DividendStock[];
+    investmentAmount: number;
+  };
+  AIAnalysis: {
+    stocks: DividendStock[];
+    investmentAmount: number;
+  };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -24,19 +31,20 @@ export default function RootNavigator() {
         headerShown: false,
         animation: "default",
       }}
+      initialRouteName="StockList"
     >
-      <Stack.Screen name="DividendScreener" component={DividendScreener} />
+      <Stack.Screen name="StockList" component={StockListScreen} />
       <Stack.Screen
-        name="AddStockModal"
-        component={AddStockModal}
+        name="BulkCalculator"
+        component={BulkCalculatorScreen}
         options={{
           presentation: "modal",
           animation: "slide_from_bottom",
         }}
       />
       <Stack.Screen
-        name="InvestmentCalculator"
-        component={InvestmentCalculator}
+        name="AIAnalysis"
+        component={AIAnalysisScreen}
         options={{
           presentation: "modal",
           animation: "slide_from_bottom",
