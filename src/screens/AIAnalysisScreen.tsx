@@ -28,7 +28,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "AIAnalysis">;
 
 export default function AIAnalysisScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const { stocks, investmentAmount, targetDividend, selectedDay } = route.params;
+  const { stocks, investmentAmount, targetDividend, selectedDay, showMaximum } = route.params;
 
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const [analyses, setAnalyses] = useState<StockAnalysis[]>([]);
@@ -52,14 +52,55 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
     totalAnnualDividend: number;
     message: string;
   } | null>(null);
+  const [maximumResult, setMaximumResult] = useState<{
+    maxSingleStockOption: {
+      stock: any;
+      shares: number;
+      investmentAmount: number;
+      singlePayoutDividend: number;
+      safetyTier: string;
+      volumeRating: string;
+    };
+    multiStockOption: {
+      suggestions: Array<{
+        stock: any;
+        shares: number;
+        investmentAmount: number;
+        singlePayoutDividend: number;
+        safetyTier: string;
+      }>;
+      totalInvestment: number;
+      totalDividend: number;
+    };
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
-    if (targetDividend && targetDividend > 0) {
+    if (showMaximum) {
+      calculateMaximumDividend();
+    } else if (targetDividend && targetDividend > 0) {
       calculateSmartSuggestions();
     } else {
       analyzeStocks();
     }
   }, []);
+
+  const calculateMaximumDividend = async () => {
+    setIsAnalyzing(true);
+    try {
+      const { calculateMaximumSafeDividend } = await import("../api/ai-analysis");
+      const result = await calculateMaximumSafeDividend(
+        stocks,
+        investmentAmount,
+        selectedDay
+      );
+      setMaximumResult(result);
+    } catch (error) {
+      console.error("Failed to calculate maximum dividend:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const calculateSmartSuggestions = async () => {
     setIsAnalyzing(true);
@@ -171,12 +212,133 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#3b82f6" />
           <Text className="text-white text-lg font-semibold mt-4">
-            {targetDividend ? "Calculating optimal portfolio..." : `Analyzing ${stocks.length} stocks...`}
+            {showMaximum ? "Calculating maximum safe dividend..." : targetDividend ? "Calculating optimal portfolio..." : `Analyzing ${stocks.length} stocks...`}
           </Text>
           <Text className="text-slate-400 text-sm mt-2">
             This may take a moment
           </Text>
         </View>
+      ) : maximumResult ? (
+        // Maximum Safe Dividend View
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
+          <View className="p-4">
+            {/* Result Message */}
+            <View className="bg-emerald-900/30 border border-emerald-600 rounded-2xl p-4 mb-4">
+              <View className="flex-row items-start">
+                <Ionicons name="shield-checkmark" size={24} color="#10b981" />
+                <View className="flex-1 ml-3">
+                  <Text className="text-white text-base font-semibold mb-2">
+                    Maximum Safe Dividend Found
+                  </Text>
+                  <Text className="text-slate-300 text-sm">
+                    {maximumResult.message}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Best Single Stock Option */}
+            <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-emerald-700">
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-emerald-400 text-lg font-bold">BEST SINGLE STOCK</Text>
+                <View className="bg-emerald-600 px-3 py-1 rounded-lg">
+                  <Text className="text-white text-xs font-bold">{maximumResult.maxSingleStockOption.safetyTier}</Text>
+                </View>
+              </View>
+
+              <Pressable
+                onPress={() => navigation.navigate("StockDetail", { stock: maximumResult.maxSingleStockOption.stock })}
+                className="bg-slate-800/50 rounded-xl p-4 mb-3"
+              >
+                <View className="flex-row items-center justify-between mb-3">
+                  <View className="flex-1">
+                    <Text className="text-white text-2xl font-bold">{maximumResult.maxSingleStockOption.stock.symbol}</Text>
+                    <Text className="text-slate-400 text-sm">{maximumResult.maxSingleStockOption.stock.companyName}</Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-white text-xl font-bold">${maximumResult.maxSingleStockOption.stock.price.toFixed(2)}</Text>
+                    <Text className="text-emerald-400 text-sm">{maximumResult.maxSingleStockOption.stock.dividendYield.toFixed(2)}% yield</Text>
+                  </View>
+                </View>
+
+                <View className="bg-slate-900/50 rounded-lg p-3">
+                  <View className="flex-row justify-between mb-2">
+                    <View className="flex-1">
+                      <Text className="text-slate-400 text-xs">Shares to Buy</Text>
+                      <Text className="text-white text-base font-bold">{maximumResult.maxSingleStockOption.shares.toLocaleString()}</Text>
+                    </View>
+                    <View className="flex-1 items-center">
+                      <Text className="text-slate-400 text-xs">Investment</Text>
+                      <Text className="text-white text-base font-semibold">${maximumResult.maxSingleStockOption.investmentAmount.toLocaleString()}</Text>
+                    </View>
+                    <View className="flex-1 items-end">
+                      <Text className="text-slate-400 text-xs">Max Dividend</Text>
+                      <Text className="text-emerald-400 text-xl font-bold">${maximumResult.maxSingleStockOption.singlePayoutDividend.toFixed(2)}</Text>
+                    </View>
+                  </View>
+                  <View className="pt-2 border-t border-slate-700">
+                    <Text className="text-slate-400 text-xs mb-1">Volume Safety</Text>
+                    <Text className="text-blue-400 text-sm font-bold">{maximumResult.maxSingleStockOption.volumeRating}</Text>
+                  </View>
+                </View>
+              </Pressable>
+            </View>
+
+            {/* Multi-Stock Diversification Option */}
+            {maximumResult.multiStockOption.suggestions.length > 0 && (
+              <View className="mb-4">
+                <Text className="text-white text-lg font-bold mb-3">
+                  Alternative: 3-Stock Diversification
+                </Text>
+                <View className="bg-[#1e293b] rounded-2xl p-4 mb-3 border border-slate-700">
+                  <View className="flex-row justify-between mb-3">
+                    <View>
+                      <Text className="text-slate-400 text-xs">Total Investment</Text>
+                      <Text className="text-white text-base font-semibold">${maximumResult.multiStockOption.totalInvestment.toLocaleString()}</Text>
+                    </View>
+                    <View className="items-end">
+                      <Text className="text-slate-400 text-xs">Total Dividend</Text>
+                      <Text className="text-emerald-400 text-lg font-bold">${maximumResult.multiStockOption.totalDividend.toFixed(2)}</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {maximumResult.multiStockOption.suggestions.map((suggestion, index) => (
+                  <Animated.View key={suggestion.stock.symbol} entering={FadeInDown.delay(index * 100)}>
+                    <Pressable
+                      onPress={() => navigation.navigate("StockDetail", { stock: suggestion.stock })}
+                      className="bg-[#1e293b] rounded-2xl p-4 mb-3 border border-slate-700"
+                    >
+                      <View className="flex-row items-center justify-between mb-2">
+                        <View className="flex-1">
+                          <Text className="text-white text-lg font-bold">{suggestion.stock.symbol}</Text>
+                          <Text className="text-slate-400 text-sm">{suggestion.stock.companyName}</Text>
+                        </View>
+                        <View className="bg-blue-600 px-2 py-1 rounded">
+                          <Text className="text-white text-xs font-bold">{suggestion.safetyTier}</Text>
+                        </View>
+                      </View>
+                      <View className="flex-row justify-between">
+                        <View className="flex-1">
+                          <Text className="text-slate-400 text-xs">Shares</Text>
+                          <Text className="text-white text-sm font-semibold">{suggestion.shares}</Text>
+                        </View>
+                        <View className="flex-1 items-center">
+                          <Text className="text-slate-400 text-xs">Investment</Text>
+                          <Text className="text-white text-sm font-semibold">${suggestion.investmentAmount.toLocaleString()}</Text>
+                        </View>
+                        <View className="flex-1 items-end">
+                          <Text className="text-slate-400 text-xs">Dividend</Text>
+                          <Text className="text-emerald-400 text-sm font-bold">${suggestion.singlePayoutDividend.toFixed(2)}</Text>
+                        </View>
+                      </View>
+                    </Pressable>
+                  </Animated.View>
+                ))}
+              </View>
+            )}
+          </View>
+        </ScrollView>
       ) : smartSuggestions ? (
         // Smart Suggestions View (when target dividend is set)
         <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>

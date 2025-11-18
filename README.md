@@ -145,13 +145,28 @@ Tap any stock card to view in-depth analysis:
   - Next dividend payment amount
   - Clear instructions: "Buy day before ex-date, collect dividend, sell next day"
 
-### 7. **AI-Powered Safety Analysis (GPT-4o)**
+### 7. **Maximum Safe Dividend Calculator** ⭐ NEW
+- **Show Maximum Safe Dividend** button - Calculate the highest realistic daily dividend
+- **Safety-First Ranking** - Prioritizes stocks by:
+  - Volume (20M+ shares = EXCELLENT for $100k positions)
+  - RSI neutrality (avoids overbought/oversold extremes)
+  - Dividend efficiency (maximum payout per dollar)
+- **Two Strategies Displayed**:
+  - **Best Single Stock** - Maximum dividend from one safest stock
+  - **3-Stock Diversification** - Spread risk across top 3 safest options
+- **Safety Tiers**:
+  - 🟢 EXCELLENT (20M+ volume) - Safe for $100k+ positions
+  - 🔵 GOOD (10-20M volume) - Suitable for $100k
+  - 🟡 MODERATE (<10M volume) - May need split orders
+- **Realistic Expectations** - Shows actual achievable dividends, not aspirational targets
+
+### 8. **AI-Powered Safety Analysis (GPT-4o)**
 - **Volume Analysis** - Ensures you can exit positions without slippage
 - **RSI Screening** - Avoids overbought/oversold extremes
 - **Safety Scoring** - Combines efficiency with liquidity
 - **Best Recommendations** - AI identifies safest daily trading candidates
 
-### 8. **Beautiful Professional UI**
+### 9. **Beautiful Professional UI**
 - Dark theme optimized for financial data
 - Tap stock cards to view detailed analysis
 - Checkbox selection for bulk operations

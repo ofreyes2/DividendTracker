@@ -404,6 +404,139 @@ Provide a brief, actionable recommendation.`;
 }
 
 /**
+ * Calculate maximum safe daily dividend for given investment
+ * Returns the safest stocks and their maximum dividend potential
+ */
+export async function calculateMaximumSafeDividend(
+  stocks: DividendStock[],
+  investmentAmount: number,
+  date?: string
+): Promise<{
+  maxSingleStockOption: {
+    stock: DividendStock;
+    shares: number;
+    investmentAmount: number;
+    singlePayoutDividend: number;
+    safetyTier: "EXCELLENT" | "GOOD" | "MODERATE";
+    volumeRating: string;
+  };
+  multiStockOption: {
+    suggestions: Array<{
+      stock: DividendStock;
+      shares: number;
+      investmentAmount: number;
+      singlePayoutDividend: number;
+      safetyTier: "EXCELLENT" | "GOOD" | "MODERATE";
+    }>;
+    totalInvestment: number;
+    totalDividend: number;
+  };
+  message: string;
+}> {
+  // Filter stocks by date if provided
+  const filteredStocks = date
+    ? stocks.filter((s) => s.exDividendDate === date)
+    : stocks;
+
+  if (filteredStocks.length === 0) {
+    throw new Error("No stocks found for the selected criteria.");
+  }
+
+  // Safety tiers based on volume
+  const getSafetyTier = (volume: number): "EXCELLENT" | "GOOD" | "MODERATE" => {
+    if (volume >= 20) return "EXCELLENT";
+    if (volume >= 10) return "GOOD";
+    return "MODERATE";
+  };
+
+  const getVolumeRating = (volume: number): string => {
+    if (volume >= 40) return "MASSIVE - Can handle $250k+ positions";
+    if (volume >= 20) return "EXCELLENT - Safe for $100k positions";
+    if (volume >= 10) return "GOOD - Suitable for $100k";
+    return "MODERATE - May need to split orders";
+  };
+
+  // Calculate for each stock with safety metrics
+  const calculations = filteredStocks.map((stock) => {
+    const maxShares = Math.floor(investmentAmount / stock.price);
+    const actualInvestment = maxShares * stock.price;
+    const singlePayout = maxShares * stock.dividendAmount;
+
+    // Safety score: volume is king for large positions
+    const volumeWeight = stock.volume.current;
+    const rsiPenalty = stock.technicals.rsi > 70 || stock.technicals.rsi < 30 ? 0.5 : 1;
+    const safetyScore = volumeWeight * (singlePayout / actualInvestment) * rsiPenalty;
+
+    return {
+      stock,
+      shares: maxShares,
+      investmentAmount: actualInvestment,
+      singlePayoutDividend: singlePayout,
+      safetyScore,
+      safetyTier: getSafetyTier(stock.volume.current),
+      volumeRating: getVolumeRating(stock.volume.current),
+    };
+  });
+
+  // Sort by safety score (best for $100k daily trading)
+  calculations.sort((a, b) => b.safetyScore - a.safetyScore);
+
+  // Best single stock option
+  const maxSingleStockOption = calculations[0];
+
+  // Multi-stock diversification (top 3 safest)
+  const topSafeStocks = calculations.filter(c => c.safetyTier === "EXCELLENT" || c.safetyTier === "GOOD").slice(0, 3);
+
+  const multiStockSuggestions: typeof calculations = [];
+  let totalDividend = 0;
+
+  for (const calc of topSafeStocks) {
+    const perStockAllocation = investmentAmount / 3;
+    const shares = Math.floor(perStockAllocation / calc.stock.price);
+    const cost = shares * calc.stock.price;
+    const dividend = shares * calc.stock.dividendAmount;
+
+    if (shares > 0) {
+      multiStockSuggestions.push({
+        stock: calc.stock,
+        shares,
+        investmentAmount: cost,
+        singlePayoutDividend: dividend,
+        safetyScore: calc.safetyScore,
+        safetyTier: calc.safetyTier,
+        volumeRating: calc.volumeRating,
+      });
+      totalDividend += dividend;
+    }
+  }
+
+  const message = `With $${investmentAmount.toLocaleString()}, the maximum safe daily dividend is $${maxSingleStockOption.singlePayoutDividend.toFixed(2)} using ${maxSingleStockOption.stock.symbol}. This stock has ${maxSingleStockOption.volumeRating.toLowerCase()}, making it safe for large position exits.`;
+
+  return {
+    maxSingleStockOption: {
+      stock: maxSingleStockOption.stock,
+      shares: maxSingleStockOption.shares,
+      investmentAmount: maxSingleStockOption.investmentAmount,
+      singlePayoutDividend: maxSingleStockOption.singlePayoutDividend,
+      safetyTier: maxSingleStockOption.safetyTier,
+      volumeRating: maxSingleStockOption.volumeRating,
+    },
+    multiStockOption: {
+      suggestions: multiStockSuggestions.map(s => ({
+        stock: s.stock,
+        shares: s.shares,
+        investmentAmount: s.investmentAmount,
+        singlePayoutDividend: s.singlePayoutDividend,
+        safetyTier: s.safetyTier,
+      })),
+      totalInvestment: multiStockSuggestions.reduce((sum, s) => sum + s.investmentAmount, 0),
+      totalDividend,
+    },
+    message,
+  };
+}
+
+/**
  * Calculate stock suggestions based on investment amount, target dividend, and date
  */
 export async function calculateStockSuggestions(

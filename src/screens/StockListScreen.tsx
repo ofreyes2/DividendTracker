@@ -385,11 +385,32 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                     selectedDay: quickFilter === "day" ? selectedDay : undefined,
                   });
                 }}
-                className="bg-emerald-600 rounded-xl py-4 flex-row items-center justify-center active:bg-emerald-700"
+                className="bg-emerald-600 rounded-xl py-4 flex-row items-center justify-center active:bg-emerald-700 mb-2"
               >
                 <Ionicons name="flash" size={20} color="white" />
                 <Text className="text-white text-base font-bold ml-2">
                   Find Daily Opportunities
+                </Text>
+              </Pressable>
+            )}
+
+            {/* Show Maximum Button */}
+            {investmentAmount && parseFloat(investmentAmount) > 0 && (
+              <Pressable
+                onPress={() => {
+                  navigation.navigate("AIAnalysis", {
+                    stocks: filteredStocks,
+                    investmentAmount: parseFloat(investmentAmount),
+                    targetDividend: 0, // 0 triggers max calculation
+                    selectedDay: quickFilter === "day" ? selectedDay : undefined,
+                    showMaximum: true,
+                  });
+                }}
+                className="bg-blue-600 rounded-xl py-4 flex-row items-center justify-center active:bg-blue-700"
+              >
+                <Ionicons name="shield-checkmark" size={20} color="white" />
+                <Text className="text-white text-base font-bold ml-2">
+                  Show Maximum Safe Dividend
                 </Text>
               </Pressable>
             )}

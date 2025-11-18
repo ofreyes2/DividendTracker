@@ -26,6 +26,7 @@ export type RootStackParamList = {
     investmentAmount: number;
     targetDividend?: number;
     selectedDay?: string;
+    showMaximum?: boolean;
   };
   Portfolio: undefined;
   TransactionDetail: {
