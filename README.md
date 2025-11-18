@@ -10,6 +10,7 @@ This app helps dividend investors find opportunities, track their investments, a
 
 ### 1. **Dividend Strategy Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks
+- **Search Bar** - Quickly find stocks by symbol (e.g., "AAPL") or company name (e.g., "Apple")
 - **Compact, Money-Focused Title** - Condensed header maximizes screen real estate
 - **Quick Filters** - Find stocks with ex-dividend dates:
   - All stocks
@@ -234,26 +235,27 @@ The app includes 45+ dividend stocks across multiple sectors with complete techn
 ### Browsing and Filtering Stocks
 
 1. **Open App** → See DIVIDEND STRATEGY CALENDAR with all stocks and portfolio button
-2. **Notice Data Disclaimer** → 15-minute delay warning at top
-3. **Apply Quick Filter** → Tap "Today", "Tomorrow", "Week", or "Day" for specific dates
-4. **Custom Day Filter** → Select "Day" and use calendar picker to choose specific date
-5. **Set Investment Amount** → Enter total investment in the input field
-6. **Set Target Dividend (Optional)** → Enter desired annual dividend return for AI optimization
-7. **Review Stock Cards** → See comprehensive information:
+2. **Search Stocks** → Type in search bar to find by symbol (e.g., "AAPL") or company name (e.g., "Apple")
+3. **Notice Data Disclaimer** → 15-minute delay warning at top
+4. **Apply Quick Filter** → Tap "Today", "Tomorrow", "Week", or "Day" for specific dates
+5. **Custom Day Filter** → Select "Day" and use calendar picker to choose specific date
+6. **Set Investment Amount** → Enter total investment in the input field
+7. **Set Target Dividend (Optional)** → Enter desired annual dividend return for AI optimization
+8. **Review Stock Cards** → See comprehensive information:
    - Price with daily change
    - Dividend yield, distribution amount, and annual dividend
    - Day high/low and 52-week high/low
    - Volume data
    - Sector, industry, and indices
    - Technical rating based on RSI
-8. **Access Portfolio** → Tap briefcase icon to view your tracked investments
+9. **Access Portfolio** → Tap briefcase icon to view your tracked investments
 
 ### Viewing Detailed Stock Analysis
 
-9. **Tap Any Stock** → View detailed analysis screen with data disclaimer
-10. **Auto-Loaded AI Analysis** → Deep AI insights appear automatically
-11. **View MACD Chart** → Interactive 30-day chart showing momentum trends
-12. **Stock Detail Screen** → Comprehensive analysis:
+10. **Tap Any Stock** → View detailed analysis screen with data disclaimer
+11. **Auto-Loaded AI Analysis** → Deep AI insights appear automatically
+12. **View MACD Chart** → Interactive 30-day chart showing momentum trends
+13. **Stock Detail Screen** → Comprehensive analysis:
    - Price ranges with visual indicators
    - Complete dividend information with all important dates
    - Technical analysis with RSI, MACD chart, PEG ratio, moving averages
@@ -507,6 +509,7 @@ src/
 - [ ] Export calculations to CSV/PDF
 - [ ] Watchlist functionality with alerts
 - [ ] Price alerts
+- [x] Search stocks by symbol or company name
 - [ ] Expanded to 2000+ dividend stocks
 - [ ] Symbol search and sorting
 - [ ] Logo display next to company name
@@ -526,6 +529,7 @@ src/
 - MACD charts powered by Victory Native
 - All market data displayed with 15-minute delay disclaimer
 - Calendar date picker for precise ex-dividend date filtering
+- Search functionality for quick stock lookup by symbol or company name
 
 ---
 

@@ -47,10 +47,21 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerDate, setPickerDate] = useState(new Date());
   const [filtersExpanded, setFiltersExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Apply filters
   const filteredStocks = useMemo(() => {
     let stocks = ALL_DIVIDEND_STOCKS;
+
+    // Apply search filter first
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      stocks = stocks.filter(
+        (s) =>
+          s.symbol.toLowerCase().includes(query) ||
+          s.companyName.toLowerCase().includes(query)
+      );
+    }
 
     // Apply quick filters
     const today = new Date().toISOString().split("T")[0];
@@ -74,7 +85,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
 
     // Apply custom filters
     return filterStocks(stocks, filters);
-  }, [filters, quickFilter, selectedDay]);
+  }, [filters, quickFilter, selectedDay, searchQuery]);
 
   const toggleStockSelection = (symbol: string) => {
     setSelectedStocks((prev) =>
@@ -127,6 +138,23 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           >
             <Ionicons name="briefcase" size={22} color="white" />
           </Pressable>
+        </View>
+
+        {/* Search Bar */}
+        <View className="mb-3 bg-slate-800 rounded-xl flex-row items-center px-3 py-2">
+          <Ionicons name="search" size={20} color="#94a3b8" />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Search by symbol or company name..."
+            placeholderTextColor="#64748b"
+            className="flex-1 text-white text-base ml-2 py-2"
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery("")}>
+              <Ionicons name="close-circle" size={20} color="#64748b" />
+            </Pressable>
+          )}
         </View>
 
         {/* Data disclaimer */}
@@ -251,7 +279,15 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               )}
             </View>
             <Pressable
-              onPress={() => setShowDatePicker(true)}
+              onPress={() => {
+                // Initialize picker with selected day or today
+                if (selectedDay) {
+                  setPickerDate(new Date(selectedDay + "T12:00:00"));
+                } else {
+                  setPickerDate(new Date());
+                }
+                setShowDatePicker(true);
+              }}
               className="bg-slate-700 rounded-lg p-3 flex-row items-center justify-between"
             >
               <Text className="text-white text-base font-semibold">
