@@ -127,7 +127,28 @@ Tap any stock card to view in-depth analysis:
 - **Real-Time Responses** - Get instant answers powered by GPT-4o
 - **Stock-Specific Insights** - Tailored analysis for each ticker
 
-### 6. **AI-Powered Daily Trading Calculator**
+### 6. **Custom Allocation Calculator** ⭐ NEW
+- **Multi-Stock Selection** - Select stocks you want to invest in
+- **Interactive Percentage Sliders** - Adjust allocation for each stock in real-time
+  - Drag slider to increase/decrease percentage (0-100%)
+  - Other stocks auto-adjust to maintain 100% total
+  - Visual feedback shows exact percentage allocation
+- **Instant Recalculation** - See results update live as you adjust:
+  - Exact shares you'll buy at current price
+  - Investment amount per stock
+  - **Next payment dividend** (single cycle, not annual)
+  - Total dividend from all stocks
+- **Daily Trading Focus**:
+  - Shows "This Payment" amount (what you'll receive in next dividend)
+  - Volume safety ratings for each stock
+  - Perfect for planning daily capture strategy across multiple stocks
+- **Smart Summary Card**:
+  - Total investment used
+  - Total shares across all stocks
+  - **Next Payment total** - Combined dividend from all positions
+  - Clear daily strategy reminder
+
+### 7. **AI-Powered Daily Trading Calculator**
 - **Single Stock or Multi-Stock Selection** - Select stocks from filtered results
 - **Daily Dividend Target** - Set your daily income goal (e.g., $1,000/day)
 - **Smart Position Sizing** - AI calculates shares needed based on:
@@ -145,7 +166,7 @@ Tap any stock card to view in-depth analysis:
   - Next dividend payment amount
   - Clear instructions: "Buy day before ex-date, collect dividend, sell next day"
 
-### 7. **Maximum Safe Dividend Calculator** ⭐ NEW
+### 8. **Maximum Safe Dividend Calculator** ⭐
 - **Show Maximum Safe Dividend** button - Calculate the highest realistic daily dividend
 - **Safety-First Ranking** - Prioritizes stocks by:
   - Volume (20M+ shares = EXCELLENT for $100k positions)
@@ -160,13 +181,13 @@ Tap any stock card to view in-depth analysis:
   - 🟡 MODERATE (<10M volume) - May need split orders
 - **Realistic Expectations** - Shows actual achievable dividends, not aspirational targets
 
-### 8. **AI-Powered Safety Analysis (GPT-4o)**
+### 9. **AI-Powered Safety Analysis (GPT-4o)**
 - **Volume Analysis** - Ensures you can exit positions without slippage
 - **RSI Screening** - Avoids overbought/oversold extremes
 - **Safety Scoring** - Combines efficiency with liquidity
 - **Best Recommendations** - AI identifies safest daily trading candidates
 
-### 9. **Beautiful Professional UI**
+### 10. **Beautiful Professional UI**
 - Dark theme optimized for financial data
 - Tap stock cards to view detailed analysis
 - Checkbox selection for bulk operations
