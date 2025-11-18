@@ -779,10 +779,13 @@ export default function StockDetailScreen({
                   {formatCurrency(parseFloat(buyShares) * parseFloat(buyPrice))}
                 </Text>
                 <Text className="text-emerald-400 text-sm mt-3">
-                  Annual Dividend Income
+                  Next Dividend Payout
                 </Text>
                 <Text className="text-white text-xl font-bold">
-                  {formatCurrency(parseFloat(buyShares) * stock.annualDividend)}
+                  {formatCurrency(parseFloat(buyShares) * stock.dividendAmount)}
+                </Text>
+                <Text className="text-slate-400 text-xs mt-1">
+                  (${stock.dividendAmount.toFixed(2)} per share)
                 </Text>
               </View>
             )}

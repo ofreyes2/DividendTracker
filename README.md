@@ -107,7 +107,7 @@ Tap any stock card to view in-depth analysis:
   - Number of shares owned
   - Average purchase price
   - Current value
-  - Annual dividend income per position
+  - Current cycle dividend payout (based on declared dividend per share)
   - Edit and manage individual positions
 - **Upcoming Dividends (30 days)** - See all dividend payments coming soon:
   - Payment date
@@ -142,9 +142,9 @@ Tap any stock card to view in-depth analysis:
 - **Detailed Breakdown** - Per-stock investment details:
   - Amount invested
   - Shares purchased
-  - Dividend per payment
+  - Dividend per payment (current cycle payout)
   - Annual dividend income
-  - Monthly dividend income
+  - Monthly dividend income (average)
 - **Portfolio Summary**:
   - Total shares
   - Average yield
@@ -261,7 +261,7 @@ The app includes 45+ dividend stocks across multiple sectors with complete techn
 13. **Buy Stock** → Tap "Buy" button to add position to portfolio:
     - Enter number of shares
     - Set purchase price (defaults to current)
-    - See total investment and annual dividend
+    - See total investment and next dividend payout
     - Confirm to add to portfolio
 14. **Ask AI Questions** → Tap "Ask AI" button for interactive chat:
     - Type any question about the stock
@@ -281,7 +281,7 @@ The app includes 45+ dividend stocks across multiple sectors with complete techn
     - Shares owned
     - Average purchase price
     - Current value
-    - Annual dividend income
+    - Current cycle dividend payout
 20. **View Upcoming Dividends** → See payment dates and amounts
 21. **Monthly Calendar** → Review dividend income by month
 
@@ -293,7 +293,7 @@ The app includes 45+ dividend stocks across multiple sectors with complete techn
 25. **View Breakdown** → See per-stock allocation:
     - How many shares of each stock
     - Investment amount per stock
-    - Dividend per payment
+    - Dividend per payment (current cycle payout)
     - Annual and monthly dividend income per stock
 26. **Review Summary** → Total monthly dividend income from all stocks
 

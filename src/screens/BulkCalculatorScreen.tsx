@@ -164,20 +164,30 @@ export default function BulkCalculatorScreen({ navigation, route }: Props) {
                 </View>
                 <View className="flex-1 items-end">
                   <Text className="text-slate-400 text-xs mb-1">
-                    Annual Dividend
+                    Per Payment
                   </Text>
                   <Text className="text-emerald-400 text-base font-semibold">
-                    {formatCurrency(result.annualDividend)}
+                    {formatCurrency(result.totalDividendPayout)}
                   </Text>
                 </View>
               </View>
-              <View className="pt-3 border-t border-slate-700">
-                <Text className="text-slate-400 text-xs mb-1">
-                  Monthly Income
-                </Text>
-                <Text className="text-emerald-400 text-xl font-bold">
-                  {formatCurrency(result.monthlyDividend)}
-                </Text>
+              <View className="pt-3 border-t border-slate-700 flex-row justify-between">
+                <View>
+                  <Text className="text-slate-400 text-xs mb-1">
+                    Annual Dividend
+                  </Text>
+                  <Text className="text-emerald-400 text-lg font-bold">
+                    {formatCurrency(result.annualDividend)}
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text className="text-slate-400 text-xs mb-1">
+                    Monthly Avg
+                  </Text>
+                  <Text className="text-emerald-400 text-lg font-bold">
+                    {formatCurrency(result.monthlyDividend)}
+                  </Text>
+                </View>
               </View>
             </View>
           </Animated.View>

@@ -213,8 +213,8 @@ export default function PortfolioScreen({ navigation }: PortfolioScreenProps) {
             ) : (
               activePositions.map((position) => {
                 const currentValue = position.shares * position.purchasePrice; // Simplified
-                const totalDividend =
-                  position.shares * position.annualDividend;
+                const currentCycleDividend =
+                  position.shares * position.dividendPerShare;
 
                 return (
                   <View
@@ -270,10 +270,10 @@ export default function PortfolioScreen({ navigation }: PortfolioScreenProps) {
                     <View className="bg-emerald-900/20 rounded-lg p-2 border border-emerald-700/30">
                       <View className="flex-row items-center justify-between">
                         <Text className="text-emerald-400 text-xs">
-                          Annual Dividend
+                          Current Cycle Dividend
                         </Text>
                         <Text className="text-emerald-400 text-base font-bold">
-                          {formatCurrency(totalDividend)}
+                          {formatCurrency(currentCycleDividend)}
                         </Text>
                       </View>
                     </View>
