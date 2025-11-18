@@ -152,16 +152,16 @@ Then create 3 investment scenarios:
 2. High Yield: Top 3 by dividend yield with acceptable risk
 3. Low Risk: Top 3 safest options
 
-Format as JSON:
+IMPORTANT: Respond ONLY with valid JSON, no other text. Format exactly as:
 {
   "analyses": [
     {
       "symbol": "AAPL",
       "score": 85,
       "recommendation": "buy",
-      "reasoning": "...",
-      "pros": ["...", "..."],
-      "cons": ["..."],
+      "reasoning": "Strong tech leader with consistent dividends",
+      "pros": ["Market leader", "Consistent dividends", "Strong balance sheet"],
+      "cons": ["Lower yield than peers"],
       "riskLevel": "low",
       "timeframe": "long-term"
     }
@@ -169,13 +169,25 @@ Format as JSON:
   "scenarios": {
     "bestBuys": {
       "title": "Best Overall Buys",
-      "description": "...",
+      "description": "Top stocks balancing yield and stability",
       "topPicks": ["AAPL", "MSFT", "JNJ"],
       "expectedReturn": 4.5,
-      "riskAssessment": "..."
+      "riskAssessment": "Moderate risk with strong fundamentals"
     },
-    "highYield": { ... },
-    "lowRisk": { ... }
+    "highYield": {
+      "title": "High Yield Strategy",
+      "description": "Maximum dividend income focus",
+      "topPicks": ["VZ", "T", "O"],
+      "expectedReturn": 6.5,
+      "riskAssessment": "Higher yields with increased risk"
+    },
+    "lowRisk": {
+      "title": "Conservative Picks",
+      "description": "Safest dividend payers",
+      "topPicks": ["JNJ", "PG", "KO"],
+      "expectedReturn": 3.0,
+      "riskAssessment": "Low risk with stable returns"
+    }
   }
 }`;
 
@@ -185,14 +197,33 @@ Format as JSON:
         {
           role: "system",
           content:
-            "You are an expert dividend investment analyst. Provide detailed, data-driven analysis and actionable recommendations.",
+            "You are an expert dividend investment analyst. Respond ONLY with valid JSON, no markdown formatting, no code blocks, no explanatory text. Only pure JSON.",
         },
         { role: "user", content: prompt },
       ],
-      { maxTokens: 4096 }
+      {
+        maxTokens: 4096,
+        responseFormat: "json"
+      }
     );
 
-    const result = JSON.parse(response.content);
+    // Clean up response - remove markdown code blocks if present
+    let cleanedContent = response.content.trim();
+
+    // Log the raw response for debugging
+    console.log("AI Response (first 500 chars):", cleanedContent.substring(0, 500));
+
+    if (cleanedContent.startsWith("```")) {
+      cleanedContent = cleanedContent.replace(/^```json?\n?/, "").replace(/\n?```$/, "");
+    }
+
+    let result;
+    try {
+      result = JSON.parse(cleanedContent);
+    } catch (parseError) {
+      console.error("JSON Parse Error. Response content:", cleanedContent.substring(0, 1000));
+      throw parseError;
+    }
 
     // Map analyses to include company names
     const analyses: StockAnalysis[] = result.analyses.map((a: any) => {

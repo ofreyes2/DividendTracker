@@ -7,6 +7,7 @@ export interface AIRequestOptions {
   temperature?: number;
   maxTokens?: number;
   model?: string;
+  responseFormat?: "json" | "text";
 }
 
 export interface AIResponse {
