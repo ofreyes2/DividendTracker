@@ -229,7 +229,7 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
     ]);
 
     if (!quote || !tickerDetails) {
-      console.error(`Missing essential data for ${symbol}`);
+      console.warn(`Missing essential data for ${symbol}, skipping`);
       return null;
     }
 
@@ -306,7 +306,7 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
     console.log(`Successfully fetched data for ${symbol}`);
     return stock;
   } catch (error) {
-    console.error(`Error fetching complete stock data for ${symbol}:`, error);
+    console.warn(`Error fetching complete stock data for ${symbol}:`, error instanceof Error ? error.message : "Unknown error");
     return null;
   }
 }

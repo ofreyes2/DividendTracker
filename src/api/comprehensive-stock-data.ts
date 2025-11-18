@@ -557,12 +557,15 @@ export async function enhanceStockWithPolygon(
   try {
     const polygonData = await fetchCompleteStockData(stock.symbol);
 
-    if (!polygonData) return stock;
+    if (!polygonData) {
+      console.warn(`Using mock data for ${stock.symbol} - Polygon data unavailable`);
+      return stock;
+    }
 
     // Return the polygon data as it has all the real information
     return polygonData;
   } catch (error) {
-    console.error(`Failed to enhance ${stock.symbol} with Polygon data:`, error);
+    console.warn(`Failed to enhance ${stock.symbol} with Polygon data, using mock:`, error instanceof Error ? error.message : "Unknown error");
     return stock;
   }
 }
