@@ -23,6 +23,7 @@ import {
 } from "../api/ai-analysis";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { cn } from "../utils/cn";
+import Slider from "@react-native-community/slider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "AIAnalysis">;
 
@@ -75,6 +76,16 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
     message: string;
   } | null>(null);
 
+  interface StockAllocation {
+    stock: any;
+    percentage: number;
+    investmentAmount: number;
+    shares: number;
+    singlePayoutDividend: number;
+  }
+
+  const [multiStockAllocations, setMultiStockAllocations] = useState<StockAllocation[]>([]);
+
   useEffect(() => {
     if (showMaximum) {
       calculateMaximumDividend();
@@ -95,6 +106,23 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
         selectedDay
       );
       setMaximumResult(result);
+
+      // Initialize allocations for multi-stock option
+      if (result.multiStockOption.suggestions.length > 0) {
+        const initialPercentage = 100 / result.multiStockOption.suggestions.length;
+        const initialAllocations: StockAllocation[] = result.multiStockOption.suggestions.map((suggestion) => {
+          const investment = (investmentAmount * initialPercentage) / 100;
+          const shares = Math.floor(investment / suggestion.stock.price);
+          return {
+            stock: suggestion.stock,
+            percentage: initialPercentage,
+            investmentAmount: shares * suggestion.stock.price,
+            shares,
+            singlePayoutDividend: shares * suggestion.stock.dividendAmount,
+          };
+        });
+        setMultiStockAllocations(initialAllocations);
+      }
     } catch (error) {
       console.error("Failed to calculate maximum dividend:", error);
     } finally {
@@ -117,6 +145,53 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const updateMultiStockAllocation = (index: number, newPercentage: number) => {
+    const updatedAllocations = [...multiStockAllocations];
+    const oldPercentage = updatedAllocations[index].percentage;
+    const diff = newPercentage - oldPercentage;
+
+    // Update target stock
+    updatedAllocations[index].percentage = newPercentage;
+
+    // Distribute difference across other stocks
+    const otherIndices = multiStockAllocations
+      .map((_, i) => i)
+      .filter((i) => i !== index && updatedAllocations[i].percentage > 0);
+
+    if (otherIndices.length > 0) {
+      const perStockAdjustment = -diff / otherIndices.length;
+      otherIndices.forEach((i) => {
+        updatedAllocations[i].percentage = Math.max(
+          0,
+          Math.min(100, updatedAllocations[i].percentage + perStockAdjustment)
+        );
+      });
+    }
+
+    // Normalize to ensure total is 100%
+    const total = updatedAllocations.reduce((sum, a) => sum + a.percentage, 0);
+    updatedAllocations.forEach((a) => {
+      a.percentage = (a.percentage / total) * 100;
+
+      // Recalculate investment and shares
+      const investment = (investmentAmount * a.percentage) / 100;
+      a.shares = Math.floor(investment / a.stock.price);
+      a.investmentAmount = a.shares * a.stock.price;
+      a.singlePayoutDividend = a.shares * a.stock.dividendAmount;
+    });
+
+    setMultiStockAllocations(updatedAllocations);
+  };
+
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
   };
 
   const analyzeStocks = async () => {
@@ -276,6 +351,22 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
                       <Text className="text-emerald-400 text-xl font-bold">${maximumResult.maxSingleStockOption.singlePayoutDividend.toFixed(2)}</Text>
                     </View>
                   </View>
+                  <View className="pt-2 border-t border-slate-700 mb-2">
+                    <View className="flex-row justify-between">
+                      <View className="flex-1">
+                        <Text className="text-slate-400 text-xs mb-1">Dividend/Share</Text>
+                        <Text className="text-white text-sm font-semibold">
+                          {formatCurrency(maximumResult.maxSingleStockOption.stock.dividendAmount)}
+                        </Text>
+                      </View>
+                      <View className="flex-1 items-end">
+                        <Text className="text-slate-400 text-xs mb-1">Ex-Dividend Date</Text>
+                        <Text className="text-blue-400 text-sm font-bold">
+                          {maximumResult.maxSingleStockOption.stock.exDividendDate}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
                   <View className="pt-2 border-t border-slate-700">
                     <Text className="text-slate-400 text-xs mb-1">Volume Safety</Text>
                     <Text className="text-blue-400 text-sm font-bold">{maximumResult.maxSingleStockOption.volumeRating}</Text>
@@ -285,54 +376,116 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
             </View>
 
             {/* Multi-Stock Diversification Option */}
-            {maximumResult.multiStockOption.suggestions.length > 0 && (
+            {multiStockAllocations.length > 0 && (
               <View className="mb-4">
                 <Text className="text-white text-lg font-bold mb-3">
-                  Alternative: 3-Stock Diversification
+                  Interactive Multi-Stock Allocation
                 </Text>
                 <View className="bg-[#1e293b] rounded-2xl p-4 mb-3 border border-slate-700">
                   <View className="flex-row justify-between mb-3">
                     <View>
                       <Text className="text-slate-400 text-xs">Total Investment</Text>
-                      <Text className="text-white text-base font-semibold">${maximumResult.multiStockOption.totalInvestment.toLocaleString()}</Text>
+                      <Text className="text-white text-base font-semibold">
+                        {formatCurrency(multiStockAllocations.reduce((sum, a) => sum + a.investmentAmount, 0))}
+                      </Text>
                     </View>
                     <View className="items-end">
                       <Text className="text-slate-400 text-xs">Total Dividend</Text>
-                      <Text className="text-emerald-400 text-lg font-bold">${maximumResult.multiStockOption.totalDividend.toFixed(2)}</Text>
+                      <Text className="text-emerald-400 text-lg font-bold">
+                        {formatCurrency(multiStockAllocations.reduce((sum, a) => sum + a.singlePayoutDividend, 0))}
+                      </Text>
                     </View>
                   </View>
                 </View>
 
-                {maximumResult.multiStockOption.suggestions.map((suggestion, index) => (
-                  <Animated.View key={suggestion.stock.symbol} entering={FadeInDown.delay(index * 100)}>
-                    <Pressable
-                      onPress={() => navigation.navigate("StockDetail", { stock: suggestion.stock })}
-                      className="bg-[#1e293b] rounded-2xl p-4 mb-3 border border-slate-700"
-                    >
+                {multiStockAllocations.map((allocation, index) => (
+                  <Animated.View key={allocation.stock.symbol} entering={FadeInDown.delay(index * 100)}>
+                    <View className="bg-[#1e293b] rounded-2xl p-4 mb-3 border border-slate-700">
+                      {/* Stock Header */}
                       <View className="flex-row items-center justify-between mb-2">
                         <View className="flex-1">
-                          <Text className="text-white text-lg font-bold">{suggestion.stock.symbol}</Text>
-                          <Text className="text-slate-400 text-sm">{suggestion.stock.companyName}</Text>
+                          <Text className="text-white text-lg font-bold">{allocation.stock.symbol}</Text>
+                          <Text className="text-slate-400 text-sm">{allocation.stock.companyName}</Text>
                         </View>
-                        <View className="bg-blue-600 px-2 py-1 rounded">
-                          <Text className="text-white text-xs font-bold">{suggestion.safetyTier}</Text>
+                        <Text className="text-emerald-400 text-2xl font-bold">
+                          {allocation.percentage.toFixed(1)}%
+                        </Text>
+                      </View>
+
+                      {/* Allocation Slider */}
+                      <View className="mb-4">
+                        <Text className="text-slate-400 text-xs mb-2">
+                          Allocation Percentage
+                        </Text>
+                        <Slider
+                          style={{ width: "100%", height: 40 }}
+                          minimumValue={0}
+                          maximumValue={100}
+                          step={0.5}
+                          value={allocation.percentage}
+                          onValueChange={(value) => updateMultiStockAllocation(index, value)}
+                          minimumTrackTintColor="#10b981"
+                          maximumTrackTintColor="#475569"
+                          thumbTintColor="#10b981"
+                        />
+                      </View>
+
+                      {/* Investment Details */}
+                      <View className="bg-slate-800/50 rounded-xl p-4">
+                        <View className="flex-row justify-between mb-3">
+                          <View className="flex-1">
+                            <Text className="text-slate-400 text-xs mb-1">
+                              Investment
+                            </Text>
+                            <Text className="text-white text-base font-semibold">
+                              {formatCurrency(allocation.investmentAmount)}
+                            </Text>
+                          </View>
+                          <View className="flex-1 items-center">
+                            <Text className="text-slate-400 text-xs mb-1">Shares</Text>
+                            <Text className="text-white text-base font-semibold">
+                              {allocation.shares}
+                            </Text>
+                          </View>
+                          <View className="flex-1 items-end">
+                            <Text className="text-slate-400 text-xs mb-1">
+                              This Payment
+                            </Text>
+                            <Text className="text-emerald-400 text-base font-bold">
+                              {formatCurrency(allocation.singlePayoutDividend)}
+                            </Text>
+                          </View>
+                        </View>
+                        <View className="pt-3 border-t border-slate-700 mb-3">
+                          <View className="flex-row justify-between">
+                            <View className="flex-1">
+                              <Text className="text-slate-400 text-xs mb-1">
+                                Dividend/Share
+                              </Text>
+                              <Text className="text-white text-sm font-semibold">
+                                {formatCurrency(allocation.stock.dividendAmount)}
+                              </Text>
+                            </View>
+                            <View className="flex-1 items-end">
+                              <Text className="text-slate-400 text-xs mb-1">
+                                Ex-Dividend Date
+                              </Text>
+                              <Text className="text-blue-400 text-sm font-bold">
+                                {allocation.stock.exDividendDate}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                        <View className="pt-3 border-t border-slate-700">
+                          <View className="flex-row justify-between">
+                            <Text className="text-slate-400 text-xs">Volume (Safety)</Text>
+                            <Text className="text-blue-400 text-sm font-bold">
+                              {allocation.stock.volume.current.toFixed(1)}M shares
+                            </Text>
+                          </View>
                         </View>
                       </View>
-                      <View className="flex-row justify-between">
-                        <View className="flex-1">
-                          <Text className="text-slate-400 text-xs">Shares</Text>
-                          <Text className="text-white text-sm font-semibold">{suggestion.shares}</Text>
-                        </View>
-                        <View className="flex-1 items-center">
-                          <Text className="text-slate-400 text-xs">Investment</Text>
-                          <Text className="text-white text-sm font-semibold">${suggestion.investmentAmount.toLocaleString()}</Text>
-                        </View>
-                        <View className="flex-1 items-end">
-                          <Text className="text-slate-400 text-xs">Dividend</Text>
-                          <Text className="text-emerald-400 text-sm font-bold">${suggestion.singlePayoutDividend.toFixed(2)}</Text>
-                        </View>
-                      </View>
-                    </Pressable>
+                    </View>
                   </Animated.View>
                 ))}
               </View>
