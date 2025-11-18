@@ -17,10 +17,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useStockDataStore } from "../state/stockDataStore";
+import * as FileSystem from "expo-file-system";
 
 type Props = NativeStackScreenProps<RootStackParamList, "TickerManager">;
 
-// Default tickers
+// Default tickers (fallback)
 const DEFAULT_TICKERS = `# Dividend Stock Tickers
 # Add one ticker symbol per line
 # Lines starting with # are comments
@@ -94,7 +95,30 @@ export default function TickerManagerScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [tickerText, setTickerText] = useState(DEFAULT_TICKERS);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { refreshFromTickers, isRefreshing, refreshProgress } = useStockDataStore();
+
+  // Load tickers from file on mount
+  useEffect(() => {
+    loadTickersFromFile();
+  }, []);
+
+  const loadTickersFromFile = async () => {
+    try {
+      // Try to load from assets
+      const tickersModule = require("../../assets/tickers.txt");
+      const response = await fetch(tickersModule);
+      const content = await response.text();
+
+      if (content && content.length > 100) {
+        setTickerText(content);
+      }
+    } catch (error) {
+      console.warn("Failed to load tickers.txt from assets, using defaults:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const parseTickers = (text: string): string[] => {
     return text
@@ -124,6 +148,15 @@ export default function TickerManagerScreen({ navigation }: Props) {
   };
 
   const tickerCount = parseTickers(tickerText).length;
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-[#0f172a] items-center justify-center">
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text className="text-slate-400 mt-4">Loading tickers...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-[#0f172a]">
