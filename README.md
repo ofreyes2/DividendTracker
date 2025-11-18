@@ -1,60 +1,51 @@
-# DIVIDEND STRATEGY - AI-Powered Stock Screener & Portfolio Tracker
+# DAILY DIVIDEND CAPTURE - AI-Powered Trading Strategy App
 
-A professional dividend stock screening, analysis, and portfolio tracking app with AI-powered investment recommendations. Filter stocks by ex-dividend dates, track your portfolio, manage transactions, monitor upcoming dividend payouts, and get personalized AI analysis with detailed layman explanations.
+A professional daily dividend capture trading app with AI-powered stock screening and analysis. Find stocks with ex-dividend dates, calculate optimal positions to hit daily dividend targets, track trading opportunities, and execute a systematic buy-hold-sell rotation strategy.
 
 ## Overview
 
-This app helps dividend investors find opportunities, track their investments, and manage their dividend income. It features a comprehensive database of 45+ dividend-paying stocks, real-time filtering with advanced options, detailed stock information with MACD charts, smart portfolio calculations, portfolio tracking, transaction management, dividend calendar, and AI-powered chat for deep stock analysis with beginner-friendly explanations.
+This app helps active traders execute a **daily dividend capture strategy**—buying stocks the day before their ex-dividend date, collecting the dividend payment, then selling and rotating capital to the next opportunity. Features comprehensive stock database with 45+ dividend payers, date-based filtering, AI-powered position sizing to hit daily targets (e.g., $1,000/day), volume analysis for safe exits, and real-time trading calculations.
 
 ## Key Features
 
-### 1. **Dividend Strategy Calendar with Smart Filtering**
+### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks
 - **Search Bar** - Quickly find stocks by symbol (e.g., "AAPL") or company name (e.g., "Apple")
-- **Compact, Money-Focused Title** - Condensed header maximizes screen real estate
 - **Quick Filters** - Find stocks with ex-dividend dates:
   - All stocks
-  - Today
-  - Tomorrow
+  - Today (buy now for tomorrow's dividend)
+  - Tomorrow (plan ahead)
   - This Week
-  - Specific Day (calendar date picker with proper filtering)
-- **Collapsible Investment Settings** - Expandable section to save screen space
-- **Side-by-Side Inputs** - Investment amount and target dividend return in compact layout
-- **Advanced Filters** - Filter by:
-  - Specific months (Jan-Dec)
-  - Quarters (Q1-Q4)
-  - Dividend yield ranges (min/max)
-  - Sectors (Technology, Healthcare, Financials, etc.)
-  - Industries within sectors
-  - Market indices
-- **Smart Calculate Button** - When date, investment amount, and target dividend are set:
-  - Automatically suggests optimal stock portfolio to meet dividend target
-  - Shows exact number of shares to purchase
-  - Calculates total investment needed
-  - Displays annual and monthly dividend projections
-- **Data Disclaimer** - All market data shown with 15-minute delay notice
+  - Specific Day (calendar date picker)
+- **Collapsible Trading Settings** - Set your parameters:
+  - Investment amount ($100,000 default)
+  - Daily dividend target ($1,000 default)
+- **Smart Calculate Button** - AI suggests optimal stocks to meet your daily target:
+  - Calculates exact shares needed for target dividend
+  - Shows single payment amounts (not annual)
+  - Prioritizes high-volume stocks for easy exits
+  - Displays safety scores for daily trading
 
 ### 2. **Comprehensive Stock Information on Cards**
-Each stock card displays:
+Each stock card displays everything you need for daily trading decisions:
 - **Company Name & Symbol** - Full company identification
 - **Current Price** - Real-time pricing with daily change
 - **Dividend Information**:
   - Dividend Yield percentage
-  - Dividend Amount per Distribution
-  - Annual Dividend total
-  - Ex-Dividend Date
+  - **Dividend Amount per Payment** (CRITICAL: This is what you'll receive in one cycle)
+  - Annual Dividend total (for reference)
+  - Ex-Dividend Date (buy before this date!)
+- **Volume Data** (CRITICAL for daily trading):
+  - Current Volume (higher = easier to exit position)
+  - Average Volume (30-day)
 - **Price Ranges**:
   - Day High/Low
   - 52-Week High/Low
-- **Volume Data**:
-  - Current Volume (in millions)
-  - Average Volume (30-day)
 - **Company Details**:
   - Sector and Industry
   - Stock Market Indices (S&P 500, Dow Jones, NASDAQ 100)
 - **Technical Rating**:
-  - RSI-based rating (Strong, Neutral, Overbought, Oversold)
-  - Color-coded indicators
+  - RSI-based rating (helps identify overbought/oversold conditions)
 
 ### 3. **Detailed Stock Analysis Screen**
 Tap any stock card to view in-depth analysis:
@@ -136,36 +127,29 @@ Tap any stock card to view in-depth analysis:
 - **Real-Time Responses** - Get instant answers powered by GPT-4o
 - **Stock-Specific Insights** - Tailored analysis for each ticker
 
-### 6. **Bulk Investment Calculator**
-- **Multi-Stock Selection** - Select any number of stocks from filtered results
-- **Equal Distribution** - Automatically divides investment equally across selected stocks
-- **Whole Share Calculations** - Shows exactly how many shares you can purchase
-- **Detailed Breakdown** - Per-stock investment details:
-  - Amount invested
-  - Shares purchased
-  - Dividend per payment (current cycle payout)
-  - Annual dividend income
-  - Monthly dividend income (average)
-- **Portfolio Summary**:
-  - Total shares
-  - Average yield
-  - Total annual dividends
-  - Expected monthly income
+### 6. **AI-Powered Daily Trading Calculator**
+- **Single Stock or Multi-Stock Selection** - Select stocks from filtered results
+- **Daily Dividend Target** - Set your daily income goal (e.g., $1,000/day)
+- **Smart Position Sizing** - AI calculates shares needed based on:
+  - Dividend amount **per single payment** (not annual)
+  - Your available capital
+  - Volume safety (can you exit this position easily?)
+  - RSI indicators (neutral preferred for daily trading)
+- **Detailed Breakdown** - Per-stock calculations:
+  - Exact shares to purchase
+  - Total investment required
+  - **Dividend you'll receive in next payment**
+  - Volume score (trading safety metric)
+- **Daily Strategy Summary**:
+  - Total investment needed
+  - Next dividend payment amount
+  - Clear instructions: "Buy day before ex-date, collect dividend, sell next day"
 
-### 7. **AI-Powered Bulk Analysis (GPT-4o)**
-- **Smart Recommendations** - AI analyzes all selected stocks
-- **Three Investment Scenarios**:
-  - **Best Buys** - Top-rated stocks by overall score
-  - **High Yield** - Maximum dividend income strategies
-  - **Low Risk** - Conservative, stable dividend picks
-- **Detailed Stock Analysis**:
-  - Investment score (0-100)
-  - Buy/Hold/Avoid recommendation
-  - Risk level assessment
-  - Investment timeframe
-  - Pros and cons
-  - Detailed reasoning
-- **Expected Returns** - AI-calculated expected return percentages
+### 7. **AI-Powered Safety Analysis (GPT-4o)**
+- **Volume Analysis** - Ensures you can exit positions without slippage
+- **RSI Screening** - Avoids overbought/oversold extremes
+- **Safety Scoring** - Combines efficiency with liquidity
+- **Best Recommendations** - AI identifies safest daily trading candidates
 
 ### 8. **Beautiful Professional UI**
 - Dark theme optimized for financial data
@@ -232,23 +216,49 @@ The app includes 45+ dividend stocks across multiple sectors with complete techn
 
 ## User Workflow
 
+### Daily Dividend Capture Strategy (Primary Use Case)
+
+**Goal:** Generate $1,000/day by buying stocks before ex-dividend date, collecting dividend, selling next day, and rotating to the next opportunity.
+
+1. **Open App** → See "DAILY DIVIDEND CAPTURE" with all stocks
+2. **Set Your Parameters** → Expand "Investment Settings":
+   - Investment Amount: $100,000 (your trading capital)
+   - Daily Target: $1,000 (dividend goal per trade)
+3. **Filter by Date** → Tap "Tomorrow" to see tomorrow's ex-dividend opportunities
+   - **Why Tomorrow?** Buy today, qualify for dividend tomorrow, collect payment later, sell after ex-date
+4. **Review Opportunities** → Check stock cards for:
+   - Dividend amount per payment (need enough to hit $1,000 target)
+   - Volume (20M+ shares = safer, easier to exit $100k position)
+   - Technical rating (Neutral/Strong preferred over Overbought)
+5. **Calculate Position** → Tap "Find Daily Opportunities"
+   - AI calculates exact shares needed for your $1,000 target
+   - Shows which stock(s) have sufficient volume for safe trading
+   - Displays total investment required
+6. **Execute Trade** → Review the suggestion:
+   - **Example:** Buy 4,167 shares of VZ at $40.85 = $170,235 investment
+   - **Next Payment:** $2,823 (exceeds your $1,000 target!)
+   - **Volume:** 18.2M shares (can easily sell your position)
+7. **Place Order** → Use your brokerage to buy shares **today** (day before ex-date)
+8. **Wait for Ex-Date** → Tomorrow the stock goes ex-dividend (you qualify!)
+9. **Sell Position** → Day after ex-date, sell your shares
+10. **Rotate Capital** → Return to app, filter by next day's ex-dividend date, repeat!
+
+### Important Trading Notes
+- **Price Drop Risk:** Stocks typically drop by dividend amount on ex-date
+- **Net Profit = Dividend - Price Drop - Transaction Costs**
+- **Volume is Critical:** Need high volume to exit $100k positions quickly
+- **Not Financial Advice:** This strategy has significant risks; consult a financial advisor
+
 ### Browsing and Filtering Stocks
 
-1. **Open App** → See DIVIDEND STRATEGY CALENDAR with all stocks and portfolio button
-2. **Search Stocks** → Type in search bar to find by symbol (e.g., "AAPL") or company name (e.g., "Apple")
-3. **Notice Data Disclaimer** → 15-minute delay warning at top
-4. **Apply Quick Filter** → Tap "Today", "Tomorrow", "Week", or "Day" for specific dates
-5. **Custom Day Filter** → Select "Day" and use calendar picker to choose specific date
-6. **Set Investment Amount** → Enter total investment in the input field
-7. **Set Target Dividend (Optional)** → Enter desired annual dividend return for AI optimization
-8. **Review Stock Cards** → See comprehensive information:
+1. **Search Stocks** → Type in search bar to find by symbol (e.g., "AAPL") or company name
+2. **Apply Quick Filters** → "Today", "Tomorrow", "Week", or "Day" (calendar picker)
+3. **Review Stock Cards** → Comprehensive info:
    - Price with daily change
-   - Dividend yield, distribution amount, and annual dividend
-   - Day high/low and 52-week high/low
-   - Volume data
-   - Sector, industry, and indices
-   - Technical rating based on RSI
-9. **Access Portfolio** → Tap briefcase icon to view your tracked investments
+   - **Dividend amount per payment** (single payout, not annual)
+   - Volume data (critical for exits)
+   - Ex-dividend date
+   - Technical rating (RSI-based)
 
 ### Viewing Detailed Stock Analysis
 

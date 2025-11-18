@@ -416,12 +416,14 @@ export async function calculateStockSuggestions(
     stock: DividendStock;
     shares: number;
     investmentAmount: number;
+    singlePayoutDividend: number;
     annualDividend: number;
   }>;
+  totalSinglePayout: number;
   totalAnnualDividend: number;
   message: string;
 }> {
-  // Filter stocks by date if provided
+  // Filter stocks by date if provided (for daily dividend capture strategy)
   const filteredStocks = date
     ? stocks.filter((s) => s.exDividendDate === date)
     : stocks;
@@ -429,69 +431,97 @@ export async function calculateStockSuggestions(
   if (filteredStocks.length === 0) {
     return {
       suggestions: [],
+      totalSinglePayout: 0,
       totalAnnualDividend: 0,
       message: "No stocks found for the selected criteria.",
     };
   }
 
-  // Calculate how many shares of each stock we'd need to meet the target
+  // DAILY DIVIDEND CAPTURE STRATEGY
+  // Calculate shares needed to get target dividend in ONE payment cycle
   const calculations = filteredStocks.map((stock) => {
-    const sharesNeeded = Math.ceil(targetDividendReturn / stock.annualDividend);
+    // Calculate shares needed for target dividend in ONE PAYMENT
+    const sharesNeeded = Math.ceil(targetDividendReturn / stock.dividendAmount);
     const cost = sharesNeeded * stock.price;
-    const actualDividend = sharesNeeded * stock.annualDividend;
+    const singlePayoutDividend = sharesNeeded * stock.dividendAmount;
+    const annualDividend = sharesNeeded * stock.annualDividend;
+
+    // Calculate efficiency for daily trading
+    const efficiency = singlePayoutDividend / cost; // Single payout per dollar invested
+
+    // Risk factors for daily trading
+    const volumeScore = stock.volume.current; // Higher volume = easier to exit
+    const rsiScore = stock.technicals.rsi >= 30 && stock.technicals.rsi <= 70 ? 1 : 0.5; // Neutral RSI preferred
+    const safetyScore = efficiency * volumeScore * rsiScore;
 
     return {
       stock,
       shares: sharesNeeded,
       investmentAmount: cost,
-      annualDividend: actualDividend,
-      efficiency: actualDividend / cost, // Dividend per dollar invested
+      singlePayoutDividend,
+      annualDividend,
+      efficiency,
+      safetyScore,
+      volumeScore,
     };
   });
 
-  // Sort by efficiency (best dividend per dollar)
-  calculations.sort((a, b) => b.efficiency - a.efficiency);
+  // Sort by safety score (best for daily trading)
+  calculations.sort((a, b) => b.safetyScore - a.safetyScore);
 
   // Try to build a portfolio that meets the target with the investment amount
   const portfolio: typeof calculations = [];
   let remainingInvestment = investmentAmount;
-  let totalDividend = 0;
+  let totalSinglePayout = 0;
+  let totalAnnual = 0;
 
-  // Strategy 1: Try to meet target exactly with one stock
+  // Strategy 1: Try single stock if it can meet target within budget
   const perfectMatch = calculations.find(
-    (c) => c.investmentAmount <= investmentAmount && c.annualDividend >= targetDividendReturn
+    (c) => c.investmentAmount <= investmentAmount && c.singlePayoutDividend >= targetDividendReturn
   );
 
   if (perfectMatch) {
     return {
-      suggestions: [perfectMatch],
+      suggestions: [{
+        stock: perfectMatch.stock,
+        shares: perfectMatch.shares,
+        investmentAmount: perfectMatch.investmentAmount,
+        singlePayoutDividend: perfectMatch.singlePayoutDividend,
+        annualDividend: perfectMatch.annualDividend,
+      }],
+      totalSinglePayout: perfectMatch.singlePayoutDividend,
       totalAnnualDividend: perfectMatch.annualDividend,
-      message: `Found a perfect match! ${perfectMatch.stock.symbol} can meet your target dividend of $${targetDividendReturn.toFixed(2)}/year with an investment of $${perfectMatch.investmentAmount.toFixed(2)}.`,
+      message: `Perfect! Buy ${perfectMatch.shares} shares of ${perfectMatch.stock.symbol} for $${perfectMatch.investmentAmount.toFixed(2)} to get $${perfectMatch.singlePayoutDividend.toFixed(2)} in the next dividend payment. Sell after ex-dividend date and repeat with another stock.`,
     };
   }
 
-  // Strategy 2: Diversify across multiple high-efficiency stocks
+  // Strategy 2: Diversify across safest high-volume stocks for daily trading
   for (const calc of calculations) {
     if (remainingInvestment >= calc.stock.price) {
       // Calculate how many shares we can afford
       const affordableShares = Math.floor(remainingInvestment / calc.stock.price);
       const cost = affordableShares * calc.stock.price;
-      const dividend = affordableShares * calc.stock.annualDividend;
+      const singlePayout = affordableShares * calc.stock.dividendAmount;
+      const annual = affordableShares * calc.stock.annualDividend;
 
       if (affordableShares > 0) {
         portfolio.push({
           stock: calc.stock,
           shares: affordableShares,
           investmentAmount: cost,
-          annualDividend: dividend,
+          singlePayoutDividend: singlePayout,
+          annualDividend: annual,
           efficiency: calc.efficiency,
+          safetyScore: calc.safetyScore,
+          volumeScore: calc.volumeScore,
         });
 
         remainingInvestment -= cost;
-        totalDividend += dividend;
+        totalSinglePayout += singlePayout;
+        totalAnnual += annual;
 
-        // Stop if we've met or exceeded the target
-        if (totalDividend >= targetDividendReturn) {
+        // Stop if we've met or exceeded the target for single payout
+        if (totalSinglePayout >= targetDividendReturn) {
           break;
         }
       }
@@ -503,14 +533,21 @@ export async function calculateStockSuggestions(
     }
   }
 
-  const targetMet = totalDividend >= targetDividendReturn;
+  const targetMet = totalSinglePayout >= targetDividendReturn;
   const message = targetMet
-    ? `Great news! This portfolio will generate $${totalDividend.toFixed(2)}/year in dividends, exceeding your target of $${targetDividendReturn.toFixed(2)}.`
-    : `This portfolio will generate $${totalDividend.toFixed(2)}/year in dividends. To reach your target of $${targetDividendReturn.toFixed(2)}, you would need approximately $${(investmentAmount * (targetDividendReturn / totalDividend)).toFixed(2)} to invest.`;
+    ? `Great! This portfolio will generate $${totalSinglePayout.toFixed(2)} in the next dividend payment, meeting your target of $${targetDividendReturn.toFixed(2)}. Buy today, collect dividend on ex-date, then sell and rotate to tomorrow's opportunities.`
+    : `This allocation will generate $${totalSinglePayout.toFixed(2)} in the next payment. To reach your daily target of $${targetDividendReturn.toFixed(2)}, you need $${(investmentAmount * (targetDividendReturn / totalSinglePayout)).toFixed(2)} invested, or find stocks with higher dividend amounts per share.`;
 
   return {
-    suggestions: portfolio,
-    totalAnnualDividend: totalDividend,
+    suggestions: portfolio.map(p => ({
+      stock: p.stock,
+      shares: p.shares,
+      investmentAmount: p.investmentAmount,
+      singlePayoutDividend: p.singlePayoutDividend,
+      annualDividend: p.annualDividend,
+    })),
+    totalSinglePayout,
+    totalAnnualDividend: totalAnnual,
     message,
   };
 }

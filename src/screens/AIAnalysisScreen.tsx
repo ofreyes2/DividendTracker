@@ -45,8 +45,10 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
       stock: any;
       shares: number;
       investmentAmount: number;
+      singlePayoutDividend: number;
       annualDividend: number;
     }>;
+    totalSinglePayout: number;
     totalAnnualDividend: number;
     message: string;
   } | null>(null);
@@ -194,10 +196,10 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
               </View>
             </View>
 
-            {/* Summary Card */}
+            {/* Summary Card - Daily Trading Focus */}
             <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
               <Text className="text-white text-lg font-bold mb-3">
-                Portfolio Summary
+                Daily Capture Strategy
               </Text>
               <View className="flex-row justify-between mb-2">
                 <Text className="text-slate-400 text-sm">Total Investment</Text>
@@ -205,16 +207,15 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
                   ${smartSuggestions.suggestions.reduce((sum, s) => sum + s.investmentAmount, 0).toFixed(2)}
                 </Text>
               </View>
-              <View className="flex-row justify-between mb-2">
-                <Text className="text-slate-400 text-sm">Annual Dividend</Text>
-                <Text className="text-emerald-400 text-base font-bold">
-                  ${smartSuggestions.totalAnnualDividend.toFixed(2)}
+              <View className="flex-row justify-between mb-3">
+                <Text className="text-slate-400 text-sm">Next Dividend Payment</Text>
+                <Text className="text-emerald-400 text-xl font-bold">
+                  ${smartSuggestions.totalSinglePayout.toFixed(2)}
                 </Text>
               </View>
-              <View className="flex-row justify-between">
-                <Text className="text-slate-400 text-sm">Monthly Average</Text>
-                <Text className="text-emerald-400 text-base font-semibold">
-                  ${(smartSuggestions.totalAnnualDividend / 12).toFixed(2)}
+              <View className="bg-blue-900/30 rounded-lg p-2">
+                <Text className="text-blue-300 text-xs text-center">
+                  💡 Buy day before ex-date, collect dividend, sell next day
                 </Text>
               </View>
             </View>
@@ -269,17 +270,17 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
                         </Text>
                       </View>
                       <View className="flex-1 items-end">
-                        <Text className="text-slate-400 text-xs">Next Payout</Text>
+                        <Text className="text-slate-400 text-xs">This Payment</Text>
                         <Text className="text-emerald-400 text-base font-bold">
-                          ${(suggestion.shares * suggestion.stock.dividendAmount).toFixed(2)}
+                          ${suggestion.singlePayoutDividend.toFixed(2)}
                         </Text>
                       </View>
                     </View>
                     <View className="pt-2 border-t border-slate-700">
                       <View className="flex-row justify-between">
-                        <Text className="text-slate-400 text-xs">Annual Total</Text>
-                        <Text className="text-emerald-400 text-sm font-bold">
-                          ${suggestion.annualDividend.toFixed(2)}
+                        <Text className="text-slate-400 text-xs">Volume (Trading Safety)</Text>
+                        <Text className="text-blue-400 text-sm font-bold">
+                          {suggestion.stock.volume.current.toFixed(1)}M shares
                         </Text>
                       </View>
                     </View>

@@ -136,10 +136,10 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-1">
             <Text className="text-white text-lg font-bold" style={{ letterSpacing: -0.5 }}>
-              DIVIDEND STRATEGY CALENDAR
+              DAILY DIVIDEND CAPTURE
             </Text>
             <Text className="text-slate-400 text-sm">
-              {filteredStocks.length} stocks found
+              {filteredStocks.length} opportunities • Buy-Hold-Sell strategy
             </Text>
           </View>
           <Pressable
@@ -349,7 +349,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
 
               <View className="flex-1 bg-slate-800 rounded-xl p-4">
                 <Text className="text-slate-400 text-xs mb-2">
-                  Target Return
+                  Daily Target
                 </Text>
                 <View className="flex-row items-center">
                   <Text className="text-emerald-400 text-lg font-bold mr-1">$</Text>
@@ -387,9 +387,9 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 }}
                 className="bg-emerald-600 rounded-xl py-4 flex-row items-center justify-center active:bg-emerald-700"
               >
-                <Ionicons name="calculator" size={20} color="white" />
+                <Ionicons name="flash" size={20} color="white" />
                 <Text className="text-white text-base font-bold ml-2">
-                  Calculate Portfolio
+                  Find Daily Opportunities
                 </Text>
               </Pressable>
             )}
