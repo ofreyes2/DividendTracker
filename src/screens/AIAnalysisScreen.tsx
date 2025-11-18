@@ -269,8 +269,16 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
                         </Text>
                       </View>
                       <View className="flex-1 items-end">
-                        <Text className="text-slate-400 text-xs">Annual Dividend</Text>
+                        <Text className="text-slate-400 text-xs">Next Payout</Text>
                         <Text className="text-emerald-400 text-base font-bold">
+                          ${(suggestion.shares * suggestion.stock.dividendAmount).toFixed(2)}
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="pt-2 border-t border-slate-700">
+                      <View className="flex-row justify-between">
+                        <Text className="text-slate-400 text-xs">Annual Total</Text>
+                        <Text className="text-emerald-400 text-sm font-bold">
                           ${suggestion.annualDividend.toFixed(2)}
                         </Text>
                       </View>

@@ -64,20 +64,30 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     }
 
     // Apply quick filters
-    const today = new Date().toISOString().split("T")[0];
+    // Use local date to avoid timezone issues
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const today = `${year}-${month}-${day}`;
+
     if (quickFilter === "today") {
       stocks = stocks.filter((s) => s.exDividendDate === today);
     } else if (quickFilter === "tomorrow") {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().split("T")[0];
+      const tomorrowDate = new Date();
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+      const tomorrowYear = tomorrowDate.getFullYear();
+      const tomorrowMonth = String(tomorrowDate.getMonth() + 1).padStart(2, "0");
+      const tomorrowDay = String(tomorrowDate.getDate()).padStart(2, "0");
+      const tomorrowStr = `${tomorrowYear}-${tomorrowMonth}-${tomorrowDay}`;
       stocks = stocks.filter((s) => s.exDividendDate === tomorrowStr);
     } else if (quickFilter === "week") {
       const endOfWeek = new Date();
       endOfWeek.setDate(endOfWeek.getDate() + 7);
       stocks = stocks.filter((s) => {
-        const exDate = new Date(s.exDividendDate);
-        return exDate >= new Date(today) && exDate <= endOfWeek;
+        const exDate = new Date(s.exDividendDate + "T00:00:00");
+        const todayDate = new Date(today + "T00:00:00");
+        return exDate >= todayDate && exDate <= endOfWeek;
       });
     } else if (quickFilter === "day" && selectedDay) {
       stocks = stocks.filter((s) => s.exDividendDate === selectedDay);

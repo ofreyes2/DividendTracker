@@ -528,8 +528,12 @@ src/
 - Portfolio data persists using Zustand + AsyncStorage
 - MACD charts powered by Victory Native
 - All market data displayed with 15-minute delay disclaimer
-- Calendar date picker for precise ex-dividend date filtering
+- Calendar date picker for precise ex-dividend date filtering (fixed timezone issue for accurate date matching)
 - Search functionality for quick stock lookup by symbol or company name
+- **Dividend calculations** show per-payment amounts (current distribution cycle) plus annual totals
+  - "Next Payout" displays the upcoming dividend payment amount
+  - "Annual Total" shows the full year dividend amount
+  - All calculators and stock details properly distinguish between payment cycle and annual dividends
 
 ---
 
