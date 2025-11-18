@@ -17,9 +17,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useStockDataStore } from "../state/stockDataStore";
-import * as FileSystem from "expo-file-system";
 
 type Props = NativeStackScreenProps<RootStackParamList, "TickerManager">;
+
+// Your complete ticker list - edit this to add/remove tickers
+const FULL_TICKER_LIST = require("../../assets/tickers.txt");
 
 // Default tickers (fallback)
 const DEFAULT_TICKERS = `# Dividend Stock Tickers
@@ -105,16 +107,17 @@ export default function TickerManagerScreen({ navigation }: Props) {
 
   const loadTickersFromFile = async () => {
     try {
-      // Try to load from assets
-      const tickersModule = require("../../assets/tickers.txt");
-      const response = await fetch(tickersModule);
-      const content = await response.text();
+      // Load from bundled asset
+      if (FULL_TICKER_LIST) {
+        const response = await fetch(FULL_TICKER_LIST);
+        const content = await response.text();
 
-      if (content && content.length > 100) {
-        setTickerText(content);
+        if (content && content.length > 100) {
+          setTickerText(content);
+        }
       }
     } catch (error) {
-      console.warn("Failed to load tickers.txt from assets, using defaults:", error);
+      console.warn("Failed to load tickers from asset, using defaults:", error);
     } finally {
       setIsLoading(false);
     }
