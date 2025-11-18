@@ -17,6 +17,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import {
   analyzeStocksInBulk,
+  calculateStockSuggestions,
   type StockAnalysis,
   type AnalysisScenario,
 } from "../api/ai-analysis";
@@ -27,7 +28,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "AIAnalysis">;
 
 export default function AIAnalysisScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const { stocks, investmentAmount } = route.params;
+  const { stocks, investmentAmount, targetDividend, selectedDay } = route.params;
 
   const [isAnalyzing, setIsAnalyzing] = useState(true);
   const [analyses, setAnalyses] = useState<StockAnalysis[]>([]);
@@ -39,10 +40,41 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
     highYield?: AnalysisScenario;
     lowRisk?: AnalysisScenario;
   }>({});
+  const [smartSuggestions, setSmartSuggestions] = useState<{
+    suggestions: Array<{
+      stock: any;
+      shares: number;
+      investmentAmount: number;
+      annualDividend: number;
+    }>;
+    totalAnnualDividend: number;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
-    analyzeStocks();
+    if (targetDividend && targetDividend > 0) {
+      calculateSmartSuggestions();
+    } else {
+      analyzeStocks();
+    }
   }, []);
+
+  const calculateSmartSuggestions = async () => {
+    setIsAnalyzing(true);
+    try {
+      const result = await calculateStockSuggestions(
+        stocks,
+        investmentAmount,
+        targetDividend!,
+        selectedDay
+      );
+      setSmartSuggestions(result);
+    } catch (error) {
+      console.error("Failed to calculate suggestions:", error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const analyzeStocks = async () => {
     setIsAnalyzing(true);
@@ -137,12 +169,118 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color="#3b82f6" />
           <Text className="text-white text-lg font-semibold mt-4">
-            Analyzing {stocks.length} stocks...
+            {targetDividend ? "Calculating optimal portfolio..." : `Analyzing ${stocks.length} stocks...`}
           </Text>
           <Text className="text-slate-400 text-sm mt-2">
             This may take a moment
           </Text>
         </View>
+      ) : smartSuggestions ? (
+        // Smart Suggestions View (when target dividend is set)
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
+          <View className="p-4">
+            {/* Result Message */}
+            <View className="bg-blue-900/30 border border-blue-600 rounded-2xl p-4 mb-4">
+              <View className="flex-row items-start">
+                <Ionicons name="information-circle" size={24} color="#3b82f6" />
+                <View className="flex-1 ml-3">
+                  <Text className="text-white text-base font-semibold mb-2">
+                    Portfolio Suggestion
+                  </Text>
+                  <Text className="text-slate-300 text-sm">
+                    {smartSuggestions.message}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Summary Card */}
+            <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
+              <Text className="text-white text-lg font-bold mb-3">
+                Portfolio Summary
+              </Text>
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-slate-400 text-sm">Total Investment</Text>
+                <Text className="text-white text-base font-semibold">
+                  ${smartSuggestions.suggestions.reduce((sum, s) => sum + s.investmentAmount, 0).toFixed(2)}
+                </Text>
+              </View>
+              <View className="flex-row justify-between mb-2">
+                <Text className="text-slate-400 text-sm">Annual Dividend</Text>
+                <Text className="text-emerald-400 text-base font-bold">
+                  ${smartSuggestions.totalAnnualDividend.toFixed(2)}
+                </Text>
+              </View>
+              <View className="flex-row justify-between">
+                <Text className="text-slate-400 text-sm">Monthly Average</Text>
+                <Text className="text-emerald-400 text-base font-semibold">
+                  ${(smartSuggestions.totalAnnualDividend / 12).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
+            {/* Suggested Stocks */}
+            <Text className="text-white text-lg font-bold mb-3">
+              Suggested Stocks ({smartSuggestions.suggestions.length})
+            </Text>
+
+            {smartSuggestions.suggestions.map((suggestion, index) => (
+              <Animated.View
+                key={suggestion.stock.symbol}
+                entering={FadeInDown.delay(index * 100)}
+              >
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate("StockDetail", { stock: suggestion.stock })
+                  }
+                  className="bg-[#1e293b] rounded-2xl p-4 mb-3 border border-slate-700"
+                >
+                  <View className="flex-row items-center justify-between mb-3">
+                    <View className="flex-1">
+                      <Text className="text-white text-lg font-bold">
+                        {suggestion.stock.symbol}
+                      </Text>
+                      <Text className="text-slate-400 text-sm">
+                        {suggestion.stock.companyName}
+                      </Text>
+                    </View>
+                    <View className="items-end">
+                      <Text className="text-white text-xl font-bold">
+                        ${suggestion.stock.price.toFixed(2)}
+                      </Text>
+                      <Text className="text-emerald-400 text-sm font-semibold">
+                        {suggestion.stock.dividendYield.toFixed(2)}% yield
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View className="bg-slate-800/50 rounded-xl p-3">
+                    <View className="flex-row justify-between mb-2">
+                      <View className="flex-1">
+                        <Text className="text-slate-400 text-xs">Shares to Buy</Text>
+                        <Text className="text-white text-base font-bold">
+                          {suggestion.shares}
+                        </Text>
+                      </View>
+                      <View className="flex-1 items-center">
+                        <Text className="text-slate-400 text-xs">Investment</Text>
+                        <Text className="text-white text-base font-semibold">
+                          ${suggestion.investmentAmount.toFixed(2)}
+                        </Text>
+                      </View>
+                      <View className="flex-1 items-end">
+                        <Text className="text-slate-400 text-xs">Annual Dividend</Text>
+                        <Text className="text-emerald-400 text-base font-bold">
+                          ${suggestion.annualDividend.toFixed(2)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </Pressable>
+              </Animated.View>
+            ))}
+          </View>
+        </ScrollView>
       ) : (
         <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
           {/* Scenario Selector */}

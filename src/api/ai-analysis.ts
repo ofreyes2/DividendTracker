@@ -33,7 +33,7 @@ export async function analyzeStock(
   stock: DividendStock,
   investmentAmount: number
 ): Promise<StockAnalysis> {
-  const prompt = `Analyze this dividend stock for investment:
+  const prompt = `Analyze this dividend stock for investment. IMPORTANT: Explain each data point in simple, layman terms that a novice investor can understand.
 
 Company: ${stock.companyName} (${stock.symbol})
 Sector: ${stock.sector}
@@ -43,24 +43,40 @@ Annual Dividend: $${stock.annualDividend}
 Ex-Dividend Date: ${stock.exDividendDate}
 Market Cap: $${stock.marketCap}B
 Payment Frequency: ${stock.frequency}
+Payout Ratio: ${stock.payoutRatio}%
+
+Technical Indicators:
+- RSI: ${stock.technicals.rsi}
+- MACD: ${stock.technicals.macd.value.toFixed(2)}
+- PEG Ratio: ${stock.technicals.pegRatio.toFixed(2)}
+- 50-Day MA: $${stock.technicals.movingAverage50.toFixed(2)}
+- 200-Day MA: $${stock.technicals.movingAverage200.toFixed(2)}
 
 Investment Amount: $${investmentAmount}
 
-Provide a brief analysis (max 150 words) covering:
+Provide a detailed analysis in simple terms that explains:
 1. Investment quality (score 0-100)
 2. Recommendation (strong_buy, buy, hold, or avoid)
-3. Key pros (2-3 bullet points)
-4. Key cons (1-2 bullet points)
-5. Risk level (low, medium, high)
-6. Best timeframe (short-term or long-term)
+3. DETAILED reasoning that explains:
+   - What dividend yield means and why this one is good/bad
+   - What the payout ratio tells us about sustainability
+   - What RSI means and what this stock's RSI tells us (under 30 = oversold/good buy, 30-70 = normal, over 70 = overbought/caution)
+   - What MACD indicates about momentum (positive = bullish, negative = bearish)
+   - What PEG ratio means (under 1 = undervalued, 1-2 = fairly valued, over 2 = overvalued)
+   - How moving averages help identify trends
+   - Whether technical indicators work together or contradict
+4. Key pros (3-4 bullet points in plain language)
+5. Key cons (2-3 bullet points in plain language)
+6. Risk level (low, medium, high) with explanation
+7. Best timeframe (short-term or long-term) with explanation
 
 Format your response as JSON:
 {
   "score": number,
   "recommendation": string,
-  "reasoning": "brief explanation",
-  "pros": ["point 1", "point 2"],
-  "cons": ["point 1"],
+  "reasoning": "detailed explanation in simple terms (200-300 words)",
+  "pros": ["point 1", "point 2", "point 3", "point 4"],
+  "cons": ["point 1", "point 2"],
   "riskLevel": string,
   "timeframe": string
 }`;
@@ -70,7 +86,7 @@ Format your response as JSON:
       {
         role: "system",
         content:
-          "You are a financial analyst specializing in dividend investing. Provide concise, actionable investment analysis. IMPORTANT: Return ONLY valid JSON, no additional text or markdown formatting.",
+          "You are a financial analyst who specializes in explaining investment concepts to novice investors. Break down technical indicators in simple, easy-to-understand language. Explain how different data points work together to form a complete picture. Use analogies when helpful. IMPORTANT: Return ONLY valid JSON, no additional text or markdown formatting.",
       },
       { role: "user", content: prompt },
     ]);
@@ -386,3 +402,116 @@ Provide a brief, actionable recommendation.`;
     return "Unable to generate recommendation at this time. Consider diversifying across multiple stocks with strong dividend histories.";
   }
 }
+
+/**
+ * Calculate stock suggestions based on investment amount, target dividend, and date
+ */
+export async function calculateStockSuggestions(
+  stocks: DividendStock[],
+  investmentAmount: number,
+  targetDividendReturn: number,
+  date?: string
+): Promise<{
+  suggestions: Array<{
+    stock: DividendStock;
+    shares: number;
+    investmentAmount: number;
+    annualDividend: number;
+  }>;
+  totalAnnualDividend: number;
+  message: string;
+}> {
+  // Filter stocks by date if provided
+  const filteredStocks = date
+    ? stocks.filter((s) => s.exDividendDate === date)
+    : stocks;
+
+  if (filteredStocks.length === 0) {
+    return {
+      suggestions: [],
+      totalAnnualDividend: 0,
+      message: "No stocks found for the selected criteria.",
+    };
+  }
+
+  // Calculate how many shares of each stock we'd need to meet the target
+  const calculations = filteredStocks.map((stock) => {
+    const sharesNeeded = Math.ceil(targetDividendReturn / stock.annualDividend);
+    const cost = sharesNeeded * stock.price;
+    const actualDividend = sharesNeeded * stock.annualDividend;
+
+    return {
+      stock,
+      shares: sharesNeeded,
+      investmentAmount: cost,
+      annualDividend: actualDividend,
+      efficiency: actualDividend / cost, // Dividend per dollar invested
+    };
+  });
+
+  // Sort by efficiency (best dividend per dollar)
+  calculations.sort((a, b) => b.efficiency - a.efficiency);
+
+  // Try to build a portfolio that meets the target with the investment amount
+  const portfolio: typeof calculations = [];
+  let remainingInvestment = investmentAmount;
+  let totalDividend = 0;
+
+  // Strategy 1: Try to meet target exactly with one stock
+  const perfectMatch = calculations.find(
+    (c) => c.investmentAmount <= investmentAmount && c.annualDividend >= targetDividendReturn
+  );
+
+  if (perfectMatch) {
+    return {
+      suggestions: [perfectMatch],
+      totalAnnualDividend: perfectMatch.annualDividend,
+      message: `Found a perfect match! ${perfectMatch.stock.symbol} can meet your target dividend of $${targetDividendReturn.toFixed(2)}/year with an investment of $${perfectMatch.investmentAmount.toFixed(2)}.`,
+    };
+  }
+
+  // Strategy 2: Diversify across multiple high-efficiency stocks
+  for (const calc of calculations) {
+    if (remainingInvestment >= calc.stock.price) {
+      // Calculate how many shares we can afford
+      const affordableShares = Math.floor(remainingInvestment / calc.stock.price);
+      const cost = affordableShares * calc.stock.price;
+      const dividend = affordableShares * calc.stock.annualDividend;
+
+      if (affordableShares > 0) {
+        portfolio.push({
+          stock: calc.stock,
+          shares: affordableShares,
+          investmentAmount: cost,
+          annualDividend: dividend,
+          efficiency: calc.efficiency,
+        });
+
+        remainingInvestment -= cost;
+        totalDividend += dividend;
+
+        // Stop if we've met or exceeded the target
+        if (totalDividend >= targetDividendReturn) {
+          break;
+        }
+      }
+    }
+
+    // Stop after 5 stocks for diversification
+    if (portfolio.length >= 5) {
+      break;
+    }
+  }
+
+  const targetMet = totalDividend >= targetDividendReturn;
+  const message = targetMet
+    ? `Great news! This portfolio will generate $${totalDividend.toFixed(2)}/year in dividends, exceeding your target of $${targetDividendReturn.toFixed(2)}.`
+    : `This portfolio will generate $${totalDividend.toFixed(2)}/year in dividends. To reach your target of $${targetDividendReturn.toFixed(2)}, you would need approximately $${(investmentAmount * (targetDividendReturn / totalDividend)).toFixed(2)} to invest.`;
+
+  return {
+    suggestions: portfolio,
+    totalAnnualDividend: totalDividend,
+    message,
+  };
+}
+

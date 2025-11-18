@@ -22,6 +22,8 @@ import type { RootStackParamList } from "../navigation/RootNavigator";
 import {
   ALL_DIVIDEND_STOCKS,
   filterStocks,
+  getAllSectors,
+  getAllIndustries,
   type DividendStock,
   type FilterOptions,
 } from "../api/comprehensive-stock-data";
@@ -44,6 +46,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   const [selectedDay, setSelectedDay] = useState<string>("");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerDate, setPickerDate] = useState(new Date());
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
 
   // Apply filters
   const filteredStocks = useMemo(() => {
@@ -110,19 +113,21 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         className="px-6 pb-4 bg-[#1a2332] border-b border-slate-700"
       >
         <View className="flex-row items-center justify-between mb-2">
-          <Text className="text-white text-3xl font-bold">
-            DIVIDEND STRATEGY CALENDAR
-          </Text>
+          <View className="flex-1">
+            <Text className="text-white text-xl font-bold" style={{ letterSpacing: -0.5 }}>
+              DIVIDEND STRATEGY
+            </Text>
+            <Text className="text-slate-400 text-sm">
+              {filteredStocks.length} stocks found
+            </Text>
+          </View>
           <Pressable
             onPress={() => navigation.navigate("Portfolio")}
-            className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center"
+            className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center ml-3"
           >
-            <Ionicons name="briefcase" size={20} color="white" />
+            <Ionicons name="briefcase" size={22} color="white" />
           </Pressable>
         </View>
-        <Text className="text-slate-400 text-base mb-4">
-          {filteredStocks.length} stocks found
-        </Text>
 
         {/* Data disclaimer */}
         <View className="mb-3 bg-amber-900/20 border border-amber-700/30 rounded-lg p-2">
@@ -243,55 +248,73 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
         )}
 
-        {/* Investment Amount Input */}
-        <View className="bg-slate-800 rounded-xl p-4 mb-3">
-          <Text className="text-slate-400 text-xs mb-2">
-            Total Investment Amount
-          </Text>
-          <View className="flex-row items-center">
-            <Text className="text-white text-xl font-bold mr-2">$</Text>
-            <TextInput
-              value={investmentAmount}
-              onChangeText={setInvestmentAmount}
-              keyboardType="numeric"
-              placeholder="10000"
-              placeholderTextColor="#64748b"
-              className="flex-1 text-white text-xl font-bold"
-            />
-          </View>
-        </View>
-
-        {/* Target Dividend Return */}
-        <View className="bg-slate-800 rounded-xl p-4 mb-3">
-          <Text className="text-slate-400 text-xs mb-2">
-            Target Dividend Return (Optional)
-          </Text>
-          <View className="flex-row items-center">
-            <Text className="text-emerald-400 text-xl font-bold mr-2">$</Text>
-            <TextInput
-              value={targetDividend}
-              onChangeText={setTargetDividend}
-              keyboardType="numeric"
-              placeholder="1000"
-              placeholderTextColor="#64748b"
-              className="flex-1 text-white text-xl font-bold"
-            />
-          </View>
-          {targetDividend && (
-            <Text className="text-slate-500 text-xs mt-2">
-              AI will select stocks to generate this annual dividend amount
-            </Text>
-          )}
-        </View>
-
-        {/* Filter Button */}
+        {/* Collapsible Filters Section */}
         <Pressable
-          onPress={() => setShowFilterModal(true)}
-          className="bg-slate-700 rounded-xl py-3 flex-row items-center justify-center active:bg-slate-600"
+          onPress={() => setFiltersExpanded(!filtersExpanded)}
+          className="bg-slate-800 rounded-xl p-4 mb-3 flex-row items-center justify-between"
         >
-          <Ionicons name="options-outline" size={20} color="white" />
-          <Text className="text-white font-semibold ml-2">More Filters</Text>
+          <View className="flex-row items-center">
+            <Ionicons name="options-outline" size={20} color="white" />
+            <Text className="text-white font-semibold ml-2">
+              Investment Settings
+            </Text>
+          </View>
+          <Ionicons
+            name={filtersExpanded ? "chevron-up" : "chevron-down"}
+            size={20}
+            color="#94a3b8"
+          />
         </Pressable>
+
+        {filtersExpanded && (
+          <View className="mb-3">
+            {/* Investment Amount and Target Dividend Side-by-Side */}
+            <View className="flex-row space-x-2 mb-3">
+              <View className="flex-1 bg-slate-800 rounded-xl p-4">
+                <Text className="text-slate-400 text-xs mb-2">
+                  Investment Amount
+                </Text>
+                <View className="flex-row items-center">
+                  <Text className="text-white text-lg font-bold mr-1">$</Text>
+                  <TextInput
+                    value={investmentAmount}
+                    onChangeText={setInvestmentAmount}
+                    keyboardType="numeric"
+                    placeholder="10000"
+                    placeholderTextColor="#64748b"
+                    className="flex-1 text-white text-lg font-bold"
+                  />
+                </View>
+              </View>
+
+              <View className="flex-1 bg-slate-800 rounded-xl p-4">
+                <Text className="text-slate-400 text-xs mb-2">
+                  Target Return
+                </Text>
+                <View className="flex-row items-center">
+                  <Text className="text-emerald-400 text-lg font-bold mr-1">$</Text>
+                  <TextInput
+                    value={targetDividend}
+                    onChangeText={setTargetDividend}
+                    keyboardType="numeric"
+                    placeholder="1000"
+                    placeholderTextColor="#64748b"
+                    className="flex-1 text-white text-lg font-bold"
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* More Filters Button */}
+            <Pressable
+              onPress={() => setShowFilterModal(true)}
+              className="bg-slate-700 rounded-xl py-3 flex-row items-center justify-center active:bg-slate-600"
+            >
+              <Ionicons name="funnel-outline" size={18} color="white" />
+              <Text className="text-white font-semibold ml-2">More Filters</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
 
       {/* Stock List */}
@@ -530,12 +553,22 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
 
           <View className="flex-row space-x-2">
             <Pressable
-              onPress={() =>
-                navigation.navigate("BulkCalculator", {
-                  stocks: selectedStockObjects,
-                  investmentAmount: parseFloat(investmentAmount) || 10000,
-                })
-              }
+              onPress={() => {
+                // If target dividend is set, use smart calculation
+                if (targetDividend && parseFloat(targetDividend) > 0) {
+                  navigation.navigate("AIAnalysis", {
+                    stocks: selectedStockObjects.length > 0 ? selectedStockObjects : filteredStocks,
+                    investmentAmount: parseFloat(investmentAmount) || 10000,
+                    targetDividend: parseFloat(targetDividend),
+                    selectedDay: quickFilter === "day" ? selectedDay : undefined,
+                  });
+                } else {
+                  navigation.navigate("BulkCalculator", {
+                    stocks: selectedStockObjects,
+                    investmentAmount: parseFloat(investmentAmount) || 10000,
+                  });
+                }
+              }}
               className="flex-1 bg-emerald-600 rounded-xl py-4 items-center active:bg-emerald-700"
             >
               <View className="flex-row items-center">
@@ -566,7 +599,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         </View>
       )}
 
-      {/* Filter Modal - Placeholder for now */}
+      {/* Filter Modal - Advanced Filters */}
       <Modal
         visible={showFilterModal}
         animationType="slide"
@@ -578,7 +611,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             className="px-6 pb-4 bg-[#1a2332] border-b border-slate-700"
           >
             <View className="flex-row items-center justify-between">
-              <Text className="text-white text-2xl font-bold">Filters</Text>
+              <Text className="text-white text-2xl font-bold">Advanced Filters</Text>
               <Pressable
                 onPress={() => setShowFilterModal(false)}
                 className="w-10 h-10 rounded-full bg-slate-700 items-center justify-center"
@@ -589,13 +622,207 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
 
           <ScrollView className="flex-1 p-6">
-            <Text className="text-white text-lg font-semibold mb-4">
-              Advanced filters coming soon...
-            </Text>
-            <Text className="text-slate-400">
-              Filter by specific dates, months, quarters, yield ranges, and
-              sectors.
-            </Text>
+            {/* Month Filter */}
+            <View className="mb-6">
+              <Text className="text-white text-lg font-semibold mb-3">
+                Filter by Month
+              </Text>
+              <View className="flex-row flex-wrap">
+                {[
+                  { num: 1, name: "Jan" },
+                  { num: 2, name: "Feb" },
+                  { num: 3, name: "Mar" },
+                  { num: 4, name: "Apr" },
+                  { num: 5, name: "May" },
+                  { num: 6, name: "Jun" },
+                  { num: 7, name: "Jul" },
+                  { num: 8, name: "Aug" },
+                  { num: 9, name: "Sep" },
+                  { num: 10, name: "Oct" },
+                  { num: 11, name: "Nov" },
+                  { num: 12, name: "Dec" },
+                ].map((month) => (
+                  <Pressable
+                    key={month.num}
+                    onPress={() =>
+                      setFilters((prev) =>
+                        prev.month === month.num
+                          ? { ...prev, month: undefined }
+                          : { ...prev, month: month.num, quarter: undefined }
+                      )
+                    }
+                    className={cn(
+                      "px-4 py-2 rounded-lg mr-2 mb-2 border",
+                      filters.month === month.num
+                        ? "bg-blue-600 border-blue-600"
+                        : "bg-slate-800 border-slate-700"
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        "text-sm font-semibold",
+                        filters.month === month.num
+                          ? "text-white"
+                          : "text-slate-400"
+                      )}
+                    >
+                      {month.name}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Quarter Filter */}
+            <View className="mb-6">
+              <Text className="text-white text-lg font-semibold mb-3">
+                Filter by Quarter
+              </Text>
+              <View className="flex-row">
+                {[1, 2, 3, 4].map((quarter) => (
+                  <Pressable
+                    key={quarter}
+                    onPress={() =>
+                      setFilters((prev) =>
+                        prev.quarter === quarter
+                          ? { ...prev, quarter: undefined }
+                          : { ...prev, quarter, month: undefined }
+                      )
+                    }
+                    className={cn(
+                      "flex-1 px-4 py-3 rounded-lg mr-2 border",
+                      filters.quarter === quarter
+                        ? "bg-blue-600 border-blue-600"
+                        : "bg-slate-800 border-slate-700"
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        "text-center text-sm font-semibold",
+                        filters.quarter === quarter
+                          ? "text-white"
+                          : "text-slate-400"
+                      )}
+                    >
+                      Q{quarter}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Yield Range Filter */}
+            <View className="mb-6">
+              <Text className="text-white text-lg font-semibold mb-3">
+                Dividend Yield Range (%)
+              </Text>
+              <View className="flex-row space-x-3">
+                <View className="flex-1">
+                  <Text className="text-slate-400 text-xs mb-2">Min Yield</Text>
+                  <View className="bg-slate-800 rounded-lg p-3 flex-row items-center">
+                    <TextInput
+                      value={filters.minYield?.toString() || ""}
+                      onChangeText={(text) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          minYield: text ? parseFloat(text) : undefined,
+                        }))
+                      }
+                      keyboardType="decimal-pad"
+                      placeholder="0"
+                      placeholderTextColor="#64748b"
+                      className="flex-1 text-white text-base"
+                    />
+                    <Text className="text-slate-400 text-base ml-1">%</Text>
+                  </View>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-slate-400 text-xs mb-2">Max Yield</Text>
+                  <View className="bg-slate-800 rounded-lg p-3 flex-row items-center">
+                    <TextInput
+                      value={filters.maxYield?.toString() || ""}
+                      onChangeText={(text) =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          maxYield: text ? parseFloat(text) : undefined,
+                        }))
+                      }
+                      keyboardType="decimal-pad"
+                      placeholder="15"
+                      placeholderTextColor="#64748b"
+                      className="flex-1 text-white text-base"
+                    />
+                    <Text className="text-slate-400 text-base ml-1">%</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Sector Filter */}
+            <View className="mb-6">
+              <Text className="text-white text-lg font-semibold mb-3">
+                Filter by Sector
+              </Text>
+              <View className="flex-row flex-wrap">
+                {getAllSectors().map((sector) => (
+                  <Pressable
+                    key={sector}
+                    onPress={() =>
+                      setFilters((prev) => {
+                        const sectors = prev.sectors || [];
+                        const newSectors = sectors.includes(sector)
+                          ? sectors.filter((s) => s !== sector)
+                          : [...sectors, sector];
+                        return {
+                          ...prev,
+                          sectors: newSectors.length > 0 ? newSectors : undefined,
+                        };
+                      })
+                    }
+                    className={cn(
+                      "px-3 py-2 rounded-lg mr-2 mb-2 border",
+                      filters.sectors?.includes(sector)
+                        ? "bg-blue-600 border-blue-600"
+                        : "bg-slate-800 border-slate-700"
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        "text-xs font-semibold",
+                        filters.sectors?.includes(sector)
+                          ? "text-white"
+                          : "text-slate-400"
+                      )}
+                    >
+                      {sector}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Clear Filters Button */}
+            <Pressable
+              onPress={() => {
+                setFilters({});
+                setShowFilterModal(false);
+              }}
+              className="bg-slate-700 rounded-xl py-4 items-center mb-4"
+            >
+              <Text className="text-white font-semibold text-base">
+                Clear All Filters
+              </Text>
+            </Pressable>
+
+            {/* Apply Filters Button */}
+            <Pressable
+              onPress={() => setShowFilterModal(false)}
+              className="bg-blue-600 rounded-xl py-4 items-center mb-4"
+            >
+              <Text className="text-white font-bold text-base">
+                Apply Filters
+              </Text>
+            </Pressable>
           </ScrollView>
         </View>
       </Modal>

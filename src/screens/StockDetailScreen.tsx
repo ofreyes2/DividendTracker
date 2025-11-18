@@ -12,6 +12,8 @@ import {
   ActivityIndicator,
   Modal,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -808,90 +810,102 @@ export default function StockDetailScreen({
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <View className="flex-1 bg-[#0f172a]">
-          <View
-            style={{ paddingTop: insets.top + 16 }}
-            className="px-6 pb-4 bg-[#1a2332] border-b border-slate-700"
-          >
-            <View className="flex-row items-center justify-between">
-              <Text className="text-white text-2xl font-bold">
-                Ask AI about {stock.symbol}
-              </Text>
-              <Pressable
-                onPress={() => setShowChatModal(false)}
-                className="w-10 h-10 rounded-full bg-slate-700 items-center justify-center"
-              >
-                <Ionicons name="close" size={24} color="white" />
-              </Pressable>
-            </View>
-          </View>
-
-          <ScrollView className="flex-1 p-4">
-            {chatMessages.length === 0 ? (
-              <View className="items-center py-10">
-                <Ionicons name="chatbubbles-outline" size={64} color="#64748b" />
-                <Text className="text-white text-lg font-semibold mt-4">
-                  Ask me anything
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          className="flex-1"
+          keyboardVerticalOffset={0}
+        >
+          <View className="flex-1 bg-[#0f172a]">
+            <View
+              style={{ paddingTop: insets.top + 16 }}
+              className="px-6 pb-4 bg-[#1a2332] border-b border-slate-700"
+            >
+              <View className="flex-row items-center justify-between">
+                <Text className="text-white text-2xl font-bold">
+                  Ask AI about {stock.symbol}
                 </Text>
-                <Text className="text-slate-400 text-sm mt-2 text-center">
-                  Get detailed insights about {stock.symbol} from AI
-                </Text>
+                <Pressable
+                  onPress={() => setShowChatModal(false)}
+                  className="w-10 h-10 rounded-full bg-slate-700 items-center justify-center"
+                >
+                  <Ionicons name="close" size={24} color="white" />
+                </Pressable>
               </View>
-            ) : (
-              chatMessages.map((message, index) => (
-                <View
-                  key={index}
+            </View>
+
+            <ScrollView
+              className="flex-1 p-4"
+              contentContainerStyle={{ paddingBottom: 20 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {chatMessages.length === 0 ? (
+                <View className="items-center py-10">
+                  <Ionicons name="chatbubbles-outline" size={64} color="#64748b" />
+                  <Text className="text-white text-lg font-semibold mt-4">
+                    Ask me anything
+                  </Text>
+                  <Text className="text-slate-400 text-sm mt-2 text-center">
+                    Get detailed insights about {stock.symbol} from AI
+                  </Text>
+                </View>
+              ) : (
+                chatMessages.map((message, index) => (
+                  <View
+                    key={index}
+                    className={cn(
+                      "mb-3 rounded-2xl p-4",
+                      message.role === "user"
+                        ? "bg-blue-600 self-end max-w-[80%]"
+                        : "bg-[#1e293b] self-start max-w-[90%]"
+                    )}
+                  >
+                    <Text className="text-white text-sm">{message.content}</Text>
+                  </View>
+                ))
+              )}
+              {loadingChat && (
+                <View className="bg-[#1e293b] rounded-2xl p-4 mb-3 self-start">
+                  <ActivityIndicator color="#3b82f6" />
+                </View>
+              )}
+            </ScrollView>
+
+            <View
+              style={{ paddingBottom: insets.bottom + 8 }}
+              className="px-4 py-3 bg-[#1a2332] border-t border-slate-700"
+            >
+              <View className="flex-row items-center space-x-2">
+                <TextInput
+                  value={chatInput}
+                  onChangeText={setChatInput}
+                  placeholder="Ask about dividends, analysis, etc..."
+                  placeholderTextColor="#64748b"
+                  className="flex-1 bg-slate-800 rounded-xl p-3 text-white"
+                  multiline
+                  maxLength={500}
+                  onSubmitEditing={handleSendMessage}
+                  blurOnSubmit={false}
+                />
+                <Pressable
+                  onPress={handleSendMessage}
+                  disabled={!chatInput.trim() || loadingChat}
                   className={cn(
-                    "mb-3 rounded-2xl p-4",
-                    message.role === "user"
-                      ? "bg-blue-600 self-end max-w-[80%]"
-                      : "bg-[#1e293b] self-start max-w-[90%]"
+                    "w-12 h-12 rounded-xl items-center justify-center",
+                    chatInput.trim() && !loadingChat
+                      ? "bg-blue-600"
+                      : "bg-slate-700"
                   )}
                 >
-                  <Text className="text-white text-sm">{message.content}</Text>
-                </View>
-              ))
-            )}
-            {loadingChat && (
-              <View className="bg-[#1e293b] rounded-2xl p-4 mb-3 self-start">
-                <ActivityIndicator color="#3b82f6" />
+                  <Ionicons
+                    name="send"
+                    size={20}
+                    color={chatInput.trim() && !loadingChat ? "white" : "#64748b"}
+                  />
+                </Pressable>
               </View>
-            )}
-          </ScrollView>
-
-          <View
-            style={{ paddingBottom: insets.bottom + 8 }}
-            className="px-4 py-2 bg-[#1a2332] border-t border-slate-700"
-          >
-            <View className="flex-row items-center space-x-2">
-              <TextInput
-                value={chatInput}
-                onChangeText={setChatInput}
-                placeholder="Ask about dividends, analysis, etc..."
-                placeholderTextColor="#64748b"
-                className="flex-1 bg-slate-800 rounded-xl p-3 text-white"
-                multiline
-                maxLength={500}
-              />
-              <Pressable
-                onPress={handleSendMessage}
-                disabled={!chatInput.trim() || loadingChat}
-                className={cn(
-                  "w-12 h-12 rounded-xl items-center justify-center",
-                  chatInput.trim() && !loadingChat
-                    ? "bg-blue-600"
-                    : "bg-slate-700"
-                )}
-              >
-                <Ionicons
-                  name="send"
-                  size={20}
-                  color={chatInput.trim() && !loadingChat ? "white" : "#64748b"}
-                />
-              </Pressable>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );

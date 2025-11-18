@@ -1,31 +1,36 @@
-# DIVIDEND STRATEGY CALENDAR - AI-Powered Stock Screener & Portfolio Tracker
+# DIVIDEND STRATEGY - AI-Powered Stock Screener & Portfolio Tracker
 
-A professional dividend stock screening, analysis, and portfolio tracking app with AI-powered investment recommendations. Filter stocks by ex-dividend dates, track your portfolio, manage transactions, monitor upcoming dividend payouts, and get personalized AI analysis for your investment strategy.
+A professional dividend stock screening, analysis, and portfolio tracking app with AI-powered investment recommendations. Filter stocks by ex-dividend dates, track your portfolio, manage transactions, monitor upcoming dividend payouts, and get personalized AI analysis with detailed layman explanations.
 
 ## Overview
 
-This app helps dividend investors find opportunities, track their investments, and manage their dividend income. It features a comprehensive database of 45+ dividend-paying stocks, real-time filtering, detailed stock information with MACD charts, bulk investment calculations, portfolio tracking, transaction management, dividend calendar, and AI-powered chat for deep stock analysis.
+This app helps dividend investors find opportunities, track their investments, and manage their dividend income. It features a comprehensive database of 45+ dividend-paying stocks, real-time filtering with advanced options, detailed stock information with MACD charts, smart portfolio calculations, portfolio tracking, transaction management, dividend calendar, and AI-powered chat for deep stock analysis with beginner-friendly explanations.
 
 ## Key Features
 
 ### 1. **Dividend Strategy Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks
+- **Compact, Money-Focused Title** - Condensed header maximizes screen real estate
 - **Quick Filters** - Find stocks with ex-dividend dates:
   - All stocks
   - Today
   - Tomorrow
   - This Week
-  - Specific Day (calendar date picker)
+  - Specific Day (calendar date picker with proper filtering)
+- **Collapsible Investment Settings** - Expandable section to save screen space
+- **Side-by-Side Inputs** - Investment amount and target dividend return in compact layout
 - **Advanced Filters** - Filter by:
-  - Specific dates or date ranges
-  - Month or quarter
-  - Dividend yield ranges
-  - Sectors and industries
+  - Specific months (Jan-Dec)
+  - Quarters (Q1-Q4)
+  - Dividend yield ranges (min/max)
+  - Sectors (Technology, Healthcare, Financials, etc.)
+  - Industries within sectors
   - Market indices
-  - Volume ranges
-  - Technical indicators (RSI, PEG ratio)
-- **Target Dividend Return** - Enter desired annual dividend income and let AI select optimal stocks
-- **Investment Calculator** - Set total investment amount for automated calculations
+- **Smart Calculate Button** - When date, investment amount, and target dividend are set:
+  - Automatically suggests optimal stock portfolio to meet dividend target
+  - Shows exact number of shares to purchase
+  - Calculates total investment needed
+  - Displays annual and monthly dividend projections
 - **Data Disclaimer** - All market data shown with 15-minute delay notice
 
 ### 2. **Comprehensive Stock Information on Cards**
@@ -78,15 +83,23 @@ Tap any stock card to view in-depth analysis:
 - **Company Information**:
   - Complete sector and industry classification
   - Stock market indices membership
-- **AI-Powered Analysis** (auto-loaded on screen):
+- **AI-Powered Analysis** (auto-loaded on screen with enhanced layman explanations):
   - Investment score (0-100)
   - Buy/Hold/Avoid recommendation
   - Risk level assessment
   - Investment timeframe
-  - Strengths and concerns
-  - Detailed reasoning
+  - **Detailed explanations** of all technical indicators in simple terms:
+    - What dividend yield means and why it matters
+    - How payout ratio indicates dividend sustainability
+    - RSI explained (oversold vs overbought) with specific stock implications
+    - MACD momentum indicators in plain language
+    - PEG ratio valuation guidance (undervalued vs overvalued)
+    - Moving averages and trend identification
+    - How all indicators work together for a complete picture
+  - Strengths and concerns in everyday language
+  - Detailed reasoning accessible to novice investors
+- **AI Chat** - Ask questions and get instant responses with keyboard-friendly interface
 - **Buy Button** - Quick access to add position to portfolio
-- **AI Chat** - Ask questions about the stock and get instant AI responses
 
 ### 4. **Portfolio Tracking System**
 - **My Portfolio Screen** - Centralized view of all investments

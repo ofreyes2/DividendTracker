@@ -24,6 +24,8 @@ export type RootStackParamList = {
   AIAnalysis: {
     stocks: DividendStock[];
     investmentAmount: number;
+    targetDividend?: number;
+    selectedDay?: string;
   };
   Portfolio: undefined;
   TransactionDetail: {
