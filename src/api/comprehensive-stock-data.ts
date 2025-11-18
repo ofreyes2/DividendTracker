@@ -471,3 +471,78 @@ export function calculateBulkInvestment(
     };
   });
 }
+
+/**
+ * Enhance stock data with real-time data from FinnHub
+ */
+import {
+  getFinnHubQuote,
+  getFinnHubProfile,
+  type FinnHubQuote,
+  type FinnHubProfile,
+} from "./finnhub";
+
+export async function enhanceStockWithFinnHub(
+  stock: DividendStock
+): Promise<DividendStock> {
+  try {
+    const [quote, profile] = await Promise.all([
+      getFinnHubQuote(stock.symbol),
+      getFinnHubProfile(stock.symbol),
+    ]);
+
+    if (!quote) return stock;
+
+    // Update price data with real-time info
+    const enhancedStock = { ...stock };
+
+    enhancedStock.price = quote.c;
+    enhancedStock.priceData = {
+      ...stock.priceData,
+      current: quote.c,
+      dayHigh: quote.h,
+      dayLow: quote.l,
+      change: quote.d,
+      changePercent: quote.dp,
+    };
+    enhancedStock.change = quote.d;
+    enhancedStock.changePercent = quote.dp;
+
+    // Add logo if available from profile
+    if (profile && profile.logo) {
+      (enhancedStock as any).logo = profile.logo;
+    }
+
+    return enhancedStock;
+  } catch (error) {
+    console.error(`Failed to enhance ${stock.symbol} with FinnHub data:`, error);
+    return stock;
+  }
+}
+
+/**
+ * Enhance all stocks with real-time FinnHub data
+ */
+export async function enhanceAllStocksWithFinnHub(
+  onProgress?: (current: number, total: number, symbol: string) => void
+): Promise<DividendStock[]> {
+  const enhancedStocks: DividendStock[] = [];
+
+  for (let i = 0; i < ALL_DIVIDEND_STOCKS.length; i++) {
+    const stock = ALL_DIVIDEND_STOCKS[i];
+    const enhanced = await enhanceStockWithFinnHub(stock);
+    enhancedStocks.push(enhanced);
+
+    if (onProgress) {
+      onProgress(i + 1, ALL_DIVIDEND_STOCKS.length, stock.symbol);
+    }
+
+    // Rate limiting
+    if (i < ALL_DIVIDEND_STOCKS.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 150));
+    }
+  }
+
+  return enhancedStocks;
+}
+
