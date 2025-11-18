@@ -114,8 +114,8 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
       >
         <View className="flex-row items-center justify-between mb-2">
           <View className="flex-1">
-            <Text className="text-white text-xl font-bold" style={{ letterSpacing: -0.5 }}>
-              DIVIDEND STRATEGY
+            <Text className="text-white text-lg font-bold" style={{ letterSpacing: -0.5 }}>
+              DIVIDEND STRATEGY CALENDAR
             </Text>
             <Text className="text-slate-400 text-sm">
               {filteredStocks.length} stocks found
@@ -233,9 +233,23 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         {/* Day Picker - shown when "Day" filter is selected */}
         {quickFilter === "day" && (
           <View className="bg-slate-800 rounded-xl p-4 mb-3">
-            <Text className="text-slate-400 text-xs mb-2">
-              Select Ex-Dividend Date
-            </Text>
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-slate-400 text-xs">
+                Select Ex-Dividend Date
+              </Text>
+              {selectedDay && (
+                <Pressable
+                  onPress={() => {
+                    setSelectedDay("");
+                    setQuickFilter("all");
+                  }}
+                >
+                  <Text className="text-blue-400 text-xs font-semibold">
+                    Clear & Show All
+                  </Text>
+                </Pressable>
+              )}
+            </View>
             <Pressable
               onPress={() => setShowDatePicker(true)}
               className="bg-slate-700 rounded-lg p-3 flex-row items-center justify-between"
@@ -308,11 +322,31 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             {/* More Filters Button */}
             <Pressable
               onPress={() => setShowFilterModal(true)}
-              className="bg-slate-700 rounded-xl py-3 flex-row items-center justify-center active:bg-slate-600"
+              className="bg-slate-700 rounded-xl py-3 flex-row items-center justify-center active:bg-slate-600 mb-3"
             >
               <Ionicons name="funnel-outline" size={18} color="white" />
               <Text className="text-white font-semibold ml-2">More Filters</Text>
             </Pressable>
+
+            {/* Calculate Button - Always visible when settings expanded */}
+            {investmentAmount && parseFloat(investmentAmount) > 0 && targetDividend && parseFloat(targetDividend) > 0 && (
+              <Pressable
+                onPress={() => {
+                  navigation.navigate("AIAnalysis", {
+                    stocks: filteredStocks,
+                    investmentAmount: parseFloat(investmentAmount),
+                    targetDividend: parseFloat(targetDividend),
+                    selectedDay: quickFilter === "day" ? selectedDay : undefined,
+                  });
+                }}
+                className="bg-emerald-600 rounded-xl py-4 flex-row items-center justify-center active:bg-emerald-700"
+              >
+                <Ionicons name="calculator" size={20} color="white" />
+                <Text className="text-white text-base font-bold ml-2">
+                  Calculate Portfolio
+                </Text>
+              </Pressable>
+            )}
           </View>
         )}
       </View>
@@ -850,8 +884,6 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 onChange={(event, date) => {
                   if (date) {
                     setPickerDate(date);
-                    const dateStr = date.toISOString().split("T")[0];
-                    setSelectedDay(dateStr);
                   }
                 }}
                 themeVariant="dark"
@@ -866,7 +898,11 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 </Pressable>
                 <Pressable
                   onPress={() => {
-                    const dateStr = pickerDate.toISOString().split("T")[0];
+                    // Fix timezone issue by using local date components
+                    const year = pickerDate.getFullYear();
+                    const month = String(pickerDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(pickerDate.getDate()).padStart(2, '0');
+                    const dateStr = `${year}-${month}-${day}`;
                     setSelectedDay(dateStr);
                     setShowDatePicker(false);
                   }}

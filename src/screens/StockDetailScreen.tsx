@@ -14,6 +14,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -813,7 +814,8 @@ export default function StockDetailScreen({
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           className="flex-1"
-          keyboardVerticalOffset={0}
+          keyboardVerticalOffset={Platform.OS === "ios" ? -50 : 0}
+          style={{ flex: 1 }}
         >
           <View className="flex-1 bg-[#0f172a]">
             <View
@@ -833,42 +835,49 @@ export default function StockDetailScreen({
               </View>
             </View>
 
-            <ScrollView
-              className="flex-1 p-4"
-              contentContainerStyle={{ paddingBottom: 20 }}
-              keyboardShouldPersistTaps="handled"
+            <Pressable
+              style={{ flex: 1 }}
+              onPress={() => Keyboard.dismiss()}
+              accessible={false}
             >
-              {chatMessages.length === 0 ? (
-                <View className="items-center py-10">
-                  <Ionicons name="chatbubbles-outline" size={64} color="#64748b" />
-                  <Text className="text-white text-lg font-semibold mt-4">
-                    Ask me anything
-                  </Text>
-                  <Text className="text-slate-400 text-sm mt-2 text-center">
-                    Get detailed insights about {stock.symbol} from AI
-                  </Text>
-                </View>
-              ) : (
-                chatMessages.map((message, index) => (
-                  <View
-                    key={index}
-                    className={cn(
-                      "mb-3 rounded-2xl p-4",
-                      message.role === "user"
-                        ? "bg-blue-600 self-end max-w-[80%]"
-                        : "bg-[#1e293b] self-start max-w-[90%]"
-                    )}
-                  >
-                    <Text className="text-white text-sm">{message.content}</Text>
+              <ScrollView
+                className="flex-1 p-4"
+                contentContainerStyle={{ paddingBottom: 100 }}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+              >
+                {chatMessages.length === 0 ? (
+                  <View className="items-center py-10">
+                    <Ionicons name="chatbubbles-outline" size={64} color="#64748b" />
+                    <Text className="text-white text-lg font-semibold mt-4">
+                      Ask me anything
+                    </Text>
+                    <Text className="text-slate-400 text-sm mt-2 text-center">
+                      Get detailed insights about {stock.symbol} from AI
+                    </Text>
                   </View>
-                ))
-              )}
-              {loadingChat && (
-                <View className="bg-[#1e293b] rounded-2xl p-4 mb-3 self-start">
-                  <ActivityIndicator color="#3b82f6" />
-                </View>
-              )}
-            </ScrollView>
+                ) : (
+                  chatMessages.map((message, index) => (
+                    <View
+                      key={index}
+                      className={cn(
+                        "mb-3 rounded-2xl p-4",
+                        message.role === "user"
+                          ? "bg-blue-600 self-end max-w-[80%]"
+                          : "bg-[#1e293b] self-start max-w-[90%]"
+                      )}
+                    >
+                      <Text className="text-white text-sm">{message.content}</Text>
+                    </View>
+                  ))
+                )}
+                {loadingChat && (
+                  <View className="bg-[#1e293b] rounded-2xl p-4 mb-3 self-start">
+                    <ActivityIndicator color="#3b82f6" />
+                  </View>
+                )}
+              </ScrollView>
+            </Pressable>
 
             <View
               style={{ paddingBottom: insets.bottom + 8 }}
