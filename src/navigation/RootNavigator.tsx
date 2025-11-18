@@ -10,6 +10,7 @@ import StockDetailScreen from "../screens/StockDetailScreen";
 import BulkCalculatorScreen from "../screens/BulkCalculatorScreen";
 import AIAnalysisScreen from "../screens/AIAnalysisScreen";
 import PortfolioScreen from "../screens/PortfolioScreen";
+import TickerManagerScreen from "../screens/TickerManagerScreen";
 import type { DividendStock } from "../api/comprehensive-stock-data";
 
 export type RootStackParamList = {
@@ -32,6 +33,7 @@ export type RootStackParamList = {
   TransactionDetail: {
     transactionId: string;
   };
+  TickerManager: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -59,6 +61,14 @@ export default function RootNavigator() {
       <Stack.Screen
         name="AIAnalysis"
         component={AIAnalysisScreen}
+        options={{
+          presentation: "modal",
+          animation: "slide_from_bottom",
+        }}
+      />
+      <Stack.Screen
+        name="TickerManager"
+        component={TickerManagerScreen}
         options={{
           presentation: "modal",
           animation: "slide_from_bottom",

@@ -166,6 +166,12 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             </Text>
           </View>
           <Pressable
+            onPress={() => navigation.navigate("TickerManager")}
+            className="w-12 h-12 rounded-full bg-purple-600 items-center justify-center ml-3"
+          >
+            <Ionicons name="list" size={22} color="white" />
+          </Pressable>
+          <Pressable
             onPress={() => navigation.navigate("Portfolio")}
             className="w-12 h-12 rounded-full bg-blue-600 items-center justify-center ml-3"
           >

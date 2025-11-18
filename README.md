@@ -20,10 +20,14 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
   - Daily auto-refresh by default (configurable)
   - Automatically filters to show only future ex-dividend dates
   - Stocks with past ex-dates are automatically removed
-- **Custom Ticker List** - Load any stocks you want:
-  - Edit `/tickers.txt` file with your preferred stock symbols
+- **In-App Ticker Manager (NEW!)** - Easy access to customize your stock list:
+  - Tap the purple **list icon** in the top right corner
+  - Edit tickers directly in the app - no file access needed!
+  - Add/remove any stock symbols you want
   - Supports comments (lines starting with #)
-  - Automatically fetches dividend data for all tickers
+  - Live preview shows ticker count
+  - One-tap "Load Stocks" button fetches all your custom tickers
+  - Example format built-in with reset option
 - **Smart Filtering** - Only shows relevant opportunities:
   - Displays stocks with ex-dividend dates TODAY or FUTURE only
   - Yesterday's opportunities automatically disappear
