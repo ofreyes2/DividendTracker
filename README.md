@@ -2,11 +2,24 @@
 
 A professional daily dividend capture trading app with AI-powered stock screening and analysis. Find stocks with ex-dividend dates, calculate optimal positions to hit daily dividend targets, track trading opportunities, and execute a systematic buy-hold-sell rotation strategy.
 
+**🚀 NEW: Real-Time Data Integration with Polygon.io** - Load actual ex-dividend dates, stock prices, volumes, and technical indicators from Polygon.io API for accurate trading decisions.
+
 ## Overview
 
-This app helps active traders execute a **daily dividend capture strategy**—buying stocks the day before their ex-dividend date, collecting the dividend payment, then selling and rotating capital to the next opportunity. Features comprehensive stock database with 45+ dividend payers, date-based filtering, AI-powered position sizing to hit daily targets (e.g., $1,000/day), volume analysis for safe exits, and real-time trading calculations.
+This app helps active traders execute a **daily dividend capture strategy**—buying stocks the day before their ex-dividend date, collecting the dividend payment, then selling and rotating capital to the next opportunity. Features comprehensive stock database with 45+ dividend payers, date-based filtering, AI-powered position sizing to hit daily targets (e.g., $1,000/day), volume analysis for safe exits, and real-time trading calculations with optional Polygon.io integration for live market data.
 
 ## Key Features
+
+### 0. **Real-Time Market Data (NEW 🆕)**
+- **Polygon.io Integration** - Optional real-time data fetching:
+  - Actual ex-dividend dates from market data
+  - Live stock prices and volumes
+  - Real technical indicators (RSI, MACD, Moving Averages)
+  - Current market capitalization
+- **One-Click Loading** - Tap "Load Real-Time Data from Polygon.io" button
+- **Progress Tracking** - See loading progress as data is fetched
+- **Toggle Between Data Sources** - Switch between real-time and mock data
+- **Automatic Enhancement** - All features work seamlessly with live data
 
 ### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks

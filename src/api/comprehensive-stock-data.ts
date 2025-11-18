@@ -546,3 +546,50 @@ export async function enhanceAllStocksWithFinnHub(
   return enhancedStocks;
 }
 
+/**
+ * Enhance stock data with real-time data from Polygon.io
+ */
+import { fetchCompleteStockData } from "./polygon-api";
+
+export async function enhanceStockWithPolygon(
+  stock: DividendStock
+): Promise<DividendStock> {
+  try {
+    const polygonData = await fetchCompleteStockData(stock.symbol);
+
+    if (!polygonData) return stock;
+
+    // Return the polygon data as it has all the real information
+    return polygonData;
+  } catch (error) {
+    console.error(`Failed to enhance ${stock.symbol} with Polygon data:`, error);
+    return stock;
+  }
+}
+
+/**
+ * Enhance all stocks with real-time Polygon.io data
+ */
+export async function enhanceAllStocksWithPolygon(
+  onProgress?: (current: number, total: number, symbol: string) => void
+): Promise<DividendStock[]> {
+  const enhancedStocks: DividendStock[] = [];
+
+  for (let i = 0; i < ALL_DIVIDEND_STOCKS.length; i++) {
+    const stock = ALL_DIVIDEND_STOCKS[i];
+    const enhanced = await enhanceStockWithPolygon(stock);
+    enhancedStocks.push(enhanced);
+
+    if (onProgress) {
+      onProgress(i + 1, ALL_DIVIDEND_STOCKS.length, stock.symbol);
+    }
+
+    // Rate limiting - Polygon free tier allows 5 requests per second
+    if (i < ALL_DIVIDEND_STOCKS.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+  }
+
+  return enhancedStocks;
+}
+

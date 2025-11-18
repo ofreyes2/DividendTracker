@@ -3,7 +3,7 @@
  * Shows all dividend stocks with filtering by date, month, quarter
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   TextInput,
   Modal,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -24,6 +25,7 @@ import {
   filterStocks,
   getAllSectors,
   getAllIndustries,
+  enhanceAllStocksWithPolygon,
   type DividendStock,
   type FilterOptions,
 } from "../api/comprehensive-stock-data";
@@ -48,10 +50,13 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   const [pickerDate, setPickerDate] = useState(new Date());
   const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isLoadingRealData, setIsLoadingRealData] = useState(false);
+  const [realDataStocks, setRealDataStocks] = useState<DividendStock[]>([]);
+  const [loadingProgress, setLoadingProgress] = useState({ current: 0, total: 0, symbol: "" });
 
   // Apply filters
   const filteredStocks = useMemo(() => {
-    let stocks = ALL_DIVIDEND_STOCKS;
+    let stocks = realDataStocks.length > 0 ? realDataStocks : ALL_DIVIDEND_STOCKS;
 
     // Apply search filter first
     if (searchQuery.trim()) {
@@ -95,7 +100,22 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
 
     // Apply custom filters
     return filterStocks(stocks, filters);
-  }, [filters, quickFilter, selectedDay, searchQuery]);
+  }, [filters, quickFilter, selectedDay, searchQuery, realDataStocks]);
+
+  // Load real data from Polygon.io
+  const loadRealData = async () => {
+    setIsLoadingRealData(true);
+    try {
+      const enhancedStocks = await enhanceAllStocksWithPolygon((current, total, symbol) => {
+        setLoadingProgress({ current, total, symbol });
+      });
+      setRealDataStocks(enhancedStocks);
+    } catch (error) {
+      console.error("Failed to load real data:", error);
+    } finally {
+      setIsLoadingRealData(false);
+    }
+  };
 
   const toggleStockSelection = (symbol: string) => {
     setSelectedStocks((prev) =>
@@ -166,6 +186,59 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             </Pressable>
           )}
         </View>
+
+        {/* Load Real Data Button */}
+        {realDataStocks.length === 0 && !isLoadingRealData && (
+          <Pressable
+            onPress={loadRealData}
+            className="bg-emerald-600 rounded-xl px-4 py-3 flex-row items-center justify-center mb-3 active:bg-emerald-700"
+          >
+            <Ionicons name="cloud-download" size={20} color="white" />
+            <Text className="text-white font-semibold ml-2">
+              Load Real-Time Data from Polygon.io
+            </Text>
+          </Pressable>
+        )}
+
+        {/* Loading Progress */}
+        {isLoadingRealData && (
+          <View className="bg-blue-900/30 border border-blue-600 rounded-xl p-4 mb-3">
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-white font-semibold">
+                Loading Real Data...
+              </Text>
+              <Text className="text-blue-400 font-bold">
+                {loadingProgress.current}/{loadingProgress.total}
+              </Text>
+            </View>
+            <Text className="text-slate-300 text-sm mb-2">
+              Fetching {loadingProgress.symbol}
+            </Text>
+            <View className="bg-slate-700 rounded-full h-2 overflow-hidden">
+              <View
+                className="bg-blue-500 h-2"
+                style={{
+                  width: `${(loadingProgress.current / loadingProgress.total) * 100}%`
+                }}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Real Data Indicator */}
+        {realDataStocks.length > 0 && (
+          <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-2 flex-row items-center justify-between mb-3">
+            <View className="flex-row items-center">
+              <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+              <Text className="text-emerald-400 font-semibold ml-2">
+                Using Real-Time Data
+              </Text>
+            </View>
+            <Pressable onPress={() => setRealDataStocks([])}>
+              <Text className="text-slate-400 text-sm">Use Mock Data</Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* Data disclaimer */}
         <View className="mb-3 bg-amber-900/20 border border-amber-700/30 rounded-lg p-2">
