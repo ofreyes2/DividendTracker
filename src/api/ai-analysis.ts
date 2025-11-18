@@ -70,23 +70,41 @@ Format your response as JSON:
       {
         role: "system",
         content:
-          "You are a financial analyst specializing in dividend investing. Provide concise, actionable investment analysis.",
+          "You are a financial analyst specializing in dividend investing. Provide concise, actionable investment analysis. IMPORTANT: Return ONLY valid JSON, no additional text or markdown formatting.",
       },
       { role: "user", content: prompt },
     ]);
 
-    const analysis = JSON.parse(response.content);
+    // Extract JSON from response - handle cases where AI adds markdown or extra text
+    let jsonText = response.content.trim();
+
+    // Remove markdown code blocks if present
+    if (jsonText.startsWith("```")) {
+      const firstNewline = jsonText.indexOf("\n");
+      const lastBackticks = jsonText.lastIndexOf("```");
+      jsonText = jsonText.substring(firstNewline + 1, lastBackticks).trim();
+    }
+
+    // Find JSON object boundaries
+    const jsonStart = jsonText.indexOf("{");
+    const jsonEnd = jsonText.lastIndexOf("}") + 1;
+
+    if (jsonStart !== -1 && jsonEnd > jsonStart) {
+      jsonText = jsonText.substring(jsonStart, jsonEnd);
+    }
+
+    const analysis = JSON.parse(jsonText);
 
     return {
       symbol: stock.symbol,
       companyName: stock.companyName,
-      score: analysis.score,
-      recommendation: analysis.recommendation,
-      reasoning: analysis.reasoning,
-      pros: analysis.pros,
-      cons: analysis.cons,
-      riskLevel: analysis.riskLevel,
-      timeframe: analysis.timeframe,
+      score: analysis.score || 50,
+      recommendation: analysis.recommendation || "hold",
+      reasoning: analysis.reasoning || "Analysis generated.",
+      pros: analysis.pros || ["Dividend payments"],
+      cons: analysis.cons || ["Standard market risks"],
+      riskLevel: analysis.riskLevel || "medium",
+      timeframe: analysis.timeframe || "long-term",
     };
   } catch (error) {
     console.error(`Failed to analyze ${stock.symbol}:`, error);
@@ -207,37 +225,45 @@ IMPORTANT: Respond ONLY with valid JSON, no other text. Format exactly as:
       }
     );
 
-    // Clean up response - remove markdown code blocks if present
-    let cleanedContent = response.content.trim();
+    // Extract JSON from response - handle cases where AI adds markdown or extra text
+    let jsonText = response.content.trim();
 
-    // Log the raw response for debugging
-    console.log("AI Response (first 500 chars):", cleanedContent.substring(0, 500));
+    // Remove markdown code blocks if present
+    if (jsonText.startsWith("```")) {
+      const firstNewline = jsonText.indexOf("\n");
+      const lastBackticks = jsonText.lastIndexOf("```");
+      jsonText = jsonText.substring(firstNewline + 1, lastBackticks).trim();
+    }
 
-    if (cleanedContent.startsWith("```")) {
-      cleanedContent = cleanedContent.replace(/^```json?\n?/, "").replace(/\n?```$/, "");
+    // Find JSON object boundaries
+    const jsonStart = jsonText.indexOf("{");
+    const jsonEnd = jsonText.lastIndexOf("}") + 1;
+
+    if (jsonStart !== -1 && jsonEnd > jsonStart) {
+      jsonText = jsonText.substring(jsonStart, jsonEnd);
     }
 
     let result;
     try {
-      result = JSON.parse(cleanedContent);
+      result = JSON.parse(jsonText);
     } catch (parseError) {
-      console.error("JSON Parse Error. Response content:", cleanedContent.substring(0, 1000));
+      console.error("JSON Parse Error. Response snippet:", jsonText.substring(0, 1000));
       throw parseError;
     }
 
     // Map analyses to include company names
-    const analyses: StockAnalysis[] = result.analyses.map((a: any) => {
+    const analyses: StockAnalysis[] = (result.analyses || []).map((a: any) => {
       const stock = stocksToAnalyze.find((s) => s.symbol === a.symbol);
       return {
         symbol: a.symbol,
         companyName: stock?.companyName || a.symbol,
-        score: a.score,
-        recommendation: a.recommendation,
-        reasoning: a.reasoning,
-        pros: a.pros,
-        cons: a.cons,
-        riskLevel: a.riskLevel,
-        timeframe: a.timeframe,
+        score: a.score || 50,
+        recommendation: a.recommendation || "hold",
+        reasoning: a.reasoning || "Analysis generated.",
+        pros: a.pros || ["Dividend payments"],
+        cons: a.cons || ["Market risks"],
+        riskLevel: a.riskLevel || "medium",
+        timeframe: a.timeframe || "long-term",
       };
     });
 
