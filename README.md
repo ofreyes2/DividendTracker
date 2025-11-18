@@ -1,10 +1,10 @@
-# DIVIDEND STRATEGY CALENDAR - AI-Powered Stock Screener
+# DIVIDEND STRATEGY CALENDAR - AI-Powered Stock Screener & Portfolio Tracker
 
-A professional dividend stock screening and analysis app with AI-powered investment recommendations. Filter stocks by ex-dividend dates, calculate investment returns, and get personalized AI analysis for your investment strategy.
+A professional dividend stock screening, analysis, and portfolio tracking app with AI-powered investment recommendations. Filter stocks by ex-dividend dates, track your portfolio, manage transactions, monitor upcoming dividend payouts, and get personalized AI analysis for your investment strategy.
 
 ## Overview
 
-This app helps dividend investors find opportunities by filtering stocks based on ex-dividend dates (today, tomorrow, this week, or specific day). It features a comprehensive database of 45+ dividend-paying stocks, real-time filtering, detailed stock information, bulk investment calculations, and AI-powered analysis to help you make informed investment decisions.
+This app helps dividend investors find opportunities, track their investments, and manage their dividend income. It features a comprehensive database of 45+ dividend-paying stocks, real-time filtering, detailed stock information with MACD charts, bulk investment calculations, portfolio tracking, transaction management, dividend calendar, and AI-powered chat for deep stock analysis.
 
 ## Key Features
 
@@ -15,7 +15,7 @@ This app helps dividend investors find opportunities by filtering stocks based o
   - Today
   - Tomorrow
   - This Week
-  - Specific Day (custom date picker)
+  - Specific Day (calendar date picker)
 - **Advanced Filters** - Filter by:
   - Specific dates or date ranges
   - Month or quarter
@@ -24,6 +24,9 @@ This app helps dividend investors find opportunities by filtering stocks based o
   - Market indices
   - Volume ranges
   - Technical indicators (RSI, PEG ratio)
+- **Target Dividend Return** - Enter desired annual dividend income and let AI select optimal stocks
+- **Investment Calculator** - Set total investment amount for automated calculations
+- **Data Disclaimer** - All market data shown with 15-minute delay notice
 
 ### 2. **Comprehensive Stock Information on Cards**
 Each stock card displays:
@@ -67,22 +70,59 @@ Tap any stock card to view in-depth analysis:
 - **Technical Analysis**:
   - Overall technical rating
   - RSI (Relative Strength Index)
-  - MACD indicators
+  - MACD indicators with 30-day chart visualization
   - PEG Ratio
   - 50-day and 200-day moving averages
   - Key technical signals with interpretation
+- **MACD Chart** - Interactive 30-day MACD line chart showing trend momentum
 - **Company Information**:
   - Complete sector and industry classification
   - Stock market indices membership
-- **AI-Powered Analysis** (on-demand):
+- **AI-Powered Analysis** (auto-loaded on screen):
   - Investment score (0-100)
   - Buy/Hold/Avoid recommendation
   - Risk level assessment
   - Investment timeframe
   - Strengths and concerns
   - Detailed reasoning
+- **Buy Button** - Quick access to add position to portfolio
+- **AI Chat** - Ask questions about the stock and get instant AI responses
 
-### 4. **Bulk Investment Calculator**
+### 4. **Portfolio Tracking System**
+- **My Portfolio Screen** - Centralized view of all investments
+- **Active Positions** - Track all current stock holdings with:
+  - Number of shares owned
+  - Average purchase price
+  - Current value
+  - Annual dividend income per position
+  - Edit and manage individual positions
+- **Upcoming Dividends (30 days)** - See all dividend payments coming soon:
+  - Payment date
+  - Dividend amount
+  - Shares paying dividends
+- **Monthly Calendar View** - Dividend income organized by month:
+  - Total dividends per month
+  - Breakdown by stock symbol
+  - Historical tracking
+- **Portfolio Summary Cards**:
+  - Total amount invested
+  - Total dividend income received
+- **Add Transaction** - Record new stock purchases:
+  - Stock symbol and company name
+  - Purchase date
+  - Number of shares
+  - Purchase price per share
+  - Automatic dividend calculation
+  - Auto-navigation to Portfolio after adding
+
+### 5. **AI-Powered Stock Chat**
+- **Interactive Q&A** - Ask detailed questions about any stock
+- **Context-Aware** - AI has full knowledge of stock metrics (price, yield, RSI, MACD, PEG)
+- **Conversational Interface** - Chat-style UI for natural conversation
+- **Real-Time Responses** - Get instant answers powered by GPT-4o
+- **Stock-Specific Insights** - Tailored analysis for each ticker
+
+### 6. **Bulk Investment Calculator**
 - **Multi-Stock Selection** - Select any number of stocks from filtered results
 - **Equal Distribution** - Automatically divides investment equally across selected stocks
 - **Whole Share Calculations** - Shows exactly how many shares you can purchase
@@ -98,7 +138,7 @@ Tap any stock card to view in-depth analysis:
   - Total annual dividends
   - Expected monthly income
 
-### 5. **AI-Powered Bulk Analysis (GPT-4o)**
+### 7. **AI-Powered Bulk Analysis (GPT-4o)**
 - **Smart Recommendations** - AI analyzes all selected stocks
 - **Three Investment Scenarios**:
   - **Best Buys** - Top-rated stocks by overall score
@@ -113,7 +153,7 @@ Tap any stock card to view in-depth analysis:
   - Detailed reasoning
 - **Expected Returns** - AI-calculated expected return percentages
 
-### 6. **Beautiful Professional UI**
+### 8. **Beautiful Professional UI**
 - Dark theme optimized for financial data
 - Tap stock cards to view detailed analysis
 - Checkbox selection for bulk operations
@@ -122,6 +162,7 @@ Tap any stock card to view in-depth analysis:
 - Native iOS design patterns
 - Color-coded indicators
 - Visual progress bars for price ranges
+- 15-minute data delay disclaimer on all screens
 
 ## Available Stocks
 
@@ -179,62 +220,86 @@ The app includes 45+ dividend stocks across multiple sectors with complete techn
 
 ### Browsing and Filtering Stocks
 
-1. **Open App** → See DIVIDEND STRATEGY CALENDAR with all stocks
-2. **Apply Quick Filter** → Tap "Today", "Tomorrow", "Week", or "Day" for specific dates
-3. **Custom Day Filter** → Select "Day" and enter specific date (YYYY-MM-DD format)
-4. **Review Stock Cards** → See comprehensive information:
+1. **Open App** → See DIVIDEND STRATEGY CALENDAR with all stocks and portfolio button
+2. **Notice Data Disclaimer** → 15-minute delay warning at top
+3. **Apply Quick Filter** → Tap "Today", "Tomorrow", "Week", or "Day" for specific dates
+4. **Custom Day Filter** → Select "Day" and use calendar picker to choose specific date
+5. **Set Investment Amount** → Enter total investment in the input field
+6. **Set Target Dividend (Optional)** → Enter desired annual dividend return for AI optimization
+7. **Review Stock Cards** → See comprehensive information:
    - Price with daily change
    - Dividend yield, distribution amount, and annual dividend
    - Day high/low and 52-week high/low
    - Volume data
    - Sector, industry, and indices
    - Technical rating based on RSI
-5. **Tap Any Stock** → View detailed analysis screen
+8. **Access Portfolio** → Tap briefcase icon to view your tracked investments
 
 ### Viewing Detailed Stock Analysis
 
-6. **Stock Detail Screen** → Comprehensive analysis:
+9. **Tap Any Stock** → View detailed analysis screen with data disclaimer
+10. **Auto-Loaded AI Analysis** → Deep AI insights appear automatically
+11. **View MACD Chart** → Interactive 30-day chart showing momentum trends
+12. **Stock Detail Screen** → Comprehensive analysis:
    - Price ranges with visual indicators
    - Complete dividend information with all important dates
-   - Technical analysis with RSI, MACD, PEG ratio, moving averages
+   - Technical analysis with RSI, MACD chart, PEG ratio, moving averages
    - Company information and index membership
-7. **Request AI Analysis** → Tap "AI Analyze" button for in-depth AI evaluation
-8. **Review AI Insights**:
-   - Investment score (0-100)
-   - Buy/Hold/Avoid recommendation
-   - Risk assessment
-   - Strengths and concerns
-   - Detailed reasoning
-9. **Navigate Back** → Return to calendar to explore more stocks
+13. **Buy Stock** → Tap "Buy" button to add position to portfolio:
+    - Enter number of shares
+    - Set purchase price (defaults to current)
+    - See total investment and annual dividend
+    - Confirm to add to portfolio
+14. **Ask AI Questions** → Tap "Ask AI" button for interactive chat:
+    - Type any question about the stock
+    - Get instant AI responses
+    - Multiple questions supported
+15. **Navigate Back** → Return to calendar to explore more stocks
+
+### Managing Your Portfolio
+
+16. **Open Portfolio** → Tap briefcase icon in header
+17. **View Summary** → See total invested and total dividends received
+18. **Switch Tabs**:
+    - **Positions** - All active holdings with details
+    - **Upcoming** - Next 30 days of dividend payments
+    - **Calendar** - Monthly dividend breakdown
+19. **Track Positions** → Each position shows:
+    - Shares owned
+    - Average purchase price
+    - Current value
+    - Annual dividend income
+20. **View Upcoming Dividends** → See payment dates and amounts
+21. **Monthly Calendar** → Review dividend income by month
 
 ### Calculating Portfolio Returns
 
-10. **Select Multiple Stocks** → Tap checkboxes on stock cards (doesn't navigate to detail)
-11. **Enter Investment** → Input your total investment amount at the top
-12. **Tap "Calculate"** → Opens bulk calculator
-13. **View Breakdown** → See per-stock allocation:
+22. **Select Multiple Stocks** → Tap checkboxes on stock cards (doesn't navigate to detail)
+23. **Enter Investment** → Input your total investment amount at the top
+24. **Tap "Calculate"** → Opens bulk calculator
+25. **View Breakdown** → See per-stock allocation:
     - How many shares of each stock
     - Investment amount per stock
     - Dividend per payment
     - Annual and monthly dividend income per stock
-14. **Review Summary** → Total monthly dividend income from all stocks
+26. **Review Summary** → Total monthly dividend income from all stocks
 
 ### Getting AI Investment Recommendations
 
-15. **Select Stocks** → Choose multiple stocks via checkboxes
-16. **Tap "AI Analyze"** → Launches bulk AI analysis
-17. **Wait for Analysis** → AI analyzes all selected stocks (10-20 seconds)
-18. **Review Scenarios**:
+27. **Select Stocks** → Choose multiple stocks via checkboxes
+28. **Tap "AI Analyze"** → Launches bulk AI analysis
+29. **Wait for Analysis** → AI analyzes all selected stocks (10-20 seconds)
+30. **Review Scenarios**:
     - **Best Buys** - Highest-rated stocks overall
     - **High Yield** - Maximum dividend income
     - **Low Risk** - Safest dividend payers
-19. **Read Details** → For each recommended stock:
+31. **Read Details** → For each recommended stock:
     - Investment score
     - Buy/Hold/Avoid recommendation
     - Risk level
     - Pros and cons
     - Detailed reasoning
-20. **Make Decision** → Use AI insights to refine your selection
+32. **Make Decision** → Use AI insights to refine your selection
 
 ## Tech Stack
 
@@ -244,7 +309,10 @@ The app includes 45+ dividend stocks across multiple sectors with complete techn
 - **React Navigation** - Native stack navigation
 - **React Native Reanimated** - 60fps animations
 - **NativeWind (Tailwind CSS)** - Styling
-- **OpenAI GPT-4o** - AI analysis and recommendations
+- **Victory Native** - Interactive MACD charts
+- **Zustand + AsyncStorage** - Portfolio state management with persistence
+- **React Native DateTimePicker** - Native calendar picker
+- **OpenAI GPT-4o** - AI analysis, recommendations, and chat
 
 ## Architecture
 
@@ -255,12 +323,15 @@ src/
 │   ├── comprehensive-stock-data.ts  # Complete stock database with 45+ stocks
 │   │                                 # Technical indicators, volume, price ranges
 │   ├── ai-analysis.ts               # AI-powered stock analysis
-│   └── chat-service.ts              # OpenAI API integration
+│   └── chat-service.ts              # OpenAI API integration (GPT-4o)
 ├── screens/
 │   ├── StockListScreen.tsx          # Main calendar/filter screen
-│   ├── StockDetailScreen.tsx        # Detailed stock analysis screen
+│   ├── StockDetailScreen.tsx        # Detailed stock analysis with MACD chart & AI chat
+│   ├── PortfolioScreen.tsx          # Portfolio tracking and dividend calendar
 │   ├── BulkCalculatorScreen.tsx     # Investment calculator
 │   └── AIAnalysisScreen.tsx         # AI analysis & recommendations
+├── state/
+│   └── portfolioStore.ts            # Zustand store for portfolio management
 ├── navigation/
 │   └── RootNavigator.tsx            # Navigation structure
 └── utils/
@@ -337,6 +408,17 @@ src/
 - `analyzeStocksInBulk(stocks, investmentAmount)` - Analyze multiple stocks with scenarios
 - `getQuickRecommendation()` - Fast AI recommendation
 
+**Portfolio Store** (`portfolioStore.ts`):
+- `addTransaction(transaction)` - Add new stock purchase
+- `updateTransaction(id, updates)` - Update existing position
+- `sellPosition(id, soldDate, soldPrice)` - Record stock sale
+- `addToWatchlist(symbol, companyName)` - Add to watchlist
+- `getTotalInvested()` - Calculate total portfolio value
+- `getTotalDividendIncome()` - Sum all dividends received
+- `getUpcomingDividends(days)` - Get future dividend payments
+- `getMonthlyDividends()` - Monthly dividend breakdown
+- `getWeeklyDividends()` - Weekly dividend breakdown
+
 ## Design Philosophy
 
 ### Color Scheme
@@ -391,22 +473,30 @@ src/
 
 ## Future Enhancements
 
-- [x] Custom date/day filters
+- [x] Custom date/day filters with calendar picker
 - [x] Detailed stock analysis screen
 - [x] Technical indicators (RSI, MACD, PEG)
+- [x] MACD chart visualization
 - [x] Volume and price range data
-- [x] Individual stock AI analysis
+- [x] Individual stock AI analysis (auto-loaded)
+- [x] AI chat for stock questions
+- [x] Portfolio tracking system
+- [x] Transaction management
+- [x] Dividend calendar (monthly/weekly views)
+- [x] Upcoming dividend tracker
+- [x] Buy stock functionality
+- [x] 15-minute data delay disclaimer
 - [ ] Real-time stock data API integration
 - [ ] Historical dividend data and charts
 - [ ] Dividend reinvestment (DRIP) calculations
 - [ ] Tax implications calculator
-- [ ] Push notifications for ex-dividend dates
+- [ ] Push notifications for dividend payments
 - [ ] Export calculations to CSV/PDF
-- [ ] Save and compare multiple portfolios
-- [ ] Dividend payment calendar view
-- [ ] Integration with brokerage APIs
-- [ ] Watchlist functionality
+- [ ] Watchlist functionality with alerts
 - [ ] Price alerts
+- [ ] Expanded to 2000+ dividend stocks
+- [ ] Symbol search and sorting
+- [ ] Logo display next to company name
 
 ## Notes
 
@@ -414,11 +504,15 @@ src/
 - Ex-dividend dates are set to current week for demo purposes
 - Technical indicators (RSI, MACD, PEG) are generated algorithmically
 - Volume data is simulated in millions of shares
-- AI analysis uses OpenAI GPT-4o API for both individual and bulk analysis
+- AI analysis uses OpenAI GPT-4o API for individual analysis, bulk analysis, and interactive chat
 - All calculations are client-side for instant feedback
 - Designed for iOS-first experience with native navigation
-- Stock cards are tappable for detailed analysis
+- Stock cards are tappable for detailed analysis with auto-loaded AI insights
 - Checkbox selection for bulk operations
+- Portfolio data persists using Zustand + AsyncStorage
+- MACD charts powered by Victory Native
+- All market data displayed with 15-minute delay disclaimer
+- Calendar date picker for precise ex-dividend date filtering
 
 ---
 

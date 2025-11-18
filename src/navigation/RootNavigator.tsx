@@ -9,6 +9,7 @@ import StockListScreen from "../screens/StockListScreen";
 import StockDetailScreen from "../screens/StockDetailScreen";
 import BulkCalculatorScreen from "../screens/BulkCalculatorScreen";
 import AIAnalysisScreen from "../screens/AIAnalysisScreen";
+import PortfolioScreen from "../screens/PortfolioScreen";
 import type { DividendStock } from "../api/comprehensive-stock-data";
 
 export type RootStackParamList = {
@@ -23,6 +24,10 @@ export type RootStackParamList = {
   AIAnalysis: {
     stocks: DividendStock[];
     investmentAmount: number;
+  };
+  Portfolio: undefined;
+  TransactionDetail: {
+    transactionId: string;
   };
 };
 
@@ -39,6 +44,7 @@ export default function RootNavigator() {
     >
       <Stack.Screen name="StockList" component={StockListScreen} />
       <Stack.Screen name="StockDetail" component={StockDetailScreen} />
+      <Stack.Screen name="Portfolio" component={PortfolioScreen} />
       <Stack.Screen
         name="BulkCalculator"
         component={BulkCalculatorScreen}

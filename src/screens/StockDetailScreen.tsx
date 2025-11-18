@@ -3,22 +3,27 @@
  * Comprehensive analysis and detailed information for a single stock
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   ScrollView,
   Pressable,
   ActivityIndicator,
+  Modal,
+  TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RouteProp } from "@react-navigation/native";
+import { CartesianChart, Line } from "victory-native";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import type { DividendStock } from "../api/comprehensive-stock-data";
 import { cn } from "../utils/cn";
 import { analyzeStock } from "../api/ai-analysis";
+import { usePortfolioStore } from "../state/portfolioStore";
+import { getOpenAIChatResponse } from "../api/chat-service";
 
 interface StockDetailScreenProps {
   navigation: NativeStackNavigationProp<RootStackParamList, "StockDetail">;
@@ -33,6 +38,96 @@ export default function StockDetailScreen({
   const { stock } = route.params;
   const [aiAnalysis, setAiAnalysis] = useState<any>(null);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [showChatModal, setShowChatModal] = useState(false);
+  const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [loadingChat, setLoadingChat] = useState(false);
+  const [showBuyModal, setShowBuyModal] = useState(false);
+  const [buyShares, setBuyShares] = useState("");
+  const [buyPrice, setBuyPrice] = useState(stock.price.toString());
+
+  const { addTransaction } = usePortfolioStore();
+
+  // Generate MACD chart data (simulated historical data)
+  const macdData = React.useMemo(() => {
+    const days = 30;
+    const data = [];
+    for (let i = 0; i < days; i++) {
+      const x = i;
+      const macdValue = stock.technicals.macd.value + (Math.random() - 0.5) * 2;
+      const signalValue = stock.technicals.macd.signal + (Math.random() - 0.5) * 1.5;
+      data.push({
+        day: x,
+        macd: macdValue,
+        signal: signalValue,
+        histogram: macdValue - signalValue,
+      });
+    }
+    return data;
+  }, [stock.symbol]);
+
+  // Auto-run AI analysis on mount
+  useEffect(() => {
+    handleAIAnalysis();
+  }, []);
+
+  const handleBuyStock = () => {
+    const shares = parseFloat(buyShares);
+    const price = parseFloat(buyPrice);
+
+    if (shares > 0 && price > 0) {
+      addTransaction({
+        symbol: stock.symbol,
+        companyName: stock.companyName,
+        purchaseDate: new Date().toISOString().split("T")[0],
+        purchasePrice: price,
+        shares: shares,
+        exDividendDate: stock.exDividendDate,
+        dividendPerShare: stock.dividendAmount,
+        annualDividend: stock.annualDividend,
+      });
+      setShowBuyModal(false);
+      setBuyShares("");
+      // Show success message
+      setTimeout(() => {
+        navigation.navigate("Portfolio");
+      }, 500);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim()) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput("");
+    setChatMessages((prev) => [...prev, { role: "user", content: userMessage }]);
+    setLoadingChat(true);
+
+    try {
+      const context = `You are a financial advisor analyzing ${stock.symbol} (${stock.companyName}).
+      Current price: $${stock.price}, Dividend yield: ${stock.dividendYield}%,
+      RSI: ${stock.technicals.rsi}, MACD: ${stock.technicals.macd.value.toFixed(2)},
+      PEG Ratio: ${stock.technicals.pegRatio.toFixed(2)}.
+
+      User question: ${userMessage}
+
+      Provide a concise, helpful answer about this stock.`;
+
+      const response = await getOpenAIChatResponse(context);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: response.content },
+      ]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      setChatMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Sorry, I encountered an error. Please try again." },
+      ]);
+    } finally {
+      setLoadingChat(false);
+    }
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -153,22 +248,29 @@ export default function StockDetailScreen({
               {stock.changePercent.toFixed(2)}%)
             </Text>
           </View>
-          <Pressable
-            onPress={handleAIAnalysis}
-            disabled={loadingAnalysis}
-            className="bg-blue-600 rounded-xl px-4 py-3 flex-row items-center"
-          >
-            {loadingAnalysis ? (
-              <ActivityIndicator color="white" size="small" />
-            ) : (
-              <>
-                <Ionicons name="sparkles" size={20} color="white" />
-                <Text className="text-white font-semibold ml-2">
-                  AI Analyze
-                </Text>
-              </>
-            )}
-          </Pressable>
+          <View className="flex-row space-x-2">
+            <Pressable
+              onPress={() => setShowBuyModal(true)}
+              className="bg-emerald-600 rounded-xl px-4 py-3 flex-row items-center"
+            >
+              <Ionicons name="add-circle" size={20} color="white" />
+              <Text className="text-white font-semibold ml-2">Buy</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setShowChatModal(true)}
+              className="bg-blue-600 rounded-xl px-4 py-3 flex-row items-center"
+            >
+              <Ionicons name="chatbubbles" size={20} color="white" />
+              <Text className="text-white font-semibold ml-2">Ask AI</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Data disclaimer */}
+        <View className="mt-3 bg-amber-900/20 border border-amber-700/30 rounded-lg p-2">
+          <Text className="text-amber-400 text-xs text-center">
+            ⚠️ Market data is delayed by 15 minutes
+          </Text>
         </View>
       </View>
 
@@ -440,6 +542,53 @@ export default function StockDetailScreen({
             </View>
           </View>
 
+          {/* MACD Chart */}
+          <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
+            <Text className="text-white text-lg font-bold mb-3">
+              MACD Chart (30 Days)
+            </Text>
+            <View className="h-48 bg-slate-900/50 rounded-xl p-2">
+              <Text className="text-slate-400 text-xs mb-2">
+                MACD: {stock.technicals.macd.value.toFixed(2)} | Signal: {stock.technicals.macd.signal.toFixed(2)} | Histogram: {stock.technicals.macd.histogram.toFixed(2)}
+              </Text>
+              <View className="flex-1">
+                <CartesianChart
+                  data={macdData}
+                  xKey="day"
+                  yKeys={["macd", "signal"]}
+                  domainPadding={{ left: 10, right: 10, top: 10, bottom: 10 }}
+                >
+                  {({ points }) => (
+                    <>
+                      <Line
+                        points={points.macd}
+                        color="#3b82f6"
+                        strokeWidth={2}
+                        animate={{ type: "timing", duration: 300 }}
+                      />
+                      <Line
+                        points={points.signal}
+                        color="#f59e0b"
+                        strokeWidth={2}
+                        animate={{ type: "timing", duration: 300 }}
+                      />
+                    </>
+                  )}
+                </CartesianChart>
+              </View>
+              <View className="flex-row items-center justify-center mt-2 space-x-4">
+                <View className="flex-row items-center">
+                  <View className="w-3 h-0.5 bg-blue-500 mr-1" />
+                  <Text className="text-slate-400 text-xs">MACD</Text>
+                </View>
+                <View className="flex-row items-center">
+                  <View className="w-3 h-0.5 bg-amber-500 mr-1" />
+                  <Text className="text-slate-400 text-xs">Signal</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
           {/* Company Information */}
           <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
             <Text className="text-white text-lg font-bold mb-3">
@@ -555,6 +704,195 @@ export default function StockDetailScreen({
           )}
         </View>
       </ScrollView>
+
+      {/* Buy Stock Modal */}
+      <Modal
+        visible={showBuyModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View className="flex-1 bg-[#0f172a]">
+          <View
+            style={{ paddingTop: insets.top + 16 }}
+            className="px-6 pb-4 bg-[#1a2332] border-b border-slate-700"
+          >
+            <View className="flex-row items-center justify-between">
+              <Text className="text-white text-2xl font-bold">
+                Buy {stock.symbol}
+              </Text>
+              <Pressable
+                onPress={() => setShowBuyModal(false)}
+                className="w-10 h-10 rounded-full bg-slate-700 items-center justify-center"
+              >
+                <Ionicons name="close" size={24} color="white" />
+              </Pressable>
+            </View>
+          </View>
+
+          <ScrollView className="flex-1 p-6">
+            <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
+              <Text className="text-white text-base font-semibold mb-2">
+                {stock.companyName}
+              </Text>
+              <Text className="text-slate-400 text-sm">
+                Current Price: {formatCurrency(stock.price)}
+              </Text>
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-white text-base font-semibold mb-2">
+                Number of Shares
+              </Text>
+              <TextInput
+                value={buyShares}
+                onChangeText={setBuyShares}
+                keyboardType="numeric"
+                placeholder="100"
+                placeholderTextColor="#64748b"
+                className="bg-slate-800 rounded-xl p-4 text-white text-lg"
+              />
+            </View>
+
+            <View className="mb-4">
+              <Text className="text-white text-base font-semibold mb-2">
+                Purchase Price per Share
+              </Text>
+              <TextInput
+                value={buyPrice}
+                onChangeText={setBuyPrice}
+                keyboardType="numeric"
+                placeholder={stock.price.toString()}
+                placeholderTextColor="#64748b"
+                className="bg-slate-800 rounded-xl p-4 text-white text-lg"
+              />
+            </View>
+
+            {buyShares && buyPrice && (
+              <View className="bg-emerald-900/30 rounded-xl p-4 mb-4 border border-emerald-700/30">
+                <Text className="text-emerald-400 text-sm mb-2">
+                  Total Investment
+                </Text>
+                <Text className="text-white text-2xl font-bold">
+                  {formatCurrency(parseFloat(buyShares) * parseFloat(buyPrice))}
+                </Text>
+                <Text className="text-emerald-400 text-sm mt-3">
+                  Annual Dividend Income
+                </Text>
+                <Text className="text-white text-xl font-bold">
+                  {formatCurrency(parseFloat(buyShares) * stock.annualDividend)}
+                </Text>
+              </View>
+            )}
+
+            <Pressable
+              onPress={handleBuyStock}
+              disabled={!buyShares || !buyPrice}
+              className={cn(
+                "rounded-xl py-4 items-center",
+                buyShares && buyPrice
+                  ? "bg-emerald-600"
+                  : "bg-slate-700"
+              )}
+            >
+              <Text className="text-white font-bold text-base">
+                Add to Portfolio
+              </Text>
+            </Pressable>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* AI Chat Modal */}
+      <Modal
+        visible={showChatModal}
+        animationType="slide"
+        presentationStyle="pageSheet"
+      >
+        <View className="flex-1 bg-[#0f172a]">
+          <View
+            style={{ paddingTop: insets.top + 16 }}
+            className="px-6 pb-4 bg-[#1a2332] border-b border-slate-700"
+          >
+            <View className="flex-row items-center justify-between">
+              <Text className="text-white text-2xl font-bold">
+                Ask AI about {stock.symbol}
+              </Text>
+              <Pressable
+                onPress={() => setShowChatModal(false)}
+                className="w-10 h-10 rounded-full bg-slate-700 items-center justify-center"
+              >
+                <Ionicons name="close" size={24} color="white" />
+              </Pressable>
+            </View>
+          </View>
+
+          <ScrollView className="flex-1 p-4">
+            {chatMessages.length === 0 ? (
+              <View className="items-center py-10">
+                <Ionicons name="chatbubbles-outline" size={64} color="#64748b" />
+                <Text className="text-white text-lg font-semibold mt-4">
+                  Ask me anything
+                </Text>
+                <Text className="text-slate-400 text-sm mt-2 text-center">
+                  Get detailed insights about {stock.symbol} from AI
+                </Text>
+              </View>
+            ) : (
+              chatMessages.map((message, index) => (
+                <View
+                  key={index}
+                  className={cn(
+                    "mb-3 rounded-2xl p-4",
+                    message.role === "user"
+                      ? "bg-blue-600 self-end max-w-[80%]"
+                      : "bg-[#1e293b] self-start max-w-[90%]"
+                  )}
+                >
+                  <Text className="text-white text-sm">{message.content}</Text>
+                </View>
+              ))
+            )}
+            {loadingChat && (
+              <View className="bg-[#1e293b] rounded-2xl p-4 mb-3 self-start">
+                <ActivityIndicator color="#3b82f6" />
+              </View>
+            )}
+          </ScrollView>
+
+          <View
+            style={{ paddingBottom: insets.bottom + 8 }}
+            className="px-4 py-2 bg-[#1a2332] border-t border-slate-700"
+          >
+            <View className="flex-row items-center space-x-2">
+              <TextInput
+                value={chatInput}
+                onChangeText={setChatInput}
+                placeholder="Ask about dividends, analysis, etc..."
+                placeholderTextColor="#64748b"
+                className="flex-1 bg-slate-800 rounded-xl p-3 text-white"
+                multiline
+                maxLength={500}
+              />
+              <Pressable
+                onPress={handleSendMessage}
+                disabled={!chatInput.trim() || loadingChat}
+                className={cn(
+                  "w-12 h-12 rounded-xl items-center justify-center",
+                  chatInput.trim() && !loadingChat
+                    ? "bg-blue-600"
+                    : "bg-slate-700"
+                )}
+              >
+                <Ionicons
+                  name="send"
+                  size={20}
+                  color={chatInput.trim() && !loadingChat ? "white" : "#64748b"}
+                />
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }

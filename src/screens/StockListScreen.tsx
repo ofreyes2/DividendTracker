@@ -11,10 +11,12 @@ import {
   Pressable,
   TextInput,
   Modal,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import {
@@ -38,7 +40,10 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     "all" | "today" | "tomorrow" | "week" | "day"
   >("all");
   const [investmentAmount, setInvestmentAmount] = useState("10000");
+  const [targetDividend, setTargetDividend] = useState("");
   const [selectedDay, setSelectedDay] = useState<string>("");
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [pickerDate, setPickerDate] = useState(new Date());
 
   // Apply filters
   const filteredStocks = useMemo(() => {
@@ -104,12 +109,27 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         style={{ paddingTop: insets.top + 16 }}
         className="px-6 pb-4 bg-[#1a2332] border-b border-slate-700"
       >
-        <Text className="text-white text-3xl font-bold mb-2">
-          DIVIDEND STRATEGY CALENDAR
-        </Text>
+        <View className="flex-row items-center justify-between mb-2">
+          <Text className="text-white text-3xl font-bold">
+            DIVIDEND STRATEGY CALENDAR
+          </Text>
+          <Pressable
+            onPress={() => navigation.navigate("Portfolio")}
+            className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center"
+          >
+            <Ionicons name="briefcase" size={20} color="white" />
+          </Pressable>
+        </View>
         <Text className="text-slate-400 text-base mb-4">
           {filteredStocks.length} stocks found
         </Text>
+
+        {/* Data disclaimer */}
+        <View className="mb-3 bg-amber-900/20 border border-amber-700/30 rounded-lg p-2">
+          <Text className="text-amber-400 text-xs text-center">
+            ⚠️ Market data is delayed by 15 minutes
+          </Text>
+        </View>
 
         {/* Quick Filters */}
         <View className="flex-row space-x-2 mb-4">
@@ -211,13 +231,15 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             <Text className="text-slate-400 text-xs mb-2">
               Select Ex-Dividend Date
             </Text>
-            <TextInput
-              value={selectedDay}
-              onChangeText={setSelectedDay}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor="#64748b"
-              className="text-white text-base font-semibold bg-slate-700 rounded-lg p-3"
-            />
+            <Pressable
+              onPress={() => setShowDatePicker(true)}
+              className="bg-slate-700 rounded-lg p-3 flex-row items-center justify-between"
+            >
+              <Text className="text-white text-base font-semibold">
+                {selectedDay || "Choose a date"}
+              </Text>
+              <Ionicons name="calendar" size={20} color="#60a5fa" />
+            </Pressable>
           </View>
         )}
 
@@ -237,6 +259,29 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               className="flex-1 text-white text-xl font-bold"
             />
           </View>
+        </View>
+
+        {/* Target Dividend Return */}
+        <View className="bg-slate-800 rounded-xl p-4 mb-3">
+          <Text className="text-slate-400 text-xs mb-2">
+            Target Dividend Return (Optional)
+          </Text>
+          <View className="flex-row items-center">
+            <Text className="text-emerald-400 text-xl font-bold mr-2">$</Text>
+            <TextInput
+              value={targetDividend}
+              onChangeText={setTargetDividend}
+              keyboardType="numeric"
+              placeholder="1000"
+              placeholderTextColor="#64748b"
+              className="flex-1 text-white text-xl font-bold"
+            />
+          </View>
+          {targetDividend && (
+            <Text className="text-slate-500 text-xs mt-2">
+              AI will select stocks to generate this annual dividend amount
+            </Text>
+          )}
         </View>
 
         {/* Filter Button */}
@@ -554,6 +599,59 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* Date Picker Modal */}
+      {showDatePicker && (
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <Pressable
+            onPress={() => setShowDatePicker(false)}
+            className="flex-1 bg-black/50 justify-center items-center"
+          >
+            <View className="bg-[#1e293b] rounded-2xl p-6 mx-4 w-11/12 max-w-md">
+              <Text className="text-white text-xl font-bold mb-4">
+                Select Ex-Dividend Date
+              </Text>
+              <DateTimePicker
+                value={pickerDate}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                onChange={(event, date) => {
+                  if (date) {
+                    setPickerDate(date);
+                    const dateStr = date.toISOString().split("T")[0];
+                    setSelectedDay(dateStr);
+                  }
+                }}
+                themeVariant="dark"
+                textColor="#fff"
+              />
+              <View className="flex-row space-x-2 mt-4">
+                <Pressable
+                  onPress={() => setShowDatePicker(false)}
+                  className="flex-1 bg-slate-700 rounded-xl py-3 items-center"
+                >
+                  <Text className="text-white font-semibold">Cancel</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    const dateStr = pickerDate.toISOString().split("T")[0];
+                    setSelectedDay(dateStr);
+                    setShowDatePicker(false);
+                  }}
+                  className="flex-1 bg-blue-600 rounded-xl py-3 items-center"
+                >
+                  <Text className="text-white font-semibold">Done</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Pressable>
+        </Modal>
+      )}
     </View>
   );
 }
