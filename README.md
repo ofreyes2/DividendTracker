@@ -11,15 +11,18 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 ## Key Features
 
 ### 0. **Real-Time Market Data with Auto-Refresh (NEW 🆕)**
-- **Polygon.io Integration** - Real-time data fetching:
+- **Polygon.io Integration** - ALL data comes from Polygon.io API:
   - Actual ex-dividend dates from market data
   - Live stock prices and volumes
   - Real technical indicators (RSI, MACD, Moving Averages)
   - Current market capitalization
+  - Company details and sector information
+  - **11,000+ ticker symbols available** by default
 - **Automatic Background Refresh** - Stocks refresh automatically:
   - Daily auto-refresh by default (configurable)
   - Automatically filters to show only future ex-dividend dates
   - Stocks with past ex-dates are automatically removed
+  - **Default loads all 11,000+ tickers from nanotickers.txt**
 - **In-App Ticker Manager (NEW!)** - Easy access to customize your stock list:
   - Tap the purple **list icon** in the top right corner
   - Edit tickers directly in the app - no file access needed!
@@ -28,13 +31,14 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
   - Live preview shows ticker count
   - One-tap "Load Stocks" button fetches all your custom tickers
   - Example format built-in with reset option
+  - **Saves your custom list for future refreshes**
 - **Smart Filtering** - Only shows relevant opportunities:
   - Displays stocks with ex-dividend dates TODAY or FUTURE only
   - Yesterday's opportunities automatically disappear
   - Always see current and upcoming dividend capture trades
 - **Progress Tracking** - See loading progress as data is fetched (5 stocks per second)
 - **Persistent Storage** - Data cached locally between app sessions
-- **One-Click Manual Refresh** - Tap refresh icon to update anytime
+- **One-Click Manual Refresh** - Tap refresh icon to update anytime with 11k+ tickers
 
 ### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks
@@ -609,10 +613,15 @@ src/
   - "Annual Total" shows the full year dividend amount
   - All calculators and stock details properly distinguish between payment cycle and annual dividends
 - **Ticker Manager** allows users to manually edit and load custom tickers
-  - Automatically loads 11,000+ tickers from `/assets/nanotickers.txt` converted to TypeScript module
-  - Tickers are imported as a JavaScript module (`src/data/nanotickers.ts`) for instant loading
-  - Users can edit the ticker list directly in the app
-  - To update tickers: edit `/assets/nanotickers.txt` via SSH, then run the conversion script to regenerate the module
+  - Automatically loads 11,000+ tickers from `/src/data/nanotickers.ts` by default
+  - Default refresh uses all 11,000+ tickers to find dividend opportunities
+  - Users can edit the ticker list directly in the app via purple list icon
+  - Custom ticker lists are saved and used for future refreshes
+  - To update the default ticker list: edit `/assets/nanotickers.txt` via SSH, then regenerate the TypeScript module
+- **Polygon.io API** - Single source of truth for all stock data
+  - Fetches dividends, prices, volumes, technical indicators, and company details
+  - Filters results to only show stocks with future ex-dividend dates
+  - Rate-limited to 5 requests per second for optimal performance
 
 ---
 

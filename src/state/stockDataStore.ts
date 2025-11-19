@@ -8,6 +8,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DividendStock } from "../api/comprehensive-stock-data";
 import { enhanceAllStocksWithPolygon, loadStocksFromTickers } from "../api/comprehensive-stock-data";
+import { TICKERS } from "../data/nanotickers";
 
 interface StockDataState {
   stocks: DividendStock[];
@@ -50,27 +51,26 @@ export const useStockDataStore = create<StockDataState>()(
         set({ isRefreshing: true });
 
         try {
-          // Use custom tickers if available, otherwise use default stock list
-          let enhancedStocks: DividendStock[];
+          // Parse the default ticker list from nanotickers
+          const defaultTickers = TICKERS
+            .split("\n")
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith("#"));
 
-          if (state.customTickers.length > 0) {
-            console.log(`Refreshing ${state.customTickers.length} custom tickers...`);
-            enhancedStocks = await loadStocksFromTickers(
-              state.customTickers,
-              (current, total, symbol) => {
-                set({ refreshProgress: { current, total, symbol } });
-              },
-              true // Filter to future dates only
-            );
-          } else {
-            console.log("Refreshing default stock list...");
-            enhancedStocks = await enhanceAllStocksWithPolygon(
-              (current, total, symbol) => {
-                set({ refreshProgress: { current, total, symbol } });
-              },
-              true // Filter to future dates only
-            );
-          }
+          // Use custom tickers if available, otherwise use the 11k+ default tickers
+          const tickersToUse = state.customTickers.length > 0
+            ? state.customTickers
+            : defaultTickers;
+
+          console.log(`Refreshing ${tickersToUse.length} tickers from Polygon.io...`);
+
+          const enhancedStocks = await loadStocksFromTickers(
+            tickersToUse,
+            (current, total, symbol) => {
+              set({ refreshProgress: { current, total, symbol } });
+            },
+            true // Filter to future dates only
+          );
 
           set({
             stocks: enhancedStocks,
