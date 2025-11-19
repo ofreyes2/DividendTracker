@@ -178,7 +178,7 @@ export class PolygonWebSocketService {
 
       // Stop reconnecting if authentication fails
       if (message.status === "auth_failed" || message.status === "auth_timeout") {
-        console.error("[WebSocket] Authentication failed - check your API key");
+        console.warn("[WebSocket] Authentication failed - WebSocket disabled. Check Polygon.io API key has WebSocket access.");
         this.shouldReconnect = false;
         this.disconnect();
         return;
