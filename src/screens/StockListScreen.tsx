@@ -59,13 +59,14 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     lastRefreshTime,
     shouldAutoRefresh,
     refreshStocks,
+    websocketConnected,
   } = useStockDataStore();
 
   // Auto-refresh on mount if needed
   useEffect(() => {
     if (shouldAutoRefresh()) {
       console.log("Auto-refreshing stocks data...");
-      refreshStocks();
+      refreshStocks(true); // Use chunked loading
     }
   }, []);
 
@@ -199,7 +200,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         {/* Load Real Data Button */}
         {storedStocks.length === 0 && !isRefreshing && (
           <Pressable
-            onPress={refreshStocks}
+            onPress={() => refreshStocks(true)}
             className="bg-emerald-600 rounded-xl px-4 py-3 flex-row items-center justify-center mb-3 active:bg-emerald-700"
           >
             <Ionicons name="cloud-download" size={20} color="white" />
@@ -237,13 +238,19 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         {/* Real Data Indicator */}
         {storedStocks.length > 0 && (
           <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-2 flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center">
+            <View className="flex-row items-center flex-1">
               <Ionicons name="checkmark-circle" size={20} color="#10b981" />
               <Text className="text-emerald-400 font-semibold ml-2">
                 Using Real-Time Data {lastRefreshTime && `(${new Date(lastRefreshTime).toLocaleDateString()})`}
               </Text>
+              {websocketConnected && (
+                <View className="ml-2 flex-row items-center">
+                  <View className="w-2 h-2 rounded-full bg-green-500 mr-1" />
+                  <Text className="text-green-400 text-xs">Live</Text>
+                </View>
+              )}
             </View>
-            <Pressable onPress={refreshStocks}>
+            <Pressable onPress={() => refreshStocks(true)}>
               <Ionicons name="refresh" size={20} color="#10b981" />
             </Pressable>
           </View>
@@ -252,7 +259,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         {/* Data disclaimer */}
         <View className="mb-3 bg-amber-900/20 border border-amber-700/30 rounded-lg p-2">
           <Text className="text-amber-400 text-xs text-center">
-            ⚠️ Market data is delayed by 15 minutes
+            ⚠️ Market data is delayed by 15 minutes{websocketConnected ? " • WebSocket prices update in real-time (15min delayed)" : ""}
           </Text>
         </View>
 

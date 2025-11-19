@@ -2,7 +2,10 @@ import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { useEffect } from "react";
 import RootNavigator from "./src/navigation/RootNavigator";
+import { registerBackgroundRefreshTask } from "./src/services/backgroundRefreshService";
+import { useStockDataStore } from "./src/state/stockDataStore";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -26,6 +29,25 @@ const openai_api_key = Constants.expoConfig.extra.apikey;
 */
 
 export default function App() {
+  const enableWebSocket = useStockDataStore((s) => s.enableWebSocket);
+  const websocketEnabled = useStockDataStore((s) => s.websocketEnabled);
+
+  useEffect(() => {
+    // Register background refresh task on app startup
+    registerBackgroundRefreshTask()
+      .then(() => {
+        console.log("[App] Background refresh task registered");
+      })
+      .catch((error) => {
+        console.error("[App] Failed to register background refresh:", error);
+      });
+
+    // Enable WebSocket for real-time updates if enabled
+    if (websocketEnabled) {
+      enableWebSocket();
+    }
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

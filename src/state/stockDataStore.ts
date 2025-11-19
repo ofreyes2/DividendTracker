@@ -1,31 +1,86 @@
 /**
  * Stock Data Store
  * Manages stock data with automatic background refresh from Polygon.io
+ * Includes WebSocket integration for real-time price updates
+ * Implements chunked loading to prevent crashes with large ticker lists
  */
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DividendStock } from "../api/comprehensive-stock-data";
-import { enhanceAllStocksWithPolygon, loadStocksFromTickers } from "../api/comprehensive-stock-data";
+import { loadStocksFromTickers } from "../api/comprehensive-stock-data";
 import { TICKERS } from "../data/nanotickers";
+import { getWebSocketService } from "../services/polygonWebSocketService";
 
 interface StockDataState {
   stocks: DividendStock[];
   lastRefreshTime: number | null;
+  lastDividendRefreshTime: number | null; // Track dividend data refresh separately
   isRefreshing: boolean;
   refreshProgress: { current: number; total: number; symbol: string };
   autoRefreshEnabled: boolean;
   refreshIntervalHours: number;
   customTickers: string[]; // Store custom ticker list
+  websocketConnected: boolean;
+  websocketEnabled: boolean;
 
   // Actions
   setStocks: (stocks: DividendStock[]) => void;
-  refreshStocks: () => Promise<void>;
-  refreshFromTickers: (tickers: string[]) => Promise<void>;
+  updateStockPrice: (symbol: string, priceUpdate: Partial<DividendStock>) => void;
+  refreshStocks: (chunked?: boolean) => Promise<void>;
+  refreshFromTickers: (tickers: string[], chunked?: boolean) => Promise<void>;
   setAutoRefresh: (enabled: boolean) => void;
   setRefreshInterval: (hours: number) => void;
   shouldAutoRefresh: () => boolean;
+  shouldRefreshDividendData: () => boolean;
+  enableWebSocket: () => void;
+  disableWebSocket: () => void;
+  subscribeToWebSocket: (symbols: string[]) => void;
+}
+
+// Constants for chunked loading
+const CHUNK_SIZE = 50; // Process 50 tickers at a time
+const CHUNK_DELAY = 500; // 500ms delay between chunks
+
+/**
+ * Helper function to process tickers in chunks
+ */
+async function processTickersInChunks(
+  tickers: string[],
+  onProgress: (current: number, total: number, symbol: string) => void
+): Promise<DividendStock[]> {
+  const allStocks: DividendStock[] = [];
+  const totalChunks = Math.ceil(tickers.length / CHUNK_SIZE);
+
+  console.log(`Processing ${tickers.length} tickers in ${totalChunks} chunks...`);
+
+  for (let i = 0; i < tickers.length; i += CHUNK_SIZE) {
+    const chunk = tickers.slice(i, i + CHUNK_SIZE);
+    const chunkNumber = Math.floor(i / CHUNK_SIZE) + 1;
+
+    console.log(`Processing chunk ${chunkNumber}/${totalChunks} (${chunk.length} tickers)`);
+
+    // Load this chunk
+    const chunkStocks = await loadStocksFromTickers(
+      chunk,
+      (current, total, symbol) => {
+        // Adjust progress to reflect overall progress
+        const overallCurrent = i + current;
+        onProgress(overallCurrent, tickers.length, symbol);
+      },
+      true // Filter to future dates only
+    );
+
+    allStocks.push(...chunkStocks);
+
+    // Add delay between chunks to prevent overwhelming the API and app
+    if (i + CHUNK_SIZE < tickers.length) {
+      await new Promise((resolve) => setTimeout(resolve, CHUNK_DELAY));
+    }
+  }
+
+  return allStocks;
 }
 
 export const useStockDataStore = create<StockDataState>()(
@@ -33,84 +88,142 @@ export const useStockDataStore = create<StockDataState>()(
     (set, get) => ({
       stocks: [],
       lastRefreshTime: null,
+      lastDividendRefreshTime: null,
       isRefreshing: false,
       refreshProgress: { current: 0, total: 0, symbol: "" },
       autoRefreshEnabled: true,
       refreshIntervalHours: 24, // Refresh daily by default
       customTickers: [], // Initialize empty
+      websocketConnected: false,
+      websocketEnabled: true,
 
       setStocks: (stocks) => set({ stocks }),
 
-      refreshStocks: async () => {
+      updateStockPrice: (symbol, priceUpdate) => {
+        const state = get();
+        const updatedStocks = state.stocks.map((stock) => {
+          if (stock.symbol === symbol) {
+            return {
+              ...stock,
+              ...priceUpdate,
+              // Update price-dependent fields
+              priceData: priceUpdate.priceData
+                ? { ...stock.priceData, ...priceUpdate.priceData }
+                : stock.priceData,
+              volume: priceUpdate.volume
+                ? { ...stock.volume, ...priceUpdate.volume }
+                : stock.volume,
+            };
+          }
+          return stock;
+        });
+        set({ stocks: updatedStocks });
+      },
+
+      refreshStocks: async (chunked = true) => {
         const state = get();
         if (state.isRefreshing) {
           console.log("Refresh already in progress");
           return;
         }
 
-        set({ isRefreshing: true });
+        set({ isRefreshing: true, refreshProgress: { current: 0, total: 0, symbol: "" } });
 
         try {
           // Parse the default ticker list from nanotickers
-          const defaultTickers = TICKERS
-            .split("\n")
-            .map(line => line.trim())
-            .filter(line => line && !line.startsWith("#"));
+          const defaultTickers = TICKERS.split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line && !line.startsWith("#"));
 
           // Use custom tickers if available, otherwise use the 11k+ default tickers
-          const tickersToUse = state.customTickers.length > 0
-            ? state.customTickers
-            : defaultTickers;
+          const tickersToUse =
+            state.customTickers.length > 0 ? state.customTickers : defaultTickers;
 
           console.log(`Refreshing ${tickersToUse.length} tickers from Polygon.io...`);
 
-          const enhancedStocks = await loadStocksFromTickers(
-            tickersToUse,
-            (current, total, symbol) => {
+          let enhancedStocks: DividendStock[];
+
+          if (chunked && tickersToUse.length > CHUNK_SIZE) {
+            // Use chunked loading for large lists
+            enhancedStocks = await processTickersInChunks(tickersToUse, (current, total, symbol) => {
               set({ refreshProgress: { current, total, symbol } });
-            },
-            true // Filter to future dates only
-          );
+            });
+          } else {
+            // Regular loading for small lists
+            enhancedStocks = await loadStocksFromTickers(
+              tickersToUse,
+              (current, total, symbol) => {
+                set({ refreshProgress: { current, total, symbol } });
+              },
+              true // Filter to future dates only
+            );
+          }
 
           set({
             stocks: enhancedStocks,
             lastRefreshTime: Date.now(),
+            lastDividendRefreshTime: Date.now(),
             isRefreshing: false,
           });
 
           console.log(`Refresh complete: ${enhancedStocks.length} stocks with future ex-dates`);
+
+          // Subscribe to WebSocket if enabled
+          const { websocketEnabled } = get();
+          if (websocketEnabled && enhancedStocks.length > 0) {
+            const symbols = enhancedStocks.map((s) => s.symbol);
+            get().subscribeToWebSocket(symbols);
+          }
         } catch (error) {
           console.error("Failed to refresh stocks:", error);
           set({ isRefreshing: false });
         }
       },
 
-      refreshFromTickers: async (tickers) => {
+      refreshFromTickers: async (tickers, chunked = true) => {
         const state = get();
         if (state.isRefreshing) {
           console.log("Refresh already in progress");
           return;
         }
 
-        set({ isRefreshing: true });
+        set({ isRefreshing: true, refreshProgress: { current: 0, total: 0, symbol: "" } });
 
         try {
-          const enhancedStocks = await loadStocksFromTickers(
-            tickers,
-            (current, total, symbol) => {
+          let enhancedStocks: DividendStock[];
+
+          if (chunked && tickers.length > CHUNK_SIZE) {
+            // Use chunked loading for large lists
+            enhancedStocks = await processTickersInChunks(tickers, (current, total, symbol) => {
               set({ refreshProgress: { current, total, symbol } });
-            },
-            true // Filter to future dates only
-          );
+            });
+          } else {
+            // Regular loading for small lists
+            enhancedStocks = await loadStocksFromTickers(
+              tickers,
+              (current, total, symbol) => {
+                set({ refreshProgress: { current, total, symbol } });
+              },
+              true // Filter to future dates only
+            );
+          }
 
           set({
             stocks: enhancedStocks,
             customTickers: tickers, // Save the custom tickers for future refreshes
             lastRefreshTime: Date.now(),
+            lastDividendRefreshTime: Date.now(),
             isRefreshing: false,
           });
 
           console.log(`Refresh from tickers complete: ${enhancedStocks.length} stocks with future ex-dates`);
+
+          // Subscribe to WebSocket if enabled
+          const { websocketEnabled } = get();
+          if (websocketEnabled && enhancedStocks.length > 0) {
+            const symbols = enhancedStocks.map((s) => s.symbol);
+            get().subscribeToWebSocket(symbols);
+          }
         } catch (error) {
           console.error("Failed to refresh from tickers:", error);
           set({ isRefreshing: false });
@@ -127,22 +240,148 @@ export const useStockDataStore = create<StockDataState>()(
           return true; // Should refresh if never refreshed
         }
 
-        const hoursSinceRefresh =
-          (Date.now() - state.lastRefreshTime) / (1000 * 60 * 60);
+        const hoursSinceRefresh = (Date.now() - state.lastRefreshTime) / (1000 * 60 * 60);
 
         return hoursSinceRefresh >= state.refreshIntervalHours;
+      },
+
+      shouldRefreshDividendData: () => {
+        const state = get();
+        if (!state.lastDividendRefreshTime) {
+          return true; // Should refresh if never refreshed
+        }
+
+        // Check if it has been more than 24 hours (dividend data only changes daily)
+        const hoursSinceRefresh = (Date.now() - state.lastDividendRefreshTime) / (1000 * 60 * 60);
+
+        return hoursSinceRefresh >= 24;
+      },
+
+      enableWebSocket: () => {
+        set({ websocketEnabled: true });
+        const state = get();
+
+        // Connect and subscribe if we have stocks
+        if (state.stocks.length > 0) {
+          const ws = getWebSocketService();
+          ws.connect();
+
+          // Subscribe to all current stocks
+          const symbols = state.stocks.map((s) => s.symbol);
+          ws.subscribe(symbols);
+
+          // Set up message handler
+          ws.onMessage((message: any) => {
+            if (message.ev === "AM" || message.ev === "A") {
+              // Aggregate message (price update)
+              const { updateStockPrice } = get();
+              updateStockPrice(message.sym, {
+                price: message.c,
+                change: message.c - message.o,
+                changePercent: ((message.c - message.o) / message.o) * 100,
+                priceData: {
+                  current: message.c,
+                  dayHigh: message.h,
+                  dayLow: message.l,
+                  change: message.c - message.o,
+                  changePercent: ((message.c - message.o) / message.o) * 100,
+                  week52High: 0, // Keep existing value
+                  week52Low: 0, // Keep existing value
+                },
+                volume: {
+                  current: message.v / 1000000, // Convert to millions
+                  average: 0, // Keep existing value
+                },
+              });
+            }
+          });
+
+          // Track connection state
+          ws.onConnect(() => {
+            set({ websocketConnected: true });
+            console.log("[Store] WebSocket connected");
+          });
+
+          ws.onDisconnect(() => {
+            set({ websocketConnected: false });
+            console.log("[Store] WebSocket disconnected");
+          });
+        }
+      },
+
+      disableWebSocket: () => {
+        set({ websocketEnabled: false, websocketConnected: false });
+        const ws = getWebSocketService();
+        ws.disconnect();
+      },
+
+      subscribeToWebSocket: (symbols) => {
+        const state = get();
+        if (!state.websocketEnabled) {
+          return;
+        }
+
+        const ws = getWebSocketService();
+
+        // Connect if not already connected
+        if (!ws.isConnected()) {
+          ws.connect();
+
+          // Set up handlers if not already set
+          ws.onConnect(() => {
+            set({ websocketConnected: true });
+            console.log("[Store] WebSocket connected, subscribing to symbols...");
+            ws.subscribe(symbols);
+          });
+
+          ws.onMessage((message: any) => {
+            if (message.ev === "AM" || message.ev === "A") {
+              const { updateStockPrice, stocks } = get();
+              const stock = stocks.find((s) => s.symbol === message.sym);
+
+              if (stock) {
+                updateStockPrice(message.sym, {
+                  price: message.c,
+                  change: message.c - message.o,
+                  changePercent: ((message.c - message.o) / message.o) * 100,
+                  priceData: {
+                    ...stock.priceData,
+                    current: message.c,
+                    dayHigh: Math.max(stock.priceData.dayHigh, message.h),
+                    dayLow: Math.min(stock.priceData.dayLow, message.l),
+                    change: message.c - message.o,
+                    changePercent: ((message.c - message.o) / message.o) * 100,
+                  },
+                  volume: {
+                    ...stock.volume,
+                    current: message.v / 1000000, // Convert to millions
+                  },
+                });
+              }
+            }
+          });
+
+          ws.onDisconnect(() => {
+            set({ websocketConnected: false });
+          });
+        } else {
+          // Already connected, just subscribe
+          ws.subscribe(symbols);
+        }
       },
     }),
     {
       name: "stock-data-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      // Don't persist the refreshing state
+      // Don't persist the refreshing state and websocket state
       partialize: (state) => ({
         stocks: state.stocks,
         lastRefreshTime: state.lastRefreshTime,
+        lastDividendRefreshTime: state.lastDividendRefreshTime,
         autoRefreshEnabled: state.autoRefreshEnabled,
         refreshIntervalHours: state.refreshIntervalHours,
         customTickers: state.customTickers,
+        websocketEnabled: state.websocketEnabled,
       }),
     }
   )
