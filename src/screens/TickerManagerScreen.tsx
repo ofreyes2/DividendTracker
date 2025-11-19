@@ -3,7 +3,7 @@
  * View and edit the ticker list for custom stock loading
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -17,8 +17,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useStockDataStore } from "../state/stockDataStore";
-import { Asset } from "expo-asset";
-import * as FileSystem from "expo-file-system";
 
 type Props = NativeStackScreenProps<RootStackParamList, "TickerManager">;
 
@@ -96,33 +94,7 @@ export default function TickerManagerScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [tickerText, setTickerText] = useState(DEFAULT_TICKERS);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const { refreshFromTickers, isRefreshing, refreshProgress } = useStockDataStore();
-
-  // Load tickers from file on mount
-  useEffect(() => {
-    loadTickersFromFile();
-  }, []);
-
-  const loadTickersFromFile = async () => {
-    try {
-      // Load from bundled asset using expo-asset
-      const asset = Asset.fromModule(require("../../assets/tickers.txt"));
-      await asset.downloadAsync();
-
-      if (asset.localUri) {
-        const content = await FileSystem.readAsStringAsync(asset.localUri);
-
-        if (content && content.length > 100) {
-          setTickerText(content);
-        }
-      }
-    } catch (error) {
-      console.warn("Failed to load tickers from asset, using defaults:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const parseTickers = (text: string): string[] => {
     return text
@@ -152,15 +124,6 @@ export default function TickerManagerScreen({ navigation }: Props) {
   };
 
   const tickerCount = parseTickers(tickerText).length;
-
-  if (isLoading) {
-    return (
-      <View className="flex-1 bg-[#0f172a] items-center justify-center">
-        <ActivityIndicator size="large" color="#3b82f6" />
-        <Text className="text-slate-400 mt-4">Loading tickers...</Text>
-      </View>
-    );
-  }
 
   return (
     <View className="flex-1 bg-[#0f172a]">
