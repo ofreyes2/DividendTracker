@@ -16,6 +16,7 @@ interface StockDataState {
   refreshProgress: { current: number; total: number; symbol: string };
   autoRefreshEnabled: boolean;
   refreshIntervalHours: number;
+  customTickers: string[]; // Store custom ticker list
 
   // Actions
   setStocks: (stocks: DividendStock[]) => void;
@@ -35,6 +36,7 @@ export const useStockDataStore = create<StockDataState>()(
       refreshProgress: { current: 0, total: 0, symbol: "" },
       autoRefreshEnabled: true,
       refreshIntervalHours: 24, // Refresh daily by default
+      customTickers: [], // Initialize empty
 
       setStocks: (stocks) => set({ stocks }),
 
@@ -48,12 +50,27 @@ export const useStockDataStore = create<StockDataState>()(
         set({ isRefreshing: true });
 
         try {
-          const enhancedStocks = await enhanceAllStocksWithPolygon(
-            (current, total, symbol) => {
-              set({ refreshProgress: { current, total, symbol } });
-            },
-            true // Filter to future dates only
-          );
+          // Use custom tickers if available, otherwise use default stock list
+          let enhancedStocks: DividendStock[];
+
+          if (state.customTickers.length > 0) {
+            console.log(`Refreshing ${state.customTickers.length} custom tickers...`);
+            enhancedStocks = await loadStocksFromTickers(
+              state.customTickers,
+              (current, total, symbol) => {
+                set({ refreshProgress: { current, total, symbol } });
+              },
+              true // Filter to future dates only
+            );
+          } else {
+            console.log("Refreshing default stock list...");
+            enhancedStocks = await enhanceAllStocksWithPolygon(
+              (current, total, symbol) => {
+                set({ refreshProgress: { current, total, symbol } });
+              },
+              true // Filter to future dates only
+            );
+          }
 
           set({
             stocks: enhancedStocks,
@@ -88,6 +105,7 @@ export const useStockDataStore = create<StockDataState>()(
 
           set({
             stocks: enhancedStocks,
+            customTickers: tickers, // Save the custom tickers for future refreshes
             lastRefreshTime: Date.now(),
             isRefreshing: false,
           });
@@ -124,6 +142,7 @@ export const useStockDataStore = create<StockDataState>()(
         lastRefreshTime: state.lastRefreshTime,
         autoRefreshEnabled: state.autoRefreshEnabled,
         refreshIntervalHours: state.refreshIntervalHours,
+        customTickers: state.customTickers,
       }),
     }
   )
