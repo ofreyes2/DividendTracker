@@ -39,14 +39,16 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 #### **Real-Time WebSocket Updates (NEW! ⚡)**
 - **Live Price Streaming** - Prices update automatically during market hours:
   - Connected to Polygon.io WebSocket (15-minute delayed feed)
-  - Minute-by-minute aggregate updates (OHLC bars)
-  - Automatic reconnection if connection drops
+  - Second-by-second and minute aggregate updates (OHLC bars)
+  - Automatic reconnection with exponential backoff
   - Updates price, change, volume in real-time
   - Green "Live" indicator when WebSocket is connected
+  - **Note**: Requires valid Polygon.io API key with WebSocket access
 - **Optimized Performance**:
   - Only subscribes to stocks currently displayed
   - Minimal battery and data usage
   - Updates UI efficiently without re-renders
+  - Disabled by default until API key is validated
 
 #### **Flexible Ticker Management**
 - **In-App Ticker Editor** - Customize your stock universe:

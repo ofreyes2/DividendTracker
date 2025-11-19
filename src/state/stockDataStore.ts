@@ -17,6 +17,7 @@ interface StockDataState {
   stocks: DividendStock[];
   lastRefreshTime: number | null;
   lastDividendRefreshTime: number | null; // Track dividend data refresh separately
+  lastWebSocketUpdate: number | null; // Track last WebSocket price update
   isRefreshing: boolean;
   refreshProgress: { current: number; total: number; symbol: string };
   autoRefreshEnabled: boolean;
@@ -89,13 +90,14 @@ export const useStockDataStore = create<StockDataState>()(
       stocks: [],
       lastRefreshTime: null,
       lastDividendRefreshTime: null,
+      lastWebSocketUpdate: null,
       isRefreshing: false,
       refreshProgress: { current: 0, total: 0, symbol: "" },
       autoRefreshEnabled: true,
       refreshIntervalHours: 24, // Refresh daily by default
       customTickers: [], // Initialize empty
       websocketConnected: false,
-      websocketEnabled: true,
+      websocketEnabled: false, // Disabled by default due to auth issues
 
       setStocks: (stocks) => set({ stocks }),
 
@@ -117,7 +119,7 @@ export const useStockDataStore = create<StockDataState>()(
           }
           return stock;
         });
-        set({ stocks: updatedStocks });
+        set({ stocks: updatedStocks, lastWebSocketUpdate: Date.now() });
       },
 
       refreshStocks: async (chunked = true) => {
@@ -236,12 +238,17 @@ export const useStockDataStore = create<StockDataState>()(
 
       shouldAutoRefresh: () => {
         const state = get();
-        if (!state.autoRefreshEnabled || !state.lastRefreshTime) {
+        if (!state.autoRefreshEnabled) {
+          return false; // Don't refresh if disabled
+        }
+
+        if (!state.lastRefreshTime) {
           return true; // Should refresh if never refreshed
         }
 
         const hoursSinceRefresh = (Date.now() - state.lastRefreshTime) / (1000 * 60 * 60);
 
+        // Only auto-refresh if more than 24 hours have passed
         return hoursSinceRefresh >= state.refreshIntervalHours;
       },
 
@@ -373,11 +380,12 @@ export const useStockDataStore = create<StockDataState>()(
     {
       name: "stock-data-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      // Don't persist the refreshing state and websocket state
+      // Don't persist the refreshing state and websocket connected state
       partialize: (state) => ({
         stocks: state.stocks,
         lastRefreshTime: state.lastRefreshTime,
         lastDividendRefreshTime: state.lastDividendRefreshTime,
+        lastWebSocketUpdate: state.lastWebSocketUpdate,
         autoRefreshEnabled: state.autoRefreshEnabled,
         refreshIntervalHours: state.refreshIntervalHours,
         customTickers: state.customTickers,

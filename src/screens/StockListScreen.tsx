@@ -57,6 +57,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     isRefreshing,
     refreshProgress,
     lastRefreshTime,
+    lastWebSocketUpdate,
     shouldAutoRefresh,
     refreshStocks,
     websocketConnected,
@@ -167,10 +168,10 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             </Text>
           </View>
           <Pressable
-            onPress={() => navigation.navigate("TickerManager")}
-            className="w-12 h-12 rounded-full bg-purple-600 items-center justify-center ml-3"
+            onPress={() => navigation.navigate("About")}
+            className="w-12 h-12 rounded-full bg-slate-700 items-center justify-center ml-3"
           >
-            <Ionicons name="list" size={22} color="white" />
+            <Ionicons name="information-circle" size={22} color="white" />
           </Pressable>
           <Pressable
             onPress={() => navigation.navigate("Portfolio")}
@@ -235,24 +236,29 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
         )}
 
-        {/* Real Data Indicator */}
+        {/* Real Data Indicator with Timestamp */}
         {storedStocks.length > 0 && (
-          <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-2 flex-row items-center justify-between mb-3">
-            <View className="flex-row items-center flex-1">
-              <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-              <Text className="text-emerald-400 font-semibold ml-2">
-                Using Real-Time Data {lastRefreshTime && `(${new Date(lastRefreshTime).toLocaleDateString()})`}
-              </Text>
-              {websocketConnected && (
-                <View className="ml-2 flex-row items-center">
-                  <View className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-                  <Text className="text-green-400 text-xs">Live</Text>
-                </View>
-              )}
+          <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-2 mb-3">
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center flex-1">
+                <Ionicons name="checkmark-circle" size={20} color="#10b981" />
+                <Text className="text-emerald-400 font-semibold ml-2">
+                  Real-Time Data Active
+                </Text>
+                {websocketConnected && (
+                  <View className="ml-2 flex-row items-center">
+                    <View className="w-2 h-2 rounded-full bg-green-500 mr-1" />
+                    <Text className="text-green-400 text-xs">Live</Text>
+                  </View>
+                )}
+              </View>
             </View>
-            <Pressable onPress={() => refreshStocks(true)}>
-              <Ionicons name="refresh" size={20} color="#10b981" />
-            </Pressable>
+            {/* Subtle timestamp in corner */}
+            {lastWebSocketUpdate && websocketConnected && (
+              <Text className="text-slate-500 text-[9px] mt-1 text-right">
+                Last update: {new Date(lastWebSocketUpdate).toLocaleTimeString()}
+              </Text>
+            )}
           </View>
         )}
 

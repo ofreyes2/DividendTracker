@@ -133,13 +133,15 @@ export class PolygonWebSocketService {
         this.isConnecting = false;
         this.disconnectHandlers.forEach((handler) => handler());
 
-        // Attempt reconnection if needed
+        // Don't reconnect if authentication failed
         if (this.shouldReconnect && this.reconnectAttempts < this.maxReconnectAttempts) {
           this.reconnectAttempts++;
           console.log(
             `[WebSocket] Reconnecting... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`
           );
-          setTimeout(() => this.connect(), this.reconnectDelay);
+          setTimeout(() => this.connect(), this.reconnectDelay * this.reconnectAttempts); // Exponential backoff
+        } else if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+          console.log("[WebSocket] Max reconnection attempts reached, giving up");
         }
       };
     } catch (error) {
@@ -173,6 +175,26 @@ export class PolygonWebSocketService {
     // Handle status messages
     if (message.ev === "status") {
       console.log(`[WebSocket] Status: ${message.status} - ${message.message}`);
+
+      // Stop reconnecting if authentication fails
+      if (message.status === "auth_failed" || message.status === "auth_timeout") {
+        console.error("[WebSocket] Authentication failed - check your API key");
+        this.shouldReconnect = false;
+        this.disconnect();
+        return;
+      }
+
+      // Successfully authenticated
+      if (message.status === "auth_success") {
+        console.log("[WebSocket] Successfully authenticated");
+        // Resubscribe to symbols if any were queued
+        if (this.subscribedSymbols.size > 0) {
+          const symbols = Array.from(this.subscribedSymbols);
+          this.subscribedSymbols.clear(); // Clear to avoid duplicates
+          this.subscribe(symbols);
+        }
+      }
+
       return;
     }
 
@@ -221,7 +243,7 @@ export class PolygonWebSocketService {
   }
 
   /**
-   * Subscribe to stock symbols
+   * Subscribe to stock symbols (both second and minute aggregates)
    */
   subscribe(symbols: string[]): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
@@ -231,15 +253,16 @@ export class PolygonWebSocketService {
       return;
     }
 
-    // Subscribe to minute aggregates (best for tracking price changes)
-    const params = symbols.map((sym) => `AM.${sym}`).join(",");
+    // Subscribe to both second and minute aggregates for maximum real-time data
+    const secondParams = symbols.map((sym) => `A.${sym}`).join(",");
+    const minuteParams = symbols.map((sym) => `AM.${sym}`).join(",");
 
     const subscribeMessage = {
       action: "subscribe",
-      params: params,
+      params: `${secondParams},${minuteParams}`,
     };
 
-    console.log(`[WebSocket] Subscribing to ${symbols.length} symbols...`);
+    console.log(`[WebSocket] Subscribing to ${symbols.length} symbols (second + minute aggregates)...`);
     this.ws.send(JSON.stringify(subscribeMessage));
 
     // Track subscribed symbols
@@ -255,11 +278,12 @@ export class PolygonWebSocketService {
       return;
     }
 
-    const params = symbols.map((sym) => `AM.${sym}`).join(",");
+    const secondParams = symbols.map((sym) => `A.${sym}`).join(",");
+    const minuteParams = symbols.map((sym) => `AM.${sym}`).join(",");
 
     const unsubscribeMessage = {
       action: "unsubscribe",
-      params: params,
+      params: `${secondParams},${minuteParams}`,
     };
 
     console.log(`[WebSocket] Unsubscribing from ${symbols.length} symbols...`);
