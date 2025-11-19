@@ -608,6 +608,9 @@ src/
   - "Next Payout" displays the upcoming dividend payment amount
   - "Annual Total" shows the full year dividend amount
   - All calculators and stock details properly distinguish between payment cycle and annual dividends
+- **Ticker Manager** loads custom tickers from assets/tickers.txt using expo-asset and expo-file-system
+  - Metro configured to handle .txt files as assets
+  - Fixed module loading error by using proper Asset API instead of require()
 
 ---
 
