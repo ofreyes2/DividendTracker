@@ -104,7 +104,7 @@ export default function TickerManagerScreen({ navigation }: Props) {
       try {
         // In development, try to fetch the file from the metro bundler
         // The metro bundler serves files from the project root
-        const response = await fetch("http://localhost:8081/assets/tickers.txt");
+        const response = await fetch("http://localhost:8081/assets/nanotickers.txt");
 
         if (response.ok) {
           const content = await response.text();
