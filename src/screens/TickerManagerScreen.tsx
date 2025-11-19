@@ -3,7 +3,7 @@
  * View and edit the ticker list for custom stock loading
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useStockDataStore } from "../state/stockDataStore";
+import * as FileSystem from "expo-file-system";
+import { Asset } from "expo-asset";
 
 type Props = NativeStackScreenProps<RootStackParamList, "TickerManager">;
 
@@ -94,7 +96,33 @@ export default function TickerManagerScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const [tickerText, setTickerText] = useState(DEFAULT_TICKERS);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingFile, setIsLoadingFile] = useState(true);
   const { refreshFromTickers, isRefreshing, refreshProgress } = useStockDataStore();
+
+  // Load tickers from file on mount
+  useEffect(() => {
+    const loadTickersFromFile = async () => {
+      try {
+        // Load the asset from the assets folder
+        const asset = Asset.fromModule(require("../../assets/tickers.txt"));
+        await asset.downloadAsync();
+
+        if (asset.localUri) {
+          const content = await FileSystem.readAsStringAsync(asset.localUri);
+          if (content && content.trim().length > 0) {
+            setTickerText(content);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to load tickers from file:", error);
+        // Keep default tickers if file loading fails
+      } finally {
+        setIsLoadingFile(false);
+      }
+    };
+
+    loadTickersFromFile();
+  }, []);
 
   const parseTickers = (text: string): string[] => {
     return text
@@ -124,6 +152,16 @@ export default function TickerManagerScreen({ navigation }: Props) {
   };
 
   const tickerCount = parseTickers(tickerText).length;
+
+  // Show loading indicator while file is being loaded
+  if (isLoadingFile) {
+    return (
+      <View className="flex-1 bg-[#0f172a] items-center justify-center">
+        <ActivityIndicator size="large" color="#3b82f6" />
+        <Text className="text-slate-400 mt-4">Loading tickers...</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-[#0f172a]">
