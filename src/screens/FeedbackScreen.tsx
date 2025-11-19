@@ -54,7 +54,7 @@ export default function FeedbackScreen({ navigation }: FeedbackScreenProps) {
     setIsSubmitting(true);
 
     try {
-      // Construct email body
+      // Construct email subject and body
       const emailSubject = `[${feedbackType.toUpperCase()}] ${subject}`;
       const emailBody = `
 Feedback Type: ${feedbackType}
@@ -68,22 +68,26 @@ ${message}
 Sent from Daily Dividend Capture App
       `.trim();
 
-      // Create mailto URL
-      const mailtoUrl = `mailto:ofreyes2@yahoo.com?subject=${encodeURIComponent(
-        emailSubject
-      )}&body=${encodeURIComponent(emailBody)}`;
+      // Send feedback directly using fetch (background submission)
+      const response = await fetch("https://formspree.io/f/xanyygve", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email || "anonymous@user.com",
+          subject: emailSubject,
+          message: emailBody,
+          _replyto: email || undefined,
+          _subject: emailSubject,
+        }),
+      });
 
-      // Open email client (this requires expo-linking which is already installed)
-      const { Linking } = await import("react-native");
-      const canOpen = await Linking.canOpenURL(mailtoUrl);
-
-      if (canOpen) {
-        await Linking.openURL(mailtoUrl);
-
+      if (response.ok) {
         // Show success message
         Alert.alert(
-          "Feedback Sent",
-          "Thank you for your feedback! Your email client has been opened with the pre-filled message.",
+          "Feedback Sent!",
+          "Thank you for your feedback! We have received your message and will review it shortly.",
           [
             {
               text: "OK",
@@ -99,16 +103,13 @@ Sent from Daily Dividend Capture App
           ]
         );
       } else {
-        Alert.alert(
-          "Cannot Open Email",
-          "Unable to open email client. Please send your feedback manually to: ofreyes2@yahoo.com"
-        );
+        throw new Error("Failed to send feedback");
       }
     } catch (error) {
       console.error("Error sending feedback:", error);
       Alert.alert(
-        "Error",
-        "Failed to open email client. Please send your feedback manually to: ofreyes2@yahoo.com"
+        "Error Sending Feedback",
+        "We could not send your feedback at this time. Please try again later or email us directly at ofreyes2@yahoo.com"
       );
     } finally {
       setIsSubmitting(false);
@@ -256,9 +257,8 @@ Sent from Daily Dividend Capture App
             <Ionicons name="information-circle" size={20} color="#3b82f6" />
             <View className="flex-1 ml-3">
               <Text className="text-blue-400 text-sm leading-5">
-                Your feedback will open your default email client with a pre-filled message to
-                ofreyes2@yahoo.com. The app version and feedback details will be included
-                automatically.
+                Your feedback will be sent directly to our team at ofreyes2@yahoo.com. We typically
+                respond within 24-48 hours.
               </Text>
             </View>
           </View>

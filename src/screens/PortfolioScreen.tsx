@@ -104,12 +104,20 @@ export default function PortfolioScreen({ navigation }: PortfolioScreenProps) {
             <Ionicons name="arrow-back" size={24} color="white" />
           </Pressable>
           <Text className="text-white text-2xl font-bold">My Portfolio</Text>
-          <Pressable
-            onPress={() => setShowAddModal(true)}
-            className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center"
-          >
-            <Ionicons name="add" size={24} color="white" />
-          </Pressable>
+          <View className="flex-row">
+            <Pressable
+              onPress={() => navigation.navigate("PortfolioHelp")}
+              className="w-10 h-10 rounded-full bg-slate-700 items-center justify-center mr-2"
+            >
+              <Ionicons name="help-circle" size={24} color="white" />
+            </Pressable>
+            <Pressable
+              onPress={() => setShowAddModal(true)}
+              className="w-10 h-10 rounded-full bg-blue-600 items-center justify-center"
+            >
+              <Ionicons name="add" size={24} color="white" />
+            </Pressable>
+          </View>
         </View>
 
         {/* Summary Cards */}

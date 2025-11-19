@@ -596,6 +596,46 @@ src/
 3. Choose "Low Risk" scenario
 4. Follow AI recommendations for safest picks
 
+---
+
+## Recent Updates - Version 2.0.0 (2025-11-19)
+
+### Major Feature Release
+
+#### ✅ **Background Refresh & Real-Time Data**
+- Automated daily background refresh for dividend data
+- WebSocket integration for second-by-second price updates (API key working!)
+- Chunked loading prevents crashes with 11,000+ tickers
+- Intelligent two-tier refresh: dividend data (daily) vs price data (real-time)
+
+#### ✅ **User Experience Improvements**
+- Removed manual refresh buttons - everything is automatic
+- Shows stock count with "Load All 11k" button when needed
+- Subtle timestamp display (9px) for last WebSocket update
+- Green "Live" indicator when prices update in real-time
+
+#### ✅ **New Features**
+- **About Page**: Version tracking, changelog, feature list
+- **Feedback System**: Direct submission (no email app needed) to ofreyes2@yahoo.com
+- **Portfolio Help**: Comprehensive guide on how to track investments
+- Help button added to Portfolio screen (? icon)
+
+#### ✅ **Technical Improvements**
+- WebSocket authentication working with your API key
+- Exponential backoff for reconnection attempts
+- Second-level aggregates for maximum price granularity
+- Fixed auto-refresh loop that caused UI flickering
+- Formspree integration for feedback submission
+
+#### 🔧 **How to Load All 11k Tickers**
+1. Open the app
+2. Look for the green card showing "{X} stocks loaded"
+3. Tap the blue "Load All 11k" button
+4. Wait for chunked loading (50 tickers every 500ms)
+5. App will filter to ~2,000 stocks with dividend data
+
+---
+
 ## Future Enhancements
 
 - [x] Custom date/day filters with calendar picker

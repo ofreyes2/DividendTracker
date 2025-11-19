@@ -243,7 +243,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               <View className="flex-row items-center flex-1">
                 <Ionicons name="checkmark-circle" size={20} color="#10b981" />
                 <Text className="text-emerald-400 font-semibold ml-2">
-                  Real-Time Data Active
+                  {storedStocks.length} stocks loaded
                 </Text>
                 {websocketConnected && (
                   <View className="ml-2 flex-row items-center">
@@ -252,6 +252,14 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                   </View>
                 )}
               </View>
+              {storedStocks.length < 1000 && (
+                <Pressable
+                  onPress={() => refreshStocks(true)}
+                  className="bg-blue-600 px-3 py-1 rounded-lg active:bg-blue-700"
+                >
+                  <Text className="text-white text-xs font-semibold">Load All 11k</Text>
+                </Pressable>
+              )}
             </View>
             {/* Subtle timestamp in corner */}
             {lastWebSocketUpdate && websocketConnected && (
