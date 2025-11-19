@@ -7,9 +7,6 @@ const os = require("node:os");
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
-// Add .txt to asset extensions
-config.resolver.assetExts.push("txt");
-
 // Disable Watchman for file watching.
 config.resolver.useWatchman = false;
 

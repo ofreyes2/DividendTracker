@@ -18,7 +18,6 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
 import { useStockDataStore } from "../state/stockDataStore";
 import * as FileSystem from "expo-file-system";
-import { Asset } from "expo-asset";
 
 type Props = NativeStackScreenProps<RootStackParamList, "TickerManager">;
 
@@ -103,18 +102,20 @@ export default function TickerManagerScreen({ navigation }: Props) {
   useEffect(() => {
     const loadTickersFromFile = async () => {
       try {
-        // Load the asset from the assets folder
-        const asset = Asset.fromModule(require("../../assets/tickers.txt"));
-        await asset.downloadAsync();
+        // In development, try to fetch the file from the metro bundler
+        // The metro bundler serves files from the project root
+        const response = await fetch("http://localhost:8081/assets/tickers.txt");
 
-        if (asset.localUri) {
-          const content = await FileSystem.readAsStringAsync(asset.localUri);
+        if (response.ok) {
+          const content = await response.text();
           if (content && content.trim().length > 0) {
             setTickerText(content);
           }
+        } else {
+          console.log("Could not load tickers file, using defaults");
         }
       } catch (error) {
-        console.error("Failed to load tickers from file:", error);
+        console.log("Failed to load tickers from file, using defaults:", error);
         // Keep default tickers if file loading fails
       } finally {
         setIsLoadingFile(false);

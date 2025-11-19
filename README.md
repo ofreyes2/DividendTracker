@@ -609,10 +609,10 @@ src/
   - "Annual Total" shows the full year dividend amount
   - All calculators and stock details properly distinguish between payment cycle and annual dividends
 - **Ticker Manager** allows users to manually edit and load custom tickers
-  - Automatically loads tickers from `/assets/tickers.txt` file on app startup
+  - Automatically loads tickers from `/assets/tickers.txt` file on app startup via Metro bundler
   - Users can edit the ticker list directly in the app
   - Metro config updated to support `.txt` file assets
-  - Tickers are loaded using Expo Asset API for proper bundling
+  - Tickers are fetched from Metro dev server (http://localhost:8081/assets/tickers.txt)
 
 ---
 
