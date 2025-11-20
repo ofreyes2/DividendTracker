@@ -7,6 +7,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import {
   View,
   Text,
+  FlatList,
   ScrollView,
   Pressable,
   TextInput,
@@ -151,6 +152,192 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
       year: "numeric",
     });
   };
+
+  // Render function for stock card (for FlatList virtualization)
+  const renderStockCard = ({ item: stock, index }: { item: DividendStock; index: number }) => (
+    <Animated.View
+      entering={FadeInDown.delay(Math.min(index * 30, 300))}
+    >
+      <View className="relative">
+        {/* Background Pressable for navigation */}
+        <Pressable
+          onPress={() => navigation.navigate("StockDetail", { stock })}
+          className={cn(
+            "rounded-2xl p-4 mb-3 border",
+            selectedStocks.includes(stock.symbol)
+              ? "bg-blue-900/30 border-blue-600"
+              : "bg-[#1e293b] border-slate-700"
+          )}
+        >
+          {/* Header Row */}
+          <View className="flex-row items-center justify-between mb-3">
+            <View className="flex-row items-center flex-1">
+              {/* Checkbox */}
+              <Pressable
+                onPress={(e) => {
+                  e.stopPropagation();
+                  toggleStockSelection(stock.symbol);
+                }}
+                className="mr-3"
+              >
+                <View
+                  className={cn(
+                    "w-6 h-6 rounded-md border-2 items-center justify-center",
+                    selectedStocks.includes(stock.symbol)
+                      ? "bg-blue-600 border-blue-600"
+                      : "border-slate-600"
+                  )}
+                >
+                  {selectedStocks.includes(stock.symbol) && (
+                    <Ionicons name="checkmark" size={16} color="white" />
+                  )}
+                </View>
+              </Pressable>
+
+              <View className="flex-1">
+                <Text className="text-white text-lg font-bold">
+                  {stock.symbol}
+                </Text>
+                <Text className="text-slate-400 text-sm" numberOfLines={1}>
+                  {stock.companyName}
+                </Text>
+              </View>
+            </View>
+
+            <View className="items-end">
+              <Text className="text-white text-xl font-bold">
+                {formatCurrency(stock.price)}
+              </Text>
+              <Text
+                className={cn(
+                  "text-sm font-medium",
+                  stock.change >= 0 ? "text-emerald-400" : "text-red-400"
+                )}
+              >
+                {stock.change >= 0 ? "+" : ""}
+                {stock.change.toFixed(2)}
+              </Text>
+            </View>
+          </View>
+
+          {/* Dividend Info */}
+          <View className="bg-slate-800/50 rounded-xl p-3 mb-2">
+            <View className="flex-row justify-between mb-2">
+              <View>
+                <Text className="text-slate-400 text-xs">Yield</Text>
+                <Text className="text-emerald-400 text-lg font-bold">
+                  {stock.dividendYield.toFixed(2)}%
+                </Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-slate-400 text-xs">Distribution</Text>
+                <Text className="text-white text-base font-semibold">
+                  {formatCurrency(stock.dividendAmount)}
+                </Text>
+              </View>
+              <View className="items-center">
+                <Text className="text-slate-400 text-xs">Annual</Text>
+                <Text className="text-white text-base font-semibold">
+                  {formatCurrency(stock.annualDividend)}
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="text-slate-400 text-xs">Ex-Date</Text>
+                <Text className="text-white text-base font-semibold">
+                  {formatDate(stock.exDividendDate)}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Price & Volume Info */}
+          <View className="bg-slate-800/30 rounded-xl p-3 mb-2">
+            <View className="flex-row justify-between mb-2">
+              <View className="flex-1">
+                <Text className="text-slate-400 text-xs">Day Range</Text>
+                <Text className="text-white text-sm font-semibold">
+                  {formatCurrency(stock.priceData.dayLow)} - {formatCurrency(stock.priceData.dayHigh)}
+                </Text>
+              </View>
+              <View className="flex-1 items-end">
+                <Text className="text-slate-400 text-xs">52-Week Range</Text>
+                <Text className="text-white text-sm font-semibold">
+                  {formatCurrency(stock.priceData.week52Low)} - {formatCurrency(stock.priceData.week52High)}
+                </Text>
+              </View>
+            </View>
+            <View className="flex-row justify-between">
+              <View>
+                <Text className="text-slate-400 text-xs">Volume</Text>
+                <Text className="text-white text-sm font-semibold">
+                  {stock.volume.current.toFixed(1)}M
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="text-slate-400 text-xs">Avg Volume</Text>
+                <Text className="text-white text-sm font-semibold">
+                  {stock.volume.average.toFixed(1)}M
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Company Details */}
+          <View className="flex-row justify-between items-center pt-2 border-t border-slate-700">
+            <View className="flex-1">
+              <Text className="text-slate-500 text-xs">
+                {stock.sector} • {stock.industry}
+              </Text>
+              {stock.indices.length > 0 && (
+                <Text className="text-slate-500 text-xs mt-1">
+                  {stock.indices.join(" • ")}
+                </Text>
+              )}
+            </View>
+            <View className="items-end">
+              <Text className="text-slate-400 text-xs">Rating</Text>
+              <View className="flex-row items-center mt-1">
+                <Ionicons
+                  name="star"
+                  size={14}
+                  color={
+                    stock.technicals.rsi >= 70
+                      ? "#ef4444"
+                      : stock.technicals.rsi >= 50
+                      ? "#10b981"
+                      : stock.technicals.rsi >= 30
+                      ? "#3b82f6"
+                      : "#ef4444"
+                  }
+                />
+                <Text
+                  className={cn(
+                    "text-sm font-bold ml-1",
+                    stock.technicals.rsi >= 70
+                      ? "text-red-400"
+                      : stock.technicals.rsi >= 50
+                      ? "text-emerald-400"
+                      : stock.technicals.rsi >= 30
+                      ? "text-blue-400"
+                      : "text-red-400"
+                  )}
+                >
+                  {stock.technicals.rsi >= 70
+                    ? "Overbought"
+                    : stock.technicals.rsi >= 50
+                    ? "Strong"
+                    : stock.technicals.rsi >= 30
+                    ? "Neutral"
+                    : "Oversold"}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </Pressable>
+      </View>
+    </Animated.View>
+  );
+
 
   const selectedStockObjects = filteredStocks.filter((s) =>
     selectedStocks.includes(s.symbol)
@@ -559,222 +746,28 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         )}
       </View>
 
-      {/* Stock List */}
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: selectedStocks.length > 0 ? 120 : 20 }}>
-        <View className="p-4">
-          {filteredStocks.length === 0 ? (
-            <View className="items-center py-20">
-              <Ionicons name="calendar-outline" size={64} color="#64748b" />
-              <Text className="text-white text-xl font-semibold mt-4">
-                No Stocks Found
-              </Text>
-              <Text className="text-slate-400 text-base mt-2 text-center">
-                Try adjusting your filters
-              </Text>
-            </View>
-          ) : (
-            filteredStocks.map((stock, index) => (
-              <Animated.View
-                key={`${stock.symbol}-${index}`}
-                entering={FadeInDown.delay(index * 30)}
-              >
-                <View className="relative">
-                  {/* Background Pressable for navigation */}
-                  <Pressable
-                    onPress={() => navigation.navigate("StockDetail", { stock })}
-                    className={cn(
-                      "rounded-2xl p-4 mb-3 border",
-                      selectedStocks.includes(stock.symbol)
-                        ? "bg-blue-900/30 border-blue-600"
-                        : "bg-[#1e293b] border-slate-700"
-                    )}
-                  >
-                    {/* Header Row */}
-                    <View className="flex-row items-center justify-between mb-3">
-                      <View className="flex-row items-center flex-1">
-                        {/* Checkbox - Separate Pressable to stop propagation */}
-                        <Pressable
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            toggleStockSelection(stock.symbol);
-                          }}
-                          className="mr-3"
-                        >
-                          <View
-                            className={cn(
-                              "w-6 h-6 rounded-md border-2 items-center justify-center",
-                              selectedStocks.includes(stock.symbol)
-                                ? "bg-blue-600 border-blue-600"
-                                : "border-slate-600"
-                            )}
-                          >
-                            {selectedStocks.includes(stock.symbol) && (
-                              <Ionicons name="checkmark" size={16} color="white" />
-                            )}
-                          </View>
-                        </Pressable>
-
-                        <View className="flex-1">
-                          <Text className="text-white text-lg font-bold">
-                            {stock.symbol}
-                          </Text>
-                          <Text
-                            className="text-slate-400 text-sm"
-                            numberOfLines={1}
-                          >
-                            {stock.companyName}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View className="items-end">
-                        <Text className="text-white text-xl font-bold">
-                          {formatCurrency(stock.price)}
-                        </Text>
-                        <Text
-                          className={cn(
-                            "text-sm font-medium",
-                            stock.change >= 0
-                              ? "text-emerald-400"
-                              : "text-red-400"
-                          )}
-                        >
-                          {stock.change >= 0 ? "+" : ""}
-                          {stock.change.toFixed(2)}
-                        </Text>
-                      </View>
-                    </View>
-
-                  {/* Dividend Info */}
-                  <View className="bg-slate-800/50 rounded-xl p-3 mb-2">
-                    <View className="flex-row justify-between mb-2">
-                      <View>
-                        <Text className="text-slate-400 text-xs">Yield</Text>
-                        <Text className="text-emerald-400 text-lg font-bold">
-                          {stock.dividendYield.toFixed(2)}%
-                        </Text>
-                      </View>
-                      <View className="items-center">
-                        <Text className="text-slate-400 text-xs">
-                          Distribution
-                        </Text>
-                        <Text className="text-white text-base font-semibold">
-                          {formatCurrency(stock.dividendAmount)}
-                        </Text>
-                      </View>
-                      <View className="items-center">
-                        <Text className="text-slate-400 text-xs">Annual</Text>
-                        <Text className="text-white text-base font-semibold">
-                          {formatCurrency(stock.annualDividend)}
-                        </Text>
-                      </View>
-                      <View className="items-end">
-                        <Text className="text-slate-400 text-xs">Ex-Date</Text>
-                        <Text className="text-white text-base font-semibold">
-                          {formatDate(stock.exDividendDate)}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Price & Volume Info */}
-                  <View className="bg-slate-800/30 rounded-xl p-3 mb-2">
-                    <View className="flex-row justify-between mb-2">
-                      <View className="flex-1">
-                        <Text className="text-slate-400 text-xs">
-                          Day Range
-                        </Text>
-                        <Text className="text-white text-sm font-semibold">
-                          {formatCurrency(stock.priceData.dayLow)} -{" "}
-                          {formatCurrency(stock.priceData.dayHigh)}
-                        </Text>
-                      </View>
-                      <View className="flex-1 items-end">
-                        <Text className="text-slate-400 text-xs">
-                          52-Week Range
-                        </Text>
-                        <Text className="text-white text-sm font-semibold">
-                          {formatCurrency(stock.priceData.week52Low)} -{" "}
-                          {formatCurrency(stock.priceData.week52High)}
-                        </Text>
-                      </View>
-                    </View>
-                    <View className="flex-row justify-between">
-                      <View>
-                        <Text className="text-slate-400 text-xs">Volume</Text>
-                        <Text className="text-white text-sm font-semibold">
-                          {stock.volume.current.toFixed(1)}M
-                        </Text>
-                      </View>
-                      <View className="items-end">
-                        <Text className="text-slate-400 text-xs">
-                          Avg Volume
-                        </Text>
-                        <Text className="text-white text-sm font-semibold">
-                          {stock.volume.average.toFixed(1)}M
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Company Details */}
-                  <View className="flex-row justify-between items-center pt-2 border-t border-slate-700">
-                    <View className="flex-1">
-                      <Text className="text-slate-500 text-xs">
-                        {stock.sector} • {stock.industry}
-                      </Text>
-                      {stock.indices.length > 0 && (
-                        <Text className="text-slate-500 text-xs mt-1">
-                          {stock.indices.join(" • ")}
-                        </Text>
-                      )}
-                    </View>
-                    <View className="items-end">
-                      <Text className="text-slate-400 text-xs">Rating</Text>
-                      <View className="flex-row items-center mt-1">
-                        <Ionicons
-                          name="star"
-                          size={14}
-                          color={
-                            stock.technicals.rsi >= 70
-                              ? "#ef4444"
-                              : stock.technicals.rsi >= 50
-                              ? "#10b981"
-                              : stock.technicals.rsi >= 30
-                              ? "#3b82f6"
-                              : "#ef4444"
-                          }
-                        />
-                        <Text
-                          className={cn(
-                            "text-sm font-bold ml-1",
-                            stock.technicals.rsi >= 70
-                              ? "text-red-400"
-                              : stock.technicals.rsi >= 50
-                              ? "text-emerald-400"
-                              : stock.technicals.rsi >= 30
-                              ? "text-blue-400"
-                              : "text-red-400"
-                          )}
-                        >
-                          {stock.technicals.rsi >= 70
-                            ? "Overbought"
-                            : stock.technicals.rsi >= 50
-                            ? "Strong"
-                            : stock.technicals.rsi >= 30
-                            ? "Neutral"
-                            : "Oversold"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </Pressable>
-                </View>
-              </Animated.View>
-            ))
-          )}
-        </View>
-      </ScrollView>
+      {/* Stock List with FlatList for virtualization */}
+      <FlatList
+        data={filteredStocks}
+        renderItem={renderStockCard}
+        keyExtractor={(item, index) => `${item.symbol}-${index}`}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: selectedStocks.length > 0 ? 120 : 20 }}
+        ListEmptyComponent={
+          <View className="items-center py-20">
+            <Ionicons name="calendar-outline" size={64} color="#64748b" />
+            <Text className="text-white text-xl font-semibold mt-4">
+              No Stocks Found
+            </Text>
+            <Text className="text-slate-400 text-base mt-2 text-center">
+              Try adjusting your filters
+            </Text>
+          </View>
+        }
+        initialNumToRender={20}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        removeClippedSubviews={true}
+      />
 
       {/* Bottom Action Bar */}
       {selectedStocks.length > 0 && (
