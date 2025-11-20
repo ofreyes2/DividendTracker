@@ -214,6 +214,45 @@ function convertFrequency(polygonFreq: number): "monthly" | "quarterly" | "semi-
 }
 
 /**
+ * Fetch ONLY dividend data for a ticker (lightweight, for bulk screening)
+ * Returns a simplified object with just dividend info
+ */
+export async function fetchDividendDataOnly(symbol: string): Promise<{
+  symbol: string;
+  dividendAmount: number;
+  exDividendDate: string;
+  recordDate: string;
+  paymentDate: string;
+  frequency: "monthly" | "quarterly" | "semi-annual" | "annual";
+  annualDividend: number;
+} | null> {
+  try {
+    const dividends = await fetchDividends(symbol);
+
+    if (dividends.length === 0) {
+      return null; // No dividend data
+    }
+
+    const latestDividend = dividends[0];
+    const frequency = convertFrequency(latestDividend.frequency);
+    const paymentsPerYear = latestDividend.frequency || 4;
+    const annualDividend = latestDividend.cash_amount * paymentsPerYear;
+
+    return {
+      symbol,
+      dividendAmount: latestDividend.cash_amount,
+      exDividendDate: latestDividend.ex_dividend_date,
+      recordDate: latestDividend.record_date,
+      paymentDate: latestDividend.pay_date,
+      frequency,
+      annualDividend,
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
  * Fetch complete stock data for a symbol
  * Modified to fetch sequentially with delays to prevent overwhelming the API
  */
@@ -351,6 +390,46 @@ export async function fetchMultipleStocks(
 
   console.log(`Successfully fetched ${stocks.length} out of ${symbols.length} stocks`);
   return stocks;
+}
+
+/**
+ * Fetch dividend data for multiple tickers (FAST - only 1 API call per ticker)
+ * This is the first pass - gets dividend info to filter which stocks to load fully
+ */
+export async function fetchBulkDividendData(
+  symbols: string[],
+  onProgress?: (current: number, total: number, symbol: string) => void
+): Promise<Array<{
+  symbol: string;
+  dividendAmount: number;
+  exDividendDate: string;
+  recordDate: string;
+  paymentDate: string;
+  frequency: "monthly" | "quarterly" | "semi-annual" | "annual";
+  annualDividend: number;
+}>> {
+  const results = [];
+
+  for (let i = 0; i < symbols.length; i++) {
+    const symbol = symbols[i];
+
+    // Update progress every 50 tickers
+    if (onProgress && (i % 50 === 0 || i === symbols.length - 1)) {
+      onProgress(i + 1, symbols.length, symbol);
+    }
+
+    const dividendData = await fetchDividendDataOnly(symbol);
+    if (dividendData) {
+      results.push(dividendData);
+    }
+
+    // Small delay - 100ms between dividend API calls (10 per second)
+    if (i < symbols.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+
+  return results;
 }
 
 /**

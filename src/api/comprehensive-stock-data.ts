@@ -691,3 +691,60 @@ export async function loadStocksFromTickers(
   return enhancedStocks;
 }
 
+
+/**
+ * TWO-PHASE LOADING: First fetch dividend data only (fast), then enrich with price data
+ * Phase 1: Fetch dividend data for all 11k+ tickers (1 API call per ticker, 10/sec = ~18 minutes)
+ * Phase 2: Only fetch full data for stocks with upcoming dividends (~2000 stocks)
+ */
+export async function loadStocksInTwoPhases(
+  tickers: string[],
+  onPhase1Progress?: (current: number, total: number, symbol: string) => void,
+  onPhase2Progress?: (current: number, total: number, symbol: string) => void,
+): Promise<DividendStock[]> {
+  console.log("=== PHASE 1: Fetching dividend data for all tickers ===");
+
+  // Phase 1: Get dividend data only (lightweight)
+  const { fetchBulkDividendData } = await import("./polygon-api");
+  const dividendData = await fetchBulkDividendData(tickers, onPhase1Progress);
+
+  console.log(`Phase 1 complete: Found ${dividendData.length} tickers with dividend data`);
+
+  // Filter to only stocks with future ex-dividend dates
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const futureDividends = dividendData.filter(d => {
+    const exDate = new Date(d.exDividendDate);
+    exDate.setHours(0, 0, 0, 0);
+    return exDate >= today;
+  });
+
+  console.log(`Filtered to ${futureDividends.length} stocks with future ex-dividend dates`);
+  console.log("=== PHASE 2: Fetching full price/company data for filtered stocks ===");
+
+  // Phase 2: Fetch full data only for stocks with upcoming dividends
+  const { fetchCompleteStockData } = await import("./polygon-api");
+  const fullStocks: DividendStock[] = [];
+
+  for (let i = 0; i < futureDividends.length; i++) {
+    const dividendInfo = futureDividends[i];
+
+    if (onPhase2Progress) {
+      onPhase2Progress(i + 1, futureDividends.length, dividendInfo.symbol);
+    }
+
+    const fullStock = await fetchCompleteStockData(dividendInfo.symbol);
+    if (fullStock) {
+      fullStocks.push(fullStock);
+    }
+
+    // 2 second delay between full data fetches (includes 3 API calls each)
+    if (i < futureDividends.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    }
+  }
+
+  console.log(`Phase 2 complete: Loaded ${fullStocks.length} stocks with complete data`);
+  return fullStocks;
+}

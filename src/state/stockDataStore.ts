@@ -9,7 +9,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DividendStock } from "../api/comprehensive-stock-data";
-import { loadStocksFromTickers } from "../api/comprehensive-stock-data";
+import { loadStocksFromTickers, loadStocksInTwoPhases } from "../api/comprehensive-stock-data";
 import { TICKERS } from "../data/nanotickers";
 import { getWebSocketService } from "../services/polygonWebSocketService";
 
@@ -19,7 +19,7 @@ interface StockDataState {
   lastDividendRefreshTime: number | null; // Track dividend data refresh separately
   lastWebSocketUpdate: number | null; // Track last WebSocket price update
   isRefreshing: boolean;
-  refreshProgress: { current: number; total: number; symbol: string };
+  refreshProgress: { current: number; total: number; symbol: string; phase?: string };
   autoRefreshEnabled: boolean;
   refreshIntervalHours: number;
   customTickers: string[]; // Store custom ticker list
@@ -87,7 +87,7 @@ export const useStockDataStore = create<StockDataState>()(
           return;
         }
 
-        set({ isRefreshing: true, refreshProgress: { current: 0, total: 0, symbol: "" } });
+        set({ isRefreshing: true, refreshProgress: { current: 0, total: 0, symbol: "", phase: "Phase 1" } });
 
         try {
           // Parse the default ticker list from nanotickers
@@ -99,15 +99,19 @@ export const useStockDataStore = create<StockDataState>()(
           const tickersToUse =
             state.customTickers.length > 0 ? state.customTickers : defaultTickers;
 
-          console.log(`Refreshing ${tickersToUse.length} tickers from Polygon.io in background...`);
+          console.log(`Using TWO-PHASE loading for ${tickersToUse.length} tickers...`);
 
-          // Load all tickers without chunking (progress updates happen every 100 tickers internally)
-          const enhancedStocks = await loadStocksFromTickers(
+          // Use two-phase loading: Phase 1 (dividend data only), Phase 2 (full data for filtered stocks)
+          const enhancedStocks = await loadStocksInTwoPhases(
             tickersToUse,
+            // Phase 1 progress (dividend data only)
             (current: number, total: number, symbol: string) => {
-              set({ refreshProgress: { current, total, symbol } });
+              set({ refreshProgress: { current, total, symbol, phase: "Phase 1: Dividend Data" } });
             },
-            true // Filter to future dates only
+            // Phase 2 progress (full data for filtered stocks)
+            (current: number, total: number, symbol: string) => {
+              set({ refreshProgress: { current, total, symbol, phase: "Phase 2: Price Data" } });
+            }
           );
 
           set({

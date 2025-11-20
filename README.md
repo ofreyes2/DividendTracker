@@ -30,13 +30,16 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 - **Smart Refresh Strategy** - Two-tier data update system:
   - **Dividend Data**: Refreshes once per 24 hours (background task)
   - **Price Data**: Updates continuously via WebSocket when app is active
-- **Crash-Resistant Loading** - Intelligent background processing:
-  - Processes 11k+ tickers in background with 2-second delay between tickers
-  - Each ticker makes 3 sequential API calls with 250ms delays between them
-  - No progress UI to reduce overhead and prevent crashes
-  - Shows simple "Loading in background" message when active
+- **Crash-Resistant Loading** - Intelligent two-phase processing:
+  - **Phase 1 (FAST)**: Fetches only dividend data for all 11k+ tickers
+    - 1 API call per ticker, 10 requests/second = ~18 minutes for all tickers
+    - Filters to ~2000 stocks with upcoming ex-dividend dates
+  - **Phase 2 (TARGETED)**: Fetches full price/company data for filtered stocks only
+    - 3 API calls per stock with 2-second delays between stocks
+    - Only processes ~2000 stocks instead of 11k+
   - 10-second timeout on all API requests to prevent hanging
   - Automatic error recovery - skips failed tickers and continues
+  - Shows current phase and progress in UI
   - App remains fully responsive throughout the entire load process
 
 #### **Real-Time WebSocket Updates (NEW! ⚡)**
