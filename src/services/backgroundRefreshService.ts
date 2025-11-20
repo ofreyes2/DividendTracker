@@ -19,14 +19,31 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     console.log("[Background] Starting scheduled dividend data refresh...");
 
     const now = new Date();
-    console.log(`[Background] Task executed at: ${now.toISOString()}`);
+
+    // Convert to CST (UTC-6 or UTC-5 depending on DST)
+    const cstOffset = -6 * 60; // CST is UTC-6
+    const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+    const cstTime = new Date(utcTime + (cstOffset * 60000));
+    const cstHour = cstTime.getHours();
+    const cstMinute = cstTime.getMinutes();
+
+    console.log(`[Background] Current CST time: ${cstHour}:${cstMinute.toString().padStart(2, "0")}`);
+
+    // Only refresh if it's between 2:00 AM and 3:30 AM CST
+    const isRefreshWindow = (cstHour === 2 && cstMinute >= 30) || (cstHour === 3 && cstMinute < 30);
+
+    if (!isRefreshWindow) {
+      console.log("[Background] Not in refresh window (2:30-3:30 AM CST), skipping refresh");
+      return BackgroundFetch.BackgroundFetchResult.NoData;
+    }
+
+    console.log(`[Background] In refresh window at CST ${cstHour}:${cstMinute.toString().padStart(2, "0")}, refreshing dividend data...`);
 
     // Get the refresh function from the store
-    // Note: We need to call the store directly, not via hooks
     const { refreshStocks } = useStockDataStore.getState();
 
-    // Perform the refresh
-    await refreshStocks();
+    // Perform the refresh (this loads all 11k+ tickers)
+    await refreshStocks(true); // Use chunked loading
 
     console.log("[Background] Dividend data refresh completed successfully");
 
@@ -54,7 +71,7 @@ export async function registerBackgroundRefreshTask(): Promise<void> {
 
     // Register the task
     await BackgroundFetch.registerTaskAsync(BACKGROUND_FETCH_TASK, {
-      minimumInterval: 24 * 60 * 60, // 24 hours in seconds (daily refresh)
+      minimumInterval: 60 * 60, // Check every hour (iOS/Android will optimize)
       stopOnTerminate: false, // Continue after app termination
       startOnBoot: true, // Start after device reboot
     });

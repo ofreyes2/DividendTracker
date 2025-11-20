@@ -141,22 +141,19 @@ export const useStockDataStore = create<StockDataState>()(
           const tickersToUse =
             state.customTickers.length > 0 ? state.customTickers : defaultTickers;
 
-          // LIMIT TO FIRST 500 TICKERS TO PREVENT CRASHES
-          const limitedTickers = tickersToUse.slice(0, 500);
-
-          console.log(`Refreshing ${limitedTickers.length} tickers from Polygon.io (limited to 500)...`);
+          console.log(`Refreshing ${tickersToUse.length} tickers from Polygon.io...`);
 
           let enhancedStocks: DividendStock[];
 
-          if (chunked && limitedTickers.length > CHUNK_SIZE) {
+          if (chunked && tickersToUse.length > CHUNK_SIZE) {
             // Use chunked loading for large lists
-            enhancedStocks = await processTickersInChunks(limitedTickers, (current, total, symbol) => {
+            enhancedStocks = await processTickersInChunks(tickersToUse, (current, total, symbol) => {
               set({ refreshProgress: { current, total, symbol } });
             });
           } else {
             // Regular loading for small lists
             enhancedStocks = await loadStocksFromTickers(
-              limitedTickers,
+              tickersToUse,
               (current, total, symbol) => {
                 set({ refreshProgress: { current, total, symbol } });
               },

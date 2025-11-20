@@ -68,27 +68,28 @@ ${message}
 Sent from Daily Dividend Capture App
       `.trim();
 
-      // Send feedback directly using fetch (background submission)
-      const response = await fetch("https://formspree.io/f/xanyygve", {
+      // Try using FormSubmit.co - free email service that doesn't require signup
+      // First submission requires email confirmation, subsequent ones work automatically
+      const response = await fetch("https://formsubmit.co/ajax/ofreyes2@yahoo.com", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify({
-          email: email || "anonymous@user.com",
-          subject: emailSubject,
-          message: emailBody,
-          _replyto: email || undefined,
+          name: email || "Anonymous User",
+          _replyto: email || "no-reply@app.com",
           _subject: emailSubject,
+          message: emailBody,
+          _template: "basic",
         }),
       });
 
-      console.log("Formspree response status:", response.status);
-      const responseText = await response.text();
-      console.log("Formspree response body:", responseText);
+      console.log("Feedback submission response status:", response.status);
+      const responseData = await response.json();
+      console.log("Feedback submission response:", responseData);
 
-      if (response.ok) {
+      if (response.ok || responseData.success === "true" || responseData.success === true) {
         // Show success message
         Alert.alert(
           "Feedback Sent!",
@@ -108,8 +109,8 @@ Sent from Daily Dividend Capture App
           ]
         );
       } else {
-        console.error("Formspree error response:", responseText);
-        throw new Error(`Failed to send feedback: ${response.status} - ${responseText}`);
+        console.error("Feedback error response:", responseData);
+        throw new Error(`Failed to send feedback: ${response.status} - ${JSON.stringify(responseData)}`);
       }
     } catch (error) {
       console.error("Error sending feedback:", error);

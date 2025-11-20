@@ -57,6 +57,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     isRefreshing,
     refreshProgress,
     lastRefreshTime,
+    lastDividendRefreshTime,
     lastWebSocketUpdate,
     shouldAutoRefresh,
     refreshStocks,
@@ -144,6 +145,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     return date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
+      year: "numeric",
     });
   };
 
@@ -261,10 +263,23 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 </Pressable>
               )}
             </View>
-            {/* Subtle timestamp in corner */}
+            {/* Dividend data refresh timestamp */}
+            {lastDividendRefreshTime && (
+              <Text className="text-slate-500 text-[9px] mt-1">
+                Dividend data: {new Date(lastDividendRefreshTime).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  hour12: true
+                })}
+              </Text>
+            )}
+            {/* WebSocket price update timestamp */}
             {lastWebSocketUpdate && websocketConnected && (
-              <Text className="text-slate-500 text-[9px] mt-1 text-right">
-                Last update: {new Date(lastWebSocketUpdate).toLocaleTimeString()}
+              <Text className="text-slate-500 text-[9px] text-right">
+                Live prices: {new Date(lastWebSocketUpdate).toLocaleTimeString()}
               </Text>
             )}
           </View>
