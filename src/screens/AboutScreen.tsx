@@ -3,12 +3,13 @@
  * Displays app information, version, and changelog
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/RootNavigator";
+import { useStockDataStore } from "../state/stockDataStore";
 
 // Version management - update this with every change
 const APP_VERSION = "2.0.0";
@@ -20,6 +21,8 @@ interface AboutScreenProps {
 
 export default function AboutScreen({ navigation }: AboutScreenProps) {
   const insets = useSafeAreaInsets();
+  const [showTimestamp, setShowTimestamp] = useState(false);
+  const lastRefreshTime = useStockDataStore(s => s.lastRefreshTime);
 
   return (
     <View className="flex-1 bg-[#0f172a]">
@@ -55,6 +58,18 @@ export default function AboutScreen({ navigation }: AboutScreenProps) {
             <Text className="text-slate-500 text-xs">
               Released: {VERSION_DATE}
             </Text>
+
+            {/* Last Updated Timestamp Toggle */}
+            <Pressable
+              onPress={() => setShowTimestamp(!showTimestamp)}
+              className="mt-3 bg-slate-700/50 px-3 py-2 rounded-lg active:bg-slate-700"
+            >
+              <Text className="text-slate-400 text-xs">
+                {showTimestamp && lastRefreshTime
+                  ? `Last data update: ${new Date(lastRefreshTime).toLocaleString()}`
+                  : "Tap for last update time"}
+              </Text>
+            </Pressable>
           </View>
 
           <View className="border-t border-slate-700 pt-4">

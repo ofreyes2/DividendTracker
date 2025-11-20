@@ -272,54 +272,54 @@ export default function StockDetailScreen({
         {/* Data disclaimer */}
         <View className="mt-3 bg-amber-900/20 border border-amber-700/30 rounded-lg p-2">
           <Text className="text-amber-400 text-xs text-center">
-            ⚠️ Market data is delayed by 15 minutes
+            ⚠️ Market data delayed 15 minutes
           </Text>
         </View>
       </View>
 
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 20 }}>
-        <View className="p-4">
+        <View className="p-3">
           {/* Key Metrics */}
-          <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
-            <Text className="text-white text-lg font-bold mb-3">
+          <View className="bg-[#1e293b] rounded-xl p-3 mb-3 border border-slate-700">
+            <Text className="text-white text-base font-bold mb-2">
               Key Metrics
             </Text>
-            <View className="flex-row justify-between mb-3">
+            <View className="flex-row justify-between mb-2">
               <View className="flex-1">
-                <Text className="text-slate-400 text-xs">Market Cap</Text>
-                <Text className="text-white text-base font-semibold">
+                <Text className="text-slate-400 text-[10px]">Market Cap</Text>
+                <Text className="text-white text-sm font-semibold">
                   {formatBillions(stock.marketCap)}
                 </Text>
               </View>
               <View className="flex-1 items-center">
-                <Text className="text-slate-400 text-xs">Dividend Yield</Text>
-                <Text className="text-emerald-400 text-base font-bold">
+                <Text className="text-slate-400 text-[10px]">Dividend Yield</Text>
+                <Text className="text-emerald-400 text-sm font-bold">
                   {stock.dividendYield.toFixed(2)}%
                 </Text>
               </View>
               <View className="flex-1 items-end">
-                <Text className="text-slate-400 text-xs">Payout Ratio</Text>
-                <Text className="text-white text-base font-semibold">
+                <Text className="text-slate-400 text-[10px]">Payout Ratio</Text>
+                <Text className="text-white text-sm font-semibold">
                   {stock.payoutRatio}%
                 </Text>
               </View>
             </View>
             <View className="flex-row justify-between">
               <View className="flex-1">
-                <Text className="text-slate-400 text-xs">Volume</Text>
-                <Text className="text-white text-base font-semibold">
+                <Text className="text-slate-400 text-[10px]">Volume</Text>
+                <Text className="text-white text-sm font-semibold">
                   {stock.volume.current.toFixed(1)}M
                 </Text>
               </View>
               <View className="flex-1 items-center">
-                <Text className="text-slate-400 text-xs">Avg Volume</Text>
-                <Text className="text-white text-base font-semibold">
+                <Text className="text-slate-400 text-[10px]">Avg Volume</Text>
+                <Text className="text-white text-sm font-semibold">
                   {stock.volume.average.toFixed(1)}M
                 </Text>
               </View>
               <View className="flex-1 items-end">
-                <Text className="text-slate-400 text-xs">5Y Div Growth</Text>
-                <Text className="text-emerald-400 text-base font-semibold">
+                <Text className="text-slate-400 text-[10px]">5Y Div Growth</Text>
+                <Text className="text-emerald-400 text-sm font-semibold">
                   {stock.dividendGrowth5Year}%
                 </Text>
               </View>
@@ -327,14 +327,14 @@ export default function StockDetailScreen({
           </View>
 
           {/* Price Range */}
-          <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
-            <Text className="text-white text-lg font-bold mb-3">
+          <View className="bg-[#1e293b] rounded-xl p-3 mb-3 border border-slate-700">
+            <Text className="text-white text-base font-bold mb-2">
               Price Range
             </Text>
-            <View className="mb-3">
+            <View className="mb-2">
               <View className="flex-row justify-between mb-1">
-                <Text className="text-slate-400 text-sm">Day Range</Text>
-                <Text className="text-white text-sm font-semibold">
+                <Text className="text-slate-400 text-xs">Day Range</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatCurrency(stock.priceData.dayLow)} -{" "}
                   {formatCurrency(stock.priceData.dayHigh)}
                 </Text>
@@ -354,8 +354,8 @@ export default function StockDetailScreen({
             </View>
             <View>
               <View className="flex-row justify-between mb-1">
-                <Text className="text-slate-400 text-sm">52-Week Range</Text>
-                <Text className="text-white text-sm font-semibold">
+                <Text className="text-slate-400 text-xs">52-Week Range</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatCurrency(stock.priceData.week52Low)} -{" "}
                   {formatCurrency(stock.priceData.week52High)}
                 </Text>
@@ -377,46 +377,46 @@ export default function StockDetailScreen({
           </View>
 
           {/* Dividend Information */}
-          <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
-            <Text className="text-white text-lg font-bold mb-3">
+          <View className="bg-[#1e293b] rounded-xl p-3 mb-3 border border-slate-700">
+            <Text className="text-white text-base font-bold mb-2">
               Dividend Information
             </Text>
             <View className="space-y-2">
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">
                   Dividend per Payment
                 </Text>
-                <Text className="text-white text-sm font-semibold">
+                <Text className="text-white text-xs font-semibold">
                   {formatCurrency(stock.dividendAmount)}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">Annual Dividend</Text>
-                <Text className="text-emerald-400 text-sm font-bold">
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">Annual Dividend</Text>
+                <Text className="text-emerald-400 text-xs font-bold">
                   {formatCurrency(stock.annualDividend)}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">Frequency</Text>
-                <Text className="text-white text-sm font-semibold capitalize">
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">Frequency</Text>
+                <Text className="text-white text-xs font-semibold capitalize">
                   {stock.frequency}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">Ex-Dividend Date</Text>
-                <Text className="text-white text-sm font-semibold">
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">Ex-Dividend Date</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatDate(stock.exDividendDate)}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">Record Date</Text>
-                <Text className="text-white text-sm font-semibold">
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">Record Date</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatDate(stock.recordDate)}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2">
-                <Text className="text-slate-400 text-sm">Payment Date</Text>
-                <Text className="text-white text-sm font-semibold">
+              <View className="flex-row justify-between py-1.5">
+                <Text className="text-slate-400 text-xs">Payment Date</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatDate(stock.paymentDate)}
                 </Text>
               </View>
@@ -424,20 +424,20 @@ export default function StockDetailScreen({
           </View>
 
           {/* Technical Analysis */}
-          <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
-            <Text className="text-white text-lg font-bold mb-3">
+          <View className="bg-[#1e293b] rounded-xl p-3 mb-3 border border-slate-700">
+            <Text className="text-white text-base font-bold mb-2">
               Technical Analysis
             </Text>
 
             {/* Overall Rating */}
-            <View className="bg-slate-800/50 rounded-xl p-3 mb-3">
+            <View className="bg-slate-800/50 rounded-lg p-2 mb-2">
               <View className="flex-row items-center justify-between">
-                <Text className="text-slate-400 text-sm">Overall Rating</Text>
+                <Text className="text-slate-400 text-xs">Overall Rating</Text>
                 <View className="flex-row items-center">
-                  <Ionicons name="star" size={18} color="#10b981" />
+                  <Ionicons name="star" size={16} color="#10b981" />
                   <Text
                     className={cn(
-                      "text-base font-bold ml-1",
+                      "text-sm font-bold ml-1",
                       technicalRating.score >= 4
                         ? "text-emerald-400"
                         : technicalRating.score >= 2
@@ -453,11 +453,11 @@ export default function StockDetailScreen({
 
             {/* Technical Indicators */}
             <View className="space-y-2">
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">RSI (14)</Text>
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">RSI (14)</Text>
                 <Text
                   className={cn(
-                    "text-sm font-semibold",
+                    "text-xs font-semibold",
                     stock.technicals.rsi >= 70
                       ? "text-red-400"
                       : stock.technicals.rsi >= 50
@@ -470,11 +470,11 @@ export default function StockDetailScreen({
                   {stock.technicals.rsi}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">MACD</Text>
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">MACD</Text>
                 <Text
                   className={cn(
-                    "text-sm font-semibold",
+                    "text-xs font-semibold",
                     stock.technicals.macd.value > 0
                       ? "text-emerald-400"
                       : "text-red-400"
@@ -483,11 +483,11 @@ export default function StockDetailScreen({
                   {stock.technicals.macd.value.toFixed(2)}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">PEG Ratio</Text>
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">PEG Ratio</Text>
                 <Text
                   className={cn(
-                    "text-sm font-semibold",
+                    "text-xs font-semibold",
                     stock.technicals.pegRatio < 1
                       ? "text-emerald-400"
                       : stock.technicals.pegRatio < 2
@@ -498,27 +498,27 @@ export default function StockDetailScreen({
                   {stock.technicals.pegRatio.toFixed(2)}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">50-Day MA</Text>
-                <Text className="text-white text-sm font-semibold">
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">50-Day MA</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatCurrency(stock.technicals.movingAverage50)}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2">
-                <Text className="text-slate-400 text-sm">200-Day MA</Text>
-                <Text className="text-white text-sm font-semibold">
+              <View className="flex-row justify-between py-1.5">
+                <Text className="text-slate-400 text-xs">200-Day MA</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatCurrency(stock.technicals.movingAverage200)}
                 </Text>
               </View>
             </View>
 
             {/* Technical Signals */}
-            <View className="mt-3">
-              <Text className="text-slate-400 text-xs mb-2">Key Signals</Text>
+            <View className="mt-2">
+              <Text className="text-slate-400 text-[10px] mb-2">Key Signals</Text>
               {technicalRating.signals.map((signal, index) => (
                 <View
                   key={index}
-                  className="flex-row items-center mb-2"
+                  className="flex-row items-center mb-1.5"
                 >
                   <Ionicons
                     name={
@@ -528,7 +528,7 @@ export default function StockDetailScreen({
                         ? "warning"
                         : "information-circle"
                     }
-                    size={16}
+                    size={14}
                     color={
                       signal.type === "positive"
                         ? "#10b981"
@@ -537,7 +537,7 @@ export default function StockDetailScreen({
                         : "#3b82f6"
                     }
                   />
-                  <Text className="text-slate-300 text-xs ml-2 flex-1">
+                  <Text className="text-slate-300 text-[10px] ml-2 flex-1">
                     {signal.text}
                   </Text>
                 </View>
@@ -546,12 +546,12 @@ export default function StockDetailScreen({
           </View>
 
           {/* MACD Chart */}
-          <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
-            <Text className="text-white text-lg font-bold mb-3">
+          <View className="bg-[#1e293b] rounded-xl p-3 mb-3 border border-slate-700">
+            <Text className="text-white text-base font-bold mb-2">
               MACD Chart (30 Days)
             </Text>
             <View className="h-48 bg-slate-900/50 rounded-xl p-2">
-              <Text className="text-slate-400 text-xs mb-2">
+              <Text className="text-slate-400 text-[10px] mb-2">
                 MACD: {stock.technicals.macd.value.toFixed(2)} | Signal: {stock.technicals.macd.signal.toFixed(2)} | Histogram: {stock.technicals.macd.histogram.toFixed(2)}
               </Text>
               <View className="flex-1">
@@ -593,26 +593,26 @@ export default function StockDetailScreen({
           </View>
 
           {/* Company Information */}
-          <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-slate-700">
-            <Text className="text-white text-lg font-bold mb-3">
+          <View className="bg-[#1e293b] rounded-xl p-3 mb-3 border border-slate-700">
+            <Text className="text-white text-base font-bold mb-2">
               Company Information
             </Text>
             <View className="space-y-2">
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">Sector</Text>
-                <Text className="text-white text-sm font-semibold">
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">Sector</Text>
+                <Text className="text-white text-xs font-semibold">
                   {stock.sector}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2 border-b border-slate-700">
-                <Text className="text-slate-400 text-sm">Industry</Text>
-                <Text className="text-white text-sm font-semibold">
+              <View className="flex-row justify-between py-1.5 border-b border-slate-700">
+                <Text className="text-slate-400 text-xs">Industry</Text>
+                <Text className="text-white text-xs font-semibold">
                   {stock.industry}
                 </Text>
               </View>
-              <View className="flex-row justify-between py-2">
-                <Text className="text-slate-400 text-sm">Indices</Text>
-                <Text className="text-white text-sm font-semibold text-right flex-1 ml-2">
+              <View className="flex-row justify-between py-1.5">
+                <Text className="text-slate-400 text-xs">Indices</Text>
+                <Text className="text-white text-xs font-semibold text-right flex-1 ml-2">
                   {stock.indices.length > 0
                     ? stock.indices.join(", ")
                     : "Not in major indices"}
@@ -623,26 +623,26 @@ export default function StockDetailScreen({
 
           {/* AI Analysis Results */}
           {aiAnalysis && (
-            <View className="bg-[#1e293b] rounded-2xl p-4 mb-4 border border-blue-600">
-              <View className="flex-row items-center mb-3">
-                <Ionicons name="sparkles" size={20} color="#3b82f6" />
-                <Text className="text-white text-lg font-bold ml-2">
+            <View className="bg-[#1e293b] rounded-xl p-3 mb-3 border border-blue-600">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="sparkles" size={18} color="#3b82f6" />
+                <Text className="text-white text-base font-bold ml-2">
                   AI Analysis
                 </Text>
               </View>
 
-              <View className="bg-slate-800/50 rounded-xl p-3 mb-3">
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="text-slate-400 text-sm">Score</Text>
-                  <Text className="text-2xl font-bold text-blue-400">
+              <View className="bg-slate-800/50 rounded-lg p-2 mb-2">
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <Text className="text-slate-400 text-xs">Score</Text>
+                  <Text className="text-xl font-bold text-blue-400">
                     {aiAnalysis.score}/100
                   </Text>
                 </View>
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="text-slate-400 text-sm">Recommendation</Text>
+                <View className="flex-row items-center justify-between mb-1.5">
+                  <Text className="text-slate-400 text-xs">Recommendation</Text>
                   <Text
                     className={cn(
-                      "text-base font-bold",
+                      "text-sm font-bold",
                       aiAnalysis.recommendation === "Buy"
                         ? "text-emerald-400"
                         : aiAnalysis.recommendation === "Hold"
@@ -654,22 +654,22 @@ export default function StockDetailScreen({
                   </Text>
                 </View>
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-slate-400 text-sm">Risk Level</Text>
-                  <Text className="text-white text-sm font-semibold">
+                  <Text className="text-slate-400 text-xs">Risk Level</Text>
+                  <Text className="text-white text-xs font-semibold">
                     {aiAnalysis.riskLevel}
                   </Text>
                 </View>
               </View>
 
               {aiAnalysis.pros && aiAnalysis.pros.length > 0 && (
-                <View className="mb-3">
-                  <Text className="text-emerald-400 text-sm font-semibold mb-2">
+                <View className="mb-2">
+                  <Text className="text-emerald-400 text-xs font-semibold mb-1.5">
                     Strengths
                   </Text>
                   {aiAnalysis.pros.map((pro: string, index: number) => (
                     <View key={index} className="flex-row items-start mb-1">
                       <Text className="text-emerald-400 mr-2">•</Text>
-                      <Text className="text-slate-300 text-sm flex-1">
+                      <Text className="text-slate-300 text-xs flex-1">
                         {pro}
                       </Text>
                     </View>
@@ -678,14 +678,14 @@ export default function StockDetailScreen({
               )}
 
               {aiAnalysis.cons && aiAnalysis.cons.length > 0 && (
-                <View className="mb-3">
-                  <Text className="text-red-400 text-sm font-semibold mb-2">
+                <View className="mb-2">
+                  <Text className="text-red-400 text-xs font-semibold mb-1.5">
                     Concerns
                   </Text>
                   {aiAnalysis.cons.map((con: string, index: number) => (
                     <View key={index} className="flex-row items-start mb-1">
                       <Text className="text-red-400 mr-2">•</Text>
-                      <Text className="text-slate-300 text-sm flex-1">
+                      <Text className="text-slate-300 text-xs flex-1">
                         {con}
                       </Text>
                     </View>
@@ -695,10 +695,10 @@ export default function StockDetailScreen({
 
               {aiAnalysis.reasoning && (
                 <View>
-                  <Text className="text-slate-400 text-sm font-semibold mb-2">
+                  <Text className="text-slate-400 text-xs font-semibold mb-1.5">
                     Analysis
                   </Text>
-                  <Text className="text-slate-300 text-sm leading-5">
+                  <Text className="text-slate-300 text-xs leading-4">
                     {aiAnalysis.reasoning}
                   </Text>
                 </View>

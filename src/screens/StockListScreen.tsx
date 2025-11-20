@@ -163,14 +163,14 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         <Pressable
           onPress={() => navigation.navigate("StockDetail", { stock })}
           className={cn(
-            "rounded-2xl p-4 mb-3 border",
+            "rounded-xl p-3 mb-2 border",
             selectedStocks.includes(stock.symbol)
               ? "bg-blue-900/30 border-blue-600"
               : "bg-[#1e293b] border-slate-700"
           )}
         >
           {/* Header Row */}
-          <View className="flex-row items-center justify-between mb-3">
+          <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center flex-1">
               {/* Checkbox */}
               <Pressable
@@ -178,39 +178,39 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                   e.stopPropagation();
                   toggleStockSelection(stock.symbol);
                 }}
-                className="mr-3"
+                className="mr-2"
               >
                 <View
                   className={cn(
-                    "w-6 h-6 rounded-md border-2 items-center justify-center",
+                    "w-5 h-5 rounded-md border-2 items-center justify-center",
                     selectedStocks.includes(stock.symbol)
                       ? "bg-blue-600 border-blue-600"
                       : "border-slate-600"
                   )}
                 >
                   {selectedStocks.includes(stock.symbol) && (
-                    <Ionicons name="checkmark" size={16} color="white" />
+                    <Ionicons name="checkmark" size={14} color="white" />
                   )}
                 </View>
               </Pressable>
 
               <View className="flex-1">
-                <Text className="text-white text-lg font-bold">
+                <Text className="text-white text-base font-bold">
                   {stock.symbol}
                 </Text>
-                <Text className="text-slate-400 text-sm" numberOfLines={1}>
+                <Text className="text-slate-400 text-xs" numberOfLines={1}>
                   {stock.companyName}
                 </Text>
               </View>
             </View>
 
             <View className="items-end">
-              <Text className="text-white text-xl font-bold">
+              <Text className="text-white text-lg font-bold">
                 {formatCurrency(stock.price)}
               </Text>
               <Text
                 className={cn(
-                  "text-sm font-medium",
+                  "text-xs font-medium",
                   stock.change >= 0 ? "text-emerald-400" : "text-red-400"
                 )}
               >
@@ -221,29 +221,29 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
 
           {/* Dividend Info */}
-          <View className="bg-slate-800/50 rounded-xl p-3 mb-2">
-            <View className="flex-row justify-between mb-2">
+          <View className="bg-slate-800/50 rounded-lg p-2 mb-1.5">
+            <View className="flex-row justify-between">
               <View>
-                <Text className="text-slate-400 text-xs">Yield</Text>
-                <Text className="text-emerald-400 text-lg font-bold">
+                <Text className="text-slate-400 text-[10px]">Yield</Text>
+                <Text className="text-emerald-400 text-sm font-bold">
                   {stock.dividendYield.toFixed(2)}%
                 </Text>
               </View>
               <View className="items-center">
-                <Text className="text-slate-400 text-xs">Distribution</Text>
-                <Text className="text-white text-base font-semibold">
+                <Text className="text-slate-400 text-[10px]">Distribution</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatCurrency(stock.dividendAmount)}
                 </Text>
               </View>
               <View className="items-center">
-                <Text className="text-slate-400 text-xs">Annual</Text>
-                <Text className="text-white text-base font-semibold">
+                <Text className="text-slate-400 text-[10px]">Annual</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatCurrency(stock.annualDividend)}
                 </Text>
               </View>
               <View className="items-end">
-                <Text className="text-slate-400 text-xs">Ex-Date</Text>
-                <Text className="text-white text-base font-semibold">
+                <Text className="text-slate-400 text-[10px]">Ex-Date</Text>
+                <Text className="text-white text-xs font-semibold">
                   {formatDate(stock.exDividendDate)}
                 </Text>
               </View>
@@ -251,31 +251,31 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
 
           {/* Price & Volume Info */}
-          <View className="bg-slate-800/30 rounded-xl p-3 mb-2">
-            <View className="flex-row justify-between mb-2">
+          <View className="bg-slate-800/30 rounded-lg p-2 mb-1.5">
+            <View className="flex-row justify-between mb-1">
               <View className="flex-1">
-                <Text className="text-slate-400 text-xs">Day Range</Text>
-                <Text className="text-white text-sm font-semibold">
+                <Text className="text-slate-400 text-[10px]">Day Range</Text>
+                <Text className="text-white text-[11px] font-semibold">
                   {formatCurrency(stock.priceData.dayLow)} - {formatCurrency(stock.priceData.dayHigh)}
                 </Text>
               </View>
               <View className="flex-1 items-end">
-                <Text className="text-slate-400 text-xs">52-Week Range</Text>
-                <Text className="text-white text-sm font-semibold">
+                <Text className="text-slate-400 text-[10px]">52-Week</Text>
+                <Text className="text-white text-[11px] font-semibold">
                   {formatCurrency(stock.priceData.week52Low)} - {formatCurrency(stock.priceData.week52High)}
                 </Text>
               </View>
             </View>
             <View className="flex-row justify-between">
               <View>
-                <Text className="text-slate-400 text-xs">Volume</Text>
-                <Text className="text-white text-sm font-semibold">
+                <Text className="text-slate-400 text-[10px]">Volume</Text>
+                <Text className="text-white text-[11px] font-semibold">
                   {stock.volume.current.toFixed(1)}M
                 </Text>
               </View>
               <View className="items-end">
-                <Text className="text-slate-400 text-xs">Avg Volume</Text>
-                <Text className="text-white text-sm font-semibold">
+                <Text className="text-slate-400 text-[10px]">Avg Volume</Text>
+                <Text className="text-white text-[11px] font-semibold">
                   {stock.volume.average.toFixed(1)}M
                 </Text>
               </View>
@@ -283,23 +283,17 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
 
           {/* Company Details */}
-          <View className="flex-row justify-between items-center pt-2 border-t border-slate-700">
+          <View className="flex-row justify-between items-center pt-1.5 border-t border-slate-700">
             <View className="flex-1">
-              <Text className="text-slate-500 text-xs">
+              <Text className="text-slate-500 text-[10px]">
                 {stock.sector} • {stock.industry}
               </Text>
-              {stock.indices.length > 0 && (
-                <Text className="text-slate-500 text-xs mt-1">
-                  {stock.indices.join(" • ")}
-                </Text>
-              )}
             </View>
             <View className="items-end">
-              <Text className="text-slate-400 text-xs">Rating</Text>
-              <View className="flex-row items-center mt-1">
+              <View className="flex-row items-center">
                 <Ionicons
                   name="star"
-                  size={14}
+                  size={12}
                   color={
                     stock.technicals.rsi >= 70
                       ? "#ef4444"
@@ -312,7 +306,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 />
                 <Text
                   className={cn(
-                    "text-sm font-bold ml-1",
+                    "text-xs font-bold ml-1",
                     stock.technicals.rsi >= 70
                       ? "text-red-400"
                       : stock.technicals.rsi >= 50
@@ -459,46 +453,20 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
         )}
 
-        {/* Real Data Indicator with Timestamp and Manual Refresh */}
-        {storedStocks.length > 0 && (
+        {/* Live Connection Indicator */}
+        {storedStocks.length > 0 && websocketConnected && (
           <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-3 mb-3">
-            <View className="flex-row items-center justify-between mb-2">
-              <View className="flex-row items-center flex-1">
-                <Ionicons name="checkmark-circle" size={20} color="#10b981" />
-                <Text className="text-emerald-400 font-semibold ml-2">
-                  {storedStocks.length} stocks loaded
-                </Text>
-                {websocketConnected && (
-                  <View className="ml-2 flex-row items-center">
-                    <View className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-                    <Text className="text-green-400 text-xs">Live</Text>
-                  </View>
-                )}
-              </View>
-              <Pressable
-                onPress={() => refreshFromCSV(true)}
-                className="bg-emerald-600 rounded-lg px-3 py-2 active:bg-emerald-700"
-                disabled={isRefreshing}
-              >
-                {isRefreshing ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <Ionicons name="refresh" size={16} color="white" />
-                )}
-              </Pressable>
+            <View className="flex-row items-center">
+              <View className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+              <Text className="text-green-400 text-xs font-medium">Live Data Connected</Text>
             </View>
-            {lastRefreshTime && (
-              <Text className="text-slate-400 text-xs">
-                Last updated: {new Date(lastRefreshTime).toLocaleString()}
-              </Text>
-            )}
           </View>
         )}
 
         {/* Data disclaimer */}
         <View className="mb-3 bg-amber-900/20 border border-amber-700/30 rounded-lg p-2">
           <Text className="text-amber-400 text-xs text-center">
-            ⚠️ Market data is delayed by 15 minutes{websocketConnected ? " • WebSocket prices update in real-time (15min delayed)" : ""}
+            ⚠️ Market data delayed 15 minutes
           </Text>
         </View>
 
