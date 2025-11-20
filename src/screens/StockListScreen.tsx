@@ -67,8 +67,9 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   // Auto-load CSV data on first launch
   useEffect(() => {
     if (storedStocks.length === 0 && !isRefreshing) {
-      console.log("First launch - loading stocks from CSV with live prices...");
-      refreshFromCSV(true);
+      console.log("First launch - loading stocks from CSV (instant, no API calls)...");
+      // Load CSV data without prices first for instant display
+      refreshFromCSV(false);
     } else if (storedStocks.length > 0) {
       console.log(`App started with ${storedStocks.length} stocks already loaded from storage`);
     }
@@ -290,8 +291,13 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               <Pressable
                 onPress={() => refreshFromCSV(true)}
                 className="bg-emerald-600 rounded-lg px-3 py-2 active:bg-emerald-700"
+                disabled={isRefreshing}
               >
-                <Ionicons name="refresh" size={16} color="white" />
+                {isRefreshing ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Ionicons name="refresh" size={16} color="white" />
+                )}
               </Pressable>
             </View>
             {lastRefreshTime && (

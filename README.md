@@ -82,22 +82,21 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 #### **Data Flow Architecture**
 
 **Simplified Automatic Loading (NEW!)**:
-- App automatically loads ~926 dividend stocks from CSV file on first launch
-- Dividend data (amount, frequency, dates, yield, payout ratio) comes from CSV
-- Live prices, volumes, and market data fetched from Polygon.io API
+- App loads **instantly** with ~926 dividend stocks from CSV file
+- Dividend data (amount, frequency, dates, yield, payout ratio) from CSV
+- **Manual Refresh**: Tap the refresh button to fetch current prices from Polygon.io
 - Data persists between app restarts - no re-loading needed
-- Manual refresh button updates all data when needed
-- Background task refreshes data daily during off-hours
+- Background task refreshes dividend data daily during off-hours
 
 **Updating Dividend Data**:
 - Replace the CSV file (`src/data/tickers.csv`) with new data
-- Run the conversion command to regenerate the TypeScript file:
+- Run: `./update-csv.sh` (or use the node command below)
   ```bash
   node -e "const fs = require('fs'); const csv = fs.readFileSync('src/data/tickers.csv', 'utf-8'); const escaped = csv.replace(/\`/g, '\\\`').replace(/\\\$/g, '\\\$'); fs.writeFileSync('src/data/tickers-data.ts', 'export const TICKERS_CSV = \`' + escaped + '\`;');"
   ```
-- App will automatically use the new data on next refresh
+- App automatically uses the new data on next refresh
 
-**Note**: All dividend information comes from your CSV file, enriched with real-time prices from Polygon.io.
+**Note**: Dividend information comes from your CSV file. Tap refresh to get current prices and volumes from Polygon.io (~3 minutes for 925 tickers).
 
 ### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks

@@ -183,7 +183,7 @@ export const useStockDataStore = create<StockDataState>()(
         }
       },
 
-      refreshFromCSV: async (enrichWithPrices = true) => {
+      refreshFromCSV: async (enrichWithPrices = false) => {
         const state = get();
         if (state.isRefreshing) {
           console.log("Refresh already in progress");
@@ -193,7 +193,8 @@ export const useStockDataStore = create<StockDataState>()(
         set({ isRefreshing: true, refreshProgress: { current: 0, total: 0, symbol: "" } });
 
         try {
-          console.log(`Loading stocks from CSV with live price enrichment...`);
+          const mode = enrichWithPrices ? "with live price enrichment" : "(instant, CSV only)";
+          console.log(`Loading stocks from CSV ${mode}...`);
 
           const stocks = await loadFutureStocksFromCSV(
             enrichWithPrices,
