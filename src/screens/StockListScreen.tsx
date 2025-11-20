@@ -60,16 +60,16 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     lastDividendRefreshTime,
     lastWebSocketUpdate,
     shouldAutoRefresh,
-    refreshStocks,
+    refreshFromCSV,
     websocketConnected,
   } = useStockDataStore();
 
-  // NO AUTO-LOADING - Users must manually load data via Ticker Manager
+  // Auto-load CSV data on first launch
   useEffect(() => {
-    // Just log the current state - no automatic API calls
-    if (storedStocks.length === 0) {
-      console.log("No stocks loaded. User should use Ticker Manager to select tickers.");
-    } else {
+    if (storedStocks.length === 0 && !isRefreshing) {
+      console.log("First launch - loading stocks from CSV with live prices...");
+      refreshFromCSV(true);
+    } else if (storedStocks.length > 0) {
       console.log(`App started with ${storedStocks.length} stocks already loaded from storage`);
     }
   }, []);
@@ -288,7 +288,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 )}
               </View>
               <Pressable
-                onPress={() => refreshStocks(true)}
+                onPress={() => refreshFromCSV(true)}
                 className="bg-emerald-600 rounded-lg px-3 py-2 active:bg-emerald-700"
               >
                 <Ionicons name="refresh" size={16} color="white" />

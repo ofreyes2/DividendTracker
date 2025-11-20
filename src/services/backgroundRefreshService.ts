@@ -40,10 +40,10 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     console.log(`[Background] In refresh window at CST ${cstHour}:${cstMinute.toString().padStart(2, "0")}, refreshing dividend data...`);
 
     // Get the refresh function from the store
-    const { refreshStocks } = useStockDataStore.getState();
+    const { refreshFromCSV, useCSVData } = useStockDataStore.getState();
 
-    // Perform the refresh (this loads all 11k+ tickers in background)
-    await refreshStocks(false); // Don't use chunking (handled internally now)
+    // Always use CSV data with live price enrichment
+    await refreshFromCSV(true);
 
     console.log("[Background] Dividend data refresh completed successfully");
 

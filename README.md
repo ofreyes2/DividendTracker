@@ -80,23 +80,24 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 - **Manual Refresh** - Tap refresh icon anytime to reload data
 
 #### **Data Flow Architecture**
-1. **CSV Data Mode (NEW! Recommended for most users)**:
-   - App loads with ~926 pre-populated tickers from CSV file instantly
-   - No API key required for dividend data
-   - Optionally enable "Enrich with Prices" in Settings to fetch live prices
-   - Perfect for getting started without API setup
 
-2. **API Data Mode (Advanced users with Polygon.io API key)**:
-   - User opens Ticker Manager and selects/edits ticker list (recommended 500-1000 tickers)
-   - Click "Load Stocks" in Ticker Manager to fetch dividend data for selected tickers
-   - Data Persists: Loaded stocks are saved locally and remain available after app restarts
-   - Daily Background: Automatically refreshes dividend data once per day (only if 24+ hours have passed)
-   - Live Updates: WebSocket continuously updates prices when app is active
-   - Manual Refresh: User can tap refresh icon anytime to reload data
+**Simplified Automatic Loading (NEW!)**:
+- App automatically loads ~926 dividend stocks from CSV file on first launch
+- Dividend data (amount, frequency, dates, yield, payout ratio) comes from CSV
+- Live prices, volumes, and market data fetched from Polygon.io API
+- Data persists between app restarts - no re-loading needed
+- Manual refresh button updates all data when needed
+- Background task refreshes data daily during off-hours
 
-**Switching Between Data Sources**: You can toggle between CSV and API data in the app settings. CSV data is recommended for most users as it provides instant access to nearly 1000 dividend stocks without requiring an API key.
+**Updating Dividend Data**:
+- Replace the CSV file (`src/data/tickers.csv`) with new data
+- Run the conversion command to regenerate the TypeScript file:
+  ```bash
+  node -e "const fs = require('fs'); const csv = fs.readFileSync('src/data/tickers.csv', 'utf-8'); const escaped = csv.replace(/\`/g, '\\\`').replace(/\\\$/g, '\\\$'); fs.writeFileSync('src/data/tickers-data.ts', 'export const TICKERS_CSV = \`' + escaped + '\`;');"
+  ```
+- App will automatically use the new data on next refresh
 
-**Note**: Due to Polygon.io API rate limits, loading all 11,628 tickers is not feasible. A curated list of 500-1000 known dividend stocks is recommended for optimal performance.
+**Note**: All dividend information comes from your CSV file, enriched with real-time prices from Polygon.io.
 
 ### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks

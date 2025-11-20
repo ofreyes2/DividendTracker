@@ -10,9 +10,6 @@ const config = getDefaultConfig(__dirname);
 // Disable Watchman for file watching.
 config.resolver.useWatchman = false;
 
-// Add CSV as an asset extension
-config.resolver.assetExts.push("csv");
-
 // Get environment variables for Metro cache configuration.
 const metroCacheVersion = process.env.METRO_CACHE_VERSION || "1";
 const metroCacheHttpEndpoint = process.env.METRO_CACHE_HTTP_ENDPOINT;

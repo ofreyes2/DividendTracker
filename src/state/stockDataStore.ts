@@ -60,7 +60,7 @@ export const useStockDataStore = create<StockDataState>()(
       customTickers: [], // Initialize empty
       websocketConnected: false,
       websocketEnabled: false, // Disabled by default due to auth issues
-      useCSVData: true, // Use CSV data by default
+      useCSVData: true, // Always use CSV as primary dividend data source
 
       setStocks: (stocks) => set({ stocks }),
 
@@ -183,7 +183,7 @@ export const useStockDataStore = create<StockDataState>()(
         }
       },
 
-      refreshFromCSV: async (enrichWithPrices = false) => {
+      refreshFromCSV: async (enrichWithPrices = true) => {
         const state = get();
         if (state.isRefreshing) {
           console.log("Refresh already in progress");
@@ -193,7 +193,7 @@ export const useStockDataStore = create<StockDataState>()(
         set({ isRefreshing: true, refreshProgress: { current: 0, total: 0, symbol: "" } });
 
         try {
-          console.log(`Loading stocks from CSV (enrichWithPrices: ${enrichWithPrices})...`);
+          console.log(`Loading stocks from CSV with live price enrichment...`);
 
           const stocks = await loadFutureStocksFromCSV(
             enrichWithPrices,
