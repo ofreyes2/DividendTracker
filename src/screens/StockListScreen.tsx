@@ -569,7 +569,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           ) : (
             filteredStocks.map((stock, index) => (
               <Animated.View
-                key={stock.symbol}
+                key={`${stock.symbol}-${index}`}
                 entering={FadeInDown.delay(index * 30)}
               >
                 <View className="relative">
