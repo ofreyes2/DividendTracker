@@ -55,7 +55,6 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   const {
     stocks: storedStocks,
     isRefreshing,
-    refreshProgress,
     lastRefreshTime,
     lastDividendRefreshTime,
     lastWebSocketUpdate,
@@ -213,28 +212,17 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </Pressable>
         )}
 
-        {/* Loading Progress */}
+        {/* Loading Progress - Simplified */}
         {isRefreshing && (
           <View className="bg-blue-900/30 border border-blue-600 rounded-xl p-4 mb-3">
             <View className="flex-row items-center justify-between mb-2">
               <Text className="text-white font-semibold">
-                Loading Real Data...
-              </Text>
-              <Text className="text-blue-400 font-bold">
-                {refreshProgress.current}/{refreshProgress.total}
+                Loading in background...
               </Text>
             </View>
-            <Text className="text-slate-300 text-sm mb-2">
-              Fetching {refreshProgress.symbol}
+            <Text className="text-slate-300 text-sm">
+              Fetching dividend data from 11k+ tickers. This runs in the background and will complete when done.
             </Text>
-            <View className="bg-slate-700 rounded-full h-2 overflow-hidden">
-              <View
-                className="bg-blue-500 h-2"
-                style={{
-                  width: `${(refreshProgress.current / refreshProgress.total) * 100}%`
-                }}
-              />
-            </View>
           </View>
         )}
 

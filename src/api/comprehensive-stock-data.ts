@@ -621,7 +621,8 @@ export async function loadStocksFromTickers(
       continue; // Skip empty lines and comments
     }
 
-    if (onProgress) {
+    // Only call progress callback every 100 tickers to reduce overhead
+    if (onProgress && (i % 100 === 0 || i === tickers.length - 1)) {
       onProgress(i + 1, tickers.length, ticker);
     }
 
@@ -673,9 +674,9 @@ export async function loadStocksFromTickers(
       enhancedStocks.push(enhanced);
     }
 
-    // Rate limiting - 5 requests per second = 200ms delay
+    // Increased delay - 1000ms between requests (1 request per second) to prevent crashes
     if (i < tickers.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 

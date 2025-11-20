@@ -42,8 +42,8 @@ TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
     // Get the refresh function from the store
     const { refreshStocks } = useStockDataStore.getState();
 
-    // Perform the refresh (this loads all 11k+ tickers)
-    await refreshStocks(true); // Use chunked loading
+    // Perform the refresh (this loads all 11k+ tickers in background)
+    await refreshStocks(false); // Don't use chunking (handled internally now)
 
     console.log("[Background] Dividend data refresh completed successfully");
 

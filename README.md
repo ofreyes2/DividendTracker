@@ -30,11 +30,11 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 - **Smart Refresh Strategy** - Two-tier data update system:
   - **Dividend Data**: Refreshes once per 24 hours (background task)
   - **Price Data**: Updates continuously via WebSocket when app is active
-- **Crash-Resistant Loading** - Intelligent chunked processing:
-  - Processes 11k+ tickers in 50-ticker chunks
-  - 500ms delay between chunks to prevent app crashes
-  - Progress indicator shows real-time loading status
-  - App remains responsive throughout the entire load process
+- **Crash-Resistant Loading** - Intelligent background processing:
+  - Processes 11k+ tickers in background with 1-second delay between API calls
+  - No progress UI to reduce overhead and prevent crashes
+  - Shows simple "Loading in background" message when active
+  - App remains fully responsive throughout the entire load process
 
 #### **Real-Time WebSocket Updates (NEW! ⚡)**
 - **Live Price Streaming** - Prices update automatically during market hours:

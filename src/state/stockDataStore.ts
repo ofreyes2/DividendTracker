@@ -40,49 +40,7 @@ interface StockDataState {
   subscribeToWebSocket: (symbols: string[]) => void;
 }
 
-// Constants for chunked loading
-const CHUNK_SIZE = 50; // Process 50 tickers at a time
-const CHUNK_DELAY = 500; // 500ms delay between chunks
-
-/**
- * Helper function to process tickers in chunks
- */
-async function processTickersInChunks(
-  tickers: string[],
-  onProgress: (current: number, total: number, symbol: string) => void
-): Promise<DividendStock[]> {
-  const allStocks: DividendStock[] = [];
-  const totalChunks = Math.ceil(tickers.length / CHUNK_SIZE);
-
-  console.log(`Processing ${tickers.length} tickers in ${totalChunks} chunks...`);
-
-  for (let i = 0; i < tickers.length; i += CHUNK_SIZE) {
-    const chunk = tickers.slice(i, i + CHUNK_SIZE);
-    const chunkNumber = Math.floor(i / CHUNK_SIZE) + 1;
-
-    console.log(`Processing chunk ${chunkNumber}/${totalChunks} (${chunk.length} tickers)`);
-
-    // Load this chunk
-    const chunkStocks = await loadStocksFromTickers(
-      chunk,
-      (current, total, symbol) => {
-        // Adjust progress to reflect overall progress
-        const overallCurrent = i + current;
-        onProgress(overallCurrent, tickers.length, symbol);
-      },
-      true // Filter to future dates only
-    );
-
-    allStocks.push(...chunkStocks);
-
-    // Add delay between chunks to prevent overwhelming the API and app
-    if (i + CHUNK_SIZE < tickers.length) {
-      await new Promise((resolve) => setTimeout(resolve, CHUNK_DELAY));
-    }
-  }
-
-  return allStocks;
-}
+// No chunking - just use background loading with minimal progress updates
 
 export const useStockDataStore = create<StockDataState>()(
   persist(
@@ -141,25 +99,16 @@ export const useStockDataStore = create<StockDataState>()(
           const tickersToUse =
             state.customTickers.length > 0 ? state.customTickers : defaultTickers;
 
-          console.log(`Refreshing ${tickersToUse.length} tickers from Polygon.io...`);
+          console.log(`Refreshing ${tickersToUse.length} tickers from Polygon.io in background...`);
 
-          let enhancedStocks: DividendStock[];
-
-          if (chunked && tickersToUse.length > CHUNK_SIZE) {
-            // Use chunked loading for large lists
-            enhancedStocks = await processTickersInChunks(tickersToUse, (current, total, symbol) => {
+          // Load all tickers without chunking (progress updates happen every 100 tickers internally)
+          const enhancedStocks = await loadStocksFromTickers(
+            tickersToUse,
+            (current: number, total: number, symbol: string) => {
               set({ refreshProgress: { current, total, symbol } });
-            });
-          } else {
-            // Regular loading for small lists
-            enhancedStocks = await loadStocksFromTickers(
-              tickersToUse,
-              (current, total, symbol) => {
-                set({ refreshProgress: { current, total, symbol } });
-              },
-              true // Filter to future dates only
-            );
-          }
+            },
+            true // Filter to future dates only
+          );
 
           set({
             stocks: enhancedStocks,
@@ -192,23 +141,16 @@ export const useStockDataStore = create<StockDataState>()(
         set({ isRefreshing: true, refreshProgress: { current: 0, total: 0, symbol: "" } });
 
         try {
-          let enhancedStocks: DividendStock[];
+          console.log(`Refreshing ${tickers.length} tickers from Polygon.io in background...`);
 
-          if (chunked && tickers.length > CHUNK_SIZE) {
-            // Use chunked loading for large lists
-            enhancedStocks = await processTickersInChunks(tickers, (current, total, symbol) => {
+          // Load all tickers without chunking (progress updates happen every 100 tickers internally)
+          const enhancedStocks = await loadStocksFromTickers(
+            tickers,
+            (current: number, total: number, symbol: string) => {
               set({ refreshProgress: { current, total, symbol } });
-            });
-          } else {
-            // Regular loading for small lists
-            enhancedStocks = await loadStocksFromTickers(
-              tickers,
-              (current, total, symbol) => {
-                set({ refreshProgress: { current, total, symbol } });
-              },
-              true // Filter to future dates only
-            );
-          }
+            },
+            true // Filter to future dates only
+          );
 
           set({
             stocks: enhancedStocks,
