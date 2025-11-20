@@ -64,12 +64,16 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     websocketConnected,
   } = useStockDataStore();
 
-  // Auto-refresh only on first launch (when no stocks are loaded)
+  // Only auto-load on FIRST LAUNCH EVER (never loaded before)
   useEffect(() => {
-    // Only auto-load if we have no stocks at all (first time user)
-    if (storedStocks.length === 0 && !lastRefreshTime && shouldAutoRefresh()) {
-      console.log("First launch - loading initial stock data...");
+    // ONLY auto-load if:
+    // 1. No stocks are currently loaded
+    // 2. Never refreshed before (lastRefreshTime is null)
+    if (storedStocks.length === 0 && !lastRefreshTime) {
+      console.log("First launch ever - auto-loading initial stock data...");
       refreshStocks(true);
+    } else if (storedStocks.length > 0) {
+      console.log(`App started with ${storedStocks.length} stocks already loaded from storage`);
     }
   }, []);
 

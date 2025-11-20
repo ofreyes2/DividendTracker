@@ -694,7 +694,7 @@ export async function loadStocksFromTickers(
 
 /**
  * TWO-PHASE LOADING: First fetch dividend data only (fast), then enrich with price data
- * Phase 1: Fetch dividend data for all 11k+ tickers (1 API call per ticker, 10/sec = ~18 minutes)
+ * Phase 1: Fetch dividend data for all 11k+ tickers (1 API call per ticker, 10/sec = ~19 minutes)
  * Phase 2: Only fetch full data for stocks with upcoming dividends (~2000 stocks)
  */
 export async function loadStocksInTwoPhases(
@@ -703,12 +703,18 @@ export async function loadStocksInTwoPhases(
   onPhase2Progress?: (current: number, total: number, symbol: string) => void,
 ): Promise<DividendStock[]> {
   console.log("=== PHASE 1: Fetching dividend data for all tickers ===");
+  console.log(`Processing ${tickers.length} tickers...`);
 
   // Phase 1: Get dividend data only (lightweight)
   const { fetchBulkDividendData } = await import("./polygon-api");
   const dividendData = await fetchBulkDividendData(tickers, onPhase1Progress);
 
   console.log(`Phase 1 complete: Found ${dividendData.length} tickers with dividend data`);
+
+  if (dividendData.length === 0) {
+    console.warn("WARNING: No dividend data found for any tickers! Check Polygon API key or API limits.");
+    return [];
+  }
 
   // Filter to only stocks with future ex-dividend dates
   const today = new Date();
@@ -720,7 +726,15 @@ export async function loadStocksInTwoPhases(
     return exDate >= today;
   });
 
-  console.log(`Filtered to ${futureDividends.length} stocks with future ex-dividend dates`);
+  console.log(`Filtered to ${futureDividends.length} stocks with future ex-dividend dates (today or later)`);
+  console.log(`Today's date for filtering: ${today.toISOString().split('T')[0]}`);
+
+  if (futureDividends.length === 0) {
+    console.warn("WARNING: No stocks have upcoming dividend dates. All dividend dates are in the past.");
+    console.log("Sample dividend dates from data:", dividendData.slice(0, 5).map(d => `${d.symbol}: ${d.exDividendDate}`));
+    return [];
+  }
+
   console.log("=== PHASE 2: Fetching full price/company data for filtered stocks ===");
 
   // Phase 2: Fetch full data only for stocks with upcoming dividends
