@@ -164,155 +164,165 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
       entering={FadeInDown.delay(Math.min(index * 30, 300))}
     >
       <View className="relative">
-        {/* Background Pressable for navigation */}
-        <Pressable
-          onPress={() => navigation.navigate("StockDetail", { stock })}
+        {/* Card Container with better spacing */}
+        <View
           className={cn(
-            "rounded-xl p-3 mb-2 border",
+            "rounded-xl p-4 mb-3 border",
             selectedStocks.includes(stock.symbol)
               ? "bg-blue-900/30 border-blue-600"
               : "bg-[#1e293b] border-slate-700"
           )}
         >
-          {/* Header Row - Compact */}
-          <View className="flex-row items-center justify-between mb-1">
+          {/* Header Row */}
+          <View className="flex-row items-center justify-between mb-2">
             <View className="flex-row items-center flex-1">
-              {/* Checkbox */}
+              {/* Checkbox with larger touch area */}
               <Pressable
                 onPress={(e) => {
                   e.stopPropagation();
                   toggleStockSelection(stock.symbol);
                 }}
-                className="mr-2"
+                className="mr-3 p-1"
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
                 <View
                   className={cn(
-                    "w-4 h-4 rounded-md border-2 items-center justify-center",
+                    "w-5 h-5 rounded-md border-2 items-center justify-center",
                     selectedStocks.includes(stock.symbol)
                       ? "bg-blue-600 border-blue-600"
-                      : "border-slate-600"
+                      : "border-slate-500"
                   )}
                 >
                   {selectedStocks.includes(stock.symbol) && (
-                    <Ionicons name="checkmark" size={12} color="white" />
+                    <Ionicons name="checkmark" size={14} color="white" />
                   )}
                 </View>
               </Pressable>
 
-              <View className="flex-1">
-                <Text className="text-white text-sm font-bold">
+              <Pressable
+                onPress={() => navigation.navigate("StockDetail", { stock })}
+                className="flex-1"
+              >
+                <Text className="text-white text-base font-bold">
                   {stock.symbol}
                 </Text>
-                <Text className="text-slate-400 text-[9px]" numberOfLines={1}>
+                <Text className="text-slate-400 text-xs" numberOfLines={1}>
                   {stock.companyName}
                 </Text>
-              </View>
+              </Pressable>
             </View>
 
-            <View className="items-end">
-              <Text className="text-white text-sm font-bold">
-                ${stock.price.toFixed(2)}
+            <Pressable
+              onPress={() => navigation.navigate("StockDetail", { stock })}
+              className="items-end"
+            >
+              <Text className="text-white text-base font-bold">
+                ${stock.price?.toFixed(2) || "N/A"}
               </Text>
               <Text
                 className={cn(
-                  "text-[9px] font-medium",
-                  stock.change >= 0 ? "text-emerald-400" : "text-red-400"
+                  "text-xs font-medium",
+                  (stock.change || 0) >= 0 ? "text-emerald-400" : "text-red-400"
                 )}
               >
-                {stock.change >= 0 ? "+" : ""}
-                {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                {(stock.change || 0) >= 0 ? "+" : ""}
+                {stock.change?.toFixed(2) || "0.00"} ({stock.changePercent?.toFixed(2) || "0.00"}%)
+              </Text>
+            </Pressable>
+          </View>
+
+          <Pressable
+            onPress={() => navigation.navigate("StockDetail", { stock })}
+          >
+            {/* Company Info */}
+            <View className="bg-slate-800/30 rounded-lg p-2 mb-2">
+              <Text className="text-slate-400 text-[10px]">
+                {stock.sector || "Unknown"} • {stock.industry || "Unknown"} • {stock.indices?.length > 0 ? stock.indices[0] : "N/A"}
               </Text>
             </View>
-          </View>
 
-          {/* Company Info - Compact */}
-          <View className="bg-slate-800/30 rounded-lg p-1 mb-1">
-            <Text className="text-slate-400 text-[8px]">
-              {stock.sector} • {stock.industry} • {stock.indices.length > 0 ? stock.indices[0] : "N/A"}
-            </Text>
-          </View>
-
-          {/* Price Data - Compact 3-column */}
-          <View className="bg-slate-800/50 rounded-lg p-1 mb-1">
-            <View className="flex-row justify-between mb-0.5">
-              <View className="flex-1">
-                <Text className="text-slate-400 text-[8px]">Open</Text>
-                <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.open?.toFixed(2) || "N/A"}
-                </Text>
+            {/* Price Data - 3-column layout with better spacing */}
+            <View className="bg-slate-800/50 rounded-lg p-2 mb-2">
+              <View className="flex-row justify-between mb-1.5">
+                <View className="flex-1">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">Open</Text>
+                  <Text className="text-white text-[10px] font-semibold">
+                    ${stock.priceData?.open?.toFixed(2) || "N/A"}
+                  </Text>
+                </View>
+                <View className="flex-1 items-center">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">Prev Close</Text>
+                  <Text className="text-white text-[10px] font-semibold">
+                    ${stock.priceData?.previousClose?.toFixed(2) || "N/A"}
+                  </Text>
+                </View>
+                <View className="flex-1 items-end">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">Day Range</Text>
+                  <Text className="text-white text-[10px] font-semibold">
+                    ${stock.priceData?.dayLow?.toFixed(2) || "N/A"}-${stock.priceData?.dayHigh?.toFixed(2) || "N/A"}
+                  </Text>
+                </View>
               </View>
-              <View className="flex-1 items-center">
-                <Text className="text-slate-400 text-[8px]">Prev Close</Text>
-                <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.previousClose?.toFixed(2) || "N/A"}
-                </Text>
-              </View>
-              <View className="flex-1 items-end">
-                <Text className="text-slate-400 text-[8px]">Day Range</Text>
-                <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.dayLow?.toFixed(2) || "N/A"}-${stock.priceData.dayHigh?.toFixed(2) || "N/A"}
-                </Text>
+              <View className="flex-row justify-between">
+                <View className="flex-1">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">52W High</Text>
+                  <Text className="text-white text-[10px] font-semibold">
+                    ${stock.priceData?.week52High?.toFixed(2) || "N/A"}
+                  </Text>
+                </View>
+                <View className="flex-1 items-center">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">52W Low</Text>
+                  <Text className="text-white text-[10px] font-semibold">
+                    ${stock.priceData?.week52Low?.toFixed(2) || "N/A"}
+                  </Text>
+                </View>
+                <View className="flex-1 items-end">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">Volume</Text>
+                  <Text className="text-white text-[10px] font-semibold">
+                    {stock.volume?.current?.toFixed(1) || "N/A"}M
+                  </Text>
+                </View>
               </View>
             </View>
-            <View className="flex-row justify-between">
-              <View className="flex-1">
-                <Text className="text-slate-400 text-[8px]">52W High</Text>
-                <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.week52High?.toFixed(2) || "N/A"}
-                </Text>
-              </View>
-              <View className="flex-1 items-center">
-                <Text className="text-slate-400 text-[8px]">52W Low</Text>
-                <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.week52Low?.toFixed(2) || "N/A"}
-                </Text>
-              </View>
-              <View className="flex-1 items-end">
-                <Text className="text-slate-400 text-[8px]">Volume</Text>
-                <Text className="text-white text-[9px] font-semibold">
-                  {stock.volume.current?.toFixed(1) || "N/A"}M
-                </Text>
-              </View>
-            </View>
-          </View>
 
-          {/* Technical & Dividend - Compact */}
-          <View className="bg-slate-800/50 rounded-lg p-1 mb-1">
-            <View className="flex-row justify-between">
-              <View className="flex-1">
-                <Text className="text-slate-400 text-[8px]">MACD</Text>
-                <Text className={cn(
-                  "text-[9px] font-semibold",
-                  (stock.technicals?.macd?.value || 0) > 0 ? "text-emerald-400" : "text-red-400"
-                )}>
-                  {stock.technicals?.macd?.value?.toFixed(2) || "N/A"}
-                </Text>
-              </View>
-              <View className="flex-1 items-center">
-                <Text className="text-slate-400 text-[8px]">RSI</Text>
-                <Text className={cn(
-                  "text-[9px] font-semibold",
-                  (stock.technicals?.rsi || 0) >= 70 ? "text-red-400" :
-                  (stock.technicals?.rsi || 0) >= 50 ? "text-emerald-400" : "text-blue-400"
-                )}>
-                  {stock.technicals?.rsi || "N/A"}
-                </Text>
-              </View>
-              <View className="flex-1 items-center">
-                <Text className="text-slate-400 text-[8px]">Yield</Text>
-                <Text className="text-emerald-400 text-[9px] font-bold">
-                  {stock.dividendYield?.toFixed(2) || "N/A"}%
-                </Text>
-              </View>
-              <View className="flex-1 items-end">
-                <Text className="text-slate-400 text-[8px]">Ex-Date</Text>
-                <Text className="text-white text-[9px] font-semibold">
-                  {formatDate(stock.exDividendDate)}
-                </Text>
+            {/* Technical & Dividend */}
+            <View className="bg-slate-800/50 rounded-lg p-2">
+              <View className="flex-row justify-between">
+                <View className="flex-1">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">MACD</Text>
+                  <Text className={cn(
+                    "text-[10px] font-semibold",
+                    (stock.technicals?.macd?.value || 0) > 0 ? "text-emerald-400" : "text-red-400"
+                  )}>
+                    {stock.technicals?.macd?.value ? stock.technicals.macd.value.toFixed(2) : "N/A"}
+                  </Text>
+                </View>
+                <View className="flex-1 items-center">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">RSI</Text>
+                  <Text className={cn(
+                    "text-[10px] font-semibold",
+                    (stock.technicals?.rsi || 0) >= 70 ? "text-red-400" :
+                    (stock.technicals?.rsi || 0) >= 50 ? "text-emerald-400" : "text-blue-400"
+                  )}>
+                    {stock.technicals?.rsi ? Math.round(stock.technicals.rsi) : "N/A"}
+                  </Text>
+                </View>
+                <View className="flex-1 items-center">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">Yield</Text>
+                  <Text className="text-emerald-400 text-[10px] font-bold">
+                    {stock.dividendYield?.toFixed(2) || "N/A"}%
+                  </Text>
+                </View>
+                <View className="flex-1 items-end">
+                  <Text className="text-slate-400 text-[9px] mb-0.5">Ex-Date</Text>
+                  <Text className="text-white text-[10px] font-semibold">
+                    {formatDate(stock.exDividendDate)}
+                  </Text>
+                </View>
               </View>
             </View>
-          </View>
-        </Pressable>
+          </Pressable>
+        </View>
       </View>
     </Animated.View>
   );
@@ -410,6 +420,30 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               <Ionicons name="list" size={20} color="white" />
               <Text className="text-white font-semibold ml-2">
                 Or Customize in Ticker Manager
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* NEW: Message about technical indicators needing refresh */}
+        {storedStocks.length > 0 && !isRefreshing && (
+          <View className="bg-blue-900/30 border border-blue-600 rounded-xl p-4 mb-3">
+            <View className="flex-row items-start mb-2">
+              <Ionicons name="information-circle" size={24} color="#60a5fa" />
+              <Text className="text-white font-semibold ml-2 flex-1">
+                Technical Indicators Now From Live API
+              </Text>
+            </View>
+            <Text className="text-slate-300 text-sm mb-3">
+              Technical indicators (MACD, RSI, Moving Averages) and 52-week ranges now come from Polygon.io API. Tap the refresh button to update your stocks with live market data.
+            </Text>
+            <Pressable
+              onPress={() => refreshFromCSV(true)}
+              className="bg-blue-600 rounded-xl px-4 py-3 flex-row items-center justify-center active:bg-blue-700"
+            >
+              <Ionicons name="refresh" size={20} color="white" />
+              <Text className="text-white font-semibold ml-2">
+                Refresh Stock Data
               </Text>
             </Pressable>
           </View>

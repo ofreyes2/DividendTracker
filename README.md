@@ -624,6 +624,30 @@ src/
 
 ---
 
+## Recent Updates - Version 2.0.5 (2025-11-20)
+
+### UI/UX Improvements
+
+#### ✅ **Enhanced Stock Cards**
+- **Larger Cards**: Increased padding from p-3 to p-4, improved spacing for better readability
+- **Bigger Fonts**: Increased font sizes across all card elements (from 8-9px to 9-10px)
+- **Better Touch Targets**: Checkbox increased from 16x16 to 20x20 with expanded hitSlop for easier selection
+- **Fixed Checkbox Selection**: Separated checkbox pressable from card pressable, added stopPropagation for reliable selection
+- **Improved Layout**: Added more spacing between sections (mb-2 instead of mb-1)
+
+#### ✅ **User Guidance for API Data**
+- Added prominent blue info banner explaining technical indicators now come from Polygon.io API
+- Clear "Refresh Stock Data" button to update stocks with live market data
+- Message only shows when stocks are loaded but not refreshing
+- Helps users understand why technical indicators may show "N/A" initially
+
+#### 🔧 **Technical Improvements**
+- Better optional chaining throughout card rendering to prevent crashes
+- Improved null safety for all stock data fields
+- Enhanced touch handling with proper event propagation
+
+---
+
 ## Recent Updates - Version 2.0.4 (2025-11-20)
 
 ### Data Architecture Enhancement
