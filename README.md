@@ -624,6 +624,41 @@ src/
 
 ---
 
+## Recent Updates - Version 2.0.6 (2025-11-20)
+
+### Automatic Daily Technical Indicator Updates
+
+#### ✅ **Automatic Background Refresh**
+- **Daily Auto-Update**: Technical indicators now refresh automatically every day at 5-7 PM EST
+- **Perfect Timing**: Scheduled after market close (4 PM EST) when daily technical indicators are finalized
+- **Complete Data Refresh**: Updates prices, MACD, RSI, moving averages, 52-week ranges, and all market data
+- **No Manual Work**: Runs in background even when app is closed
+- **Smart Scheduling**: Only refreshes once per day (skips if already refreshed within 20 hours)
+- **Green Status Banner**: New visual indicator showing automatic updates are enabled
+
+#### 🔧 **Technical Changes**
+- Updated `backgroundRefreshService.ts` to call `refreshFromCSV(true)` with full API enrichment
+- Changed refresh window from 2:30-3:30 AM CST to 5:00-7:00 PM EST
+- Added 20-hour cooldown to prevent duplicate refreshes
+- Background task fetches all technical indicators via Polygon.io API
+
+#### 📊 **Data Update Schedule**
+```
+Daily Timeline (EST):
+4:00 PM - Market closes
+5:00 PM - Technical indicators finalized
+5:00-7:00 PM - Automatic background refresh window
+  └─ Fetches: Prices, MACD, RSI, MAs, 52W ranges, volumes
+```
+
+#### 💡 **User Experience**
+- No action required - data stays current automatically
+- "Refresh Now" button still available for manual updates anytime
+- Green banner confirms automatic updates are working
+- ~10 minutes refresh time runs silently in background
+
+---
+
 ## Recent Updates - Version 2.0.5 (2025-11-20)
 
 ### UI/UX Improvements

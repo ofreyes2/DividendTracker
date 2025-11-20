@@ -1,6 +1,7 @@
 /**
  * Background Refresh Service
- * Handles automatic background refresh of dividend data at scheduled times
+ * Handles automatic daily refresh of stock data including technical indicators
+ * Scheduled for 5-7 PM EST after market close when daily technical indicators are updated
  * Uses expo-background-fetch for iOS/Android background tasks
  */
 
@@ -16,49 +17,60 @@ const BACKGROUND_FETCH_TASK = "background-dividend-refresh";
 // Define the background task
 TaskManager.defineTask(BACKGROUND_FETCH_TASK, async () => {
   try {
-    console.log("[Background] Starting scheduled dividend data refresh...");
+    console.log("[Background] Starting scheduled refresh with technical indicators...");
 
     const now = new Date();
 
-    // Convert to CST (UTC-6 or UTC-5 depending on DST)
-    const cstOffset = -6 * 60; // CST is UTC-6
+    // Convert to EST/EDT (UTC-5 or UTC-4 depending on DST)
+    const estOffset = -5 * 60; // EST is UTC-5
     const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-    const cstTime = new Date(utcTime + (cstOffset * 60000));
-    const cstHour = cstTime.getHours();
-    const cstMinute = cstTime.getMinutes();
+    const estTime = new Date(utcTime + (estOffset * 60000));
+    const estHour = estTime.getHours();
+    const estMinute = estTime.getMinutes();
 
-    console.log(`[Background] Current CST time: ${cstHour}:${cstMinute.toString().padStart(2, "0")}`);
+    console.log(`[Background] Current EST time: ${estHour}:${estMinute.toString().padStart(2, "0")}`);
 
-    // Only refresh if it's between 2:00 AM and 3:30 AM CST
-    const isRefreshWindow = (cstHour === 2 && cstMinute >= 30) || (cstHour === 3 && cstMinute < 30);
+    // Refresh between 5:00 PM and 7:00 PM EST (after market close at 4:00 PM)
+    // This ensures technical indicators are updated with the day's final values
+    const isRefreshWindow = (estHour >= 17 && estHour < 19);
 
     if (!isRefreshWindow) {
-      console.log("[Background] Not in refresh window (2:30-3:30 AM CST), skipping refresh");
+      console.log("[Background] Not in refresh window (5:00-7:00 PM EST), skipping refresh");
       return BackgroundFetch.BackgroundFetchResult.NoData;
     }
 
-    console.log(`[Background] In refresh window at CST ${cstHour}:${cstMinute.toString().padStart(2, "0")}, refreshing dividend data...`);
+    console.log(`[Background] In refresh window at EST ${estHour}:${estMinute.toString().padStart(2, "0")}, refreshing all data with technical indicators...`);
 
     // Get the refresh function from the store
-    const { refreshFromCSV } = useStockDataStore.getState();
+    const { refreshFromCSV, lastRefreshTime } = useStockDataStore.getState();
 
-    // Use CSV data without API enrichment for background refresh (too slow for 925 tickers)
-    // User can manually refresh to get fresh prices when needed
-    await refreshFromCSV(false);
+    // Check if we already refreshed today
+    if (lastRefreshTime) {
+      const hoursSinceLastRefresh = (Date.now() - lastRefreshTime) / (1000 * 60 * 60);
+      if (hoursSinceLastRefresh < 20) {
+        console.log(`[Background] Already refreshed ${hoursSinceLastRefresh.toFixed(1)} hours ago, skipping`);
+        return BackgroundFetch.BackgroundFetchResult.NoData;
+      }
+    }
 
-    console.log("[Background] Dividend data refresh completed successfully");
+    // Refresh with full API enrichment (prices + technical indicators)
+    // This will take ~10 minutes for 925 stocks, but runs in background
+    await refreshFromCSV(true);
+
+    console.log("[Background] Full data refresh with technical indicators completed successfully");
 
     // Return success
     return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch (error) {
-    console.error("[Background] Dividend data refresh failed:", error);
+    console.error("[Background] Data refresh failed:", error);
     return BackgroundFetch.BackgroundFetchResult.Failed;
   }
 });
 
 /**
  * Register background fetch task
- * This sets up automatic refresh to run approximately once per day
+ * Automatically refreshes stock data with technical indicators daily after market close
+ * Scheduled for 5-7 PM EST when technical indicators have been updated
  */
 export async function registerBackgroundRefreshTask(): Promise<void> {
   try {
@@ -77,7 +89,7 @@ export async function registerBackgroundRefreshTask(): Promise<void> {
       startOnBoot: true, // Start after device reboot
     });
 
-    console.log("[Background] Background refresh task registered successfully");
+    console.log("[Background] Background refresh task registered successfully (will refresh daily 5-7 PM EST with technical indicators)");
   } catch (error) {
     console.error("[Background] Failed to register background refresh task:", error);
   }
