@@ -426,29 +426,6 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         )}
 
 
-        {/* Loading Progress - Show phase */}
-        {isRefreshing && (
-          <View className="bg-blue-900/30 border border-blue-600 rounded-xl p-4 mb-3">
-            <View className="flex-row items-center justify-between mb-2">
-              <Text className="text-white font-semibold">
-                {refreshProgress.phase || "Loading..."}
-              </Text>
-              {refreshProgress.total > 0 && (
-                <Text className="text-blue-400 text-sm">
-                  {refreshProgress.current}/{refreshProgress.total}
-                </Text>
-              )}
-            </View>
-            <Text className="text-slate-300 text-sm">
-              {refreshProgress.phase?.includes("Phase 1")
-                ? "Scanning all tickers for dividend data (fast - 1 API call per ticker)"
-                : refreshProgress.phase?.includes("Phase 2")
-                ? "Loading full price data for stocks with upcoming dividends"
-                : "Processing in background..."}
-            </Text>
-          </View>
-        )}
-
         {/* Data disclaimer - thinner */}
         <View className="mb-3 bg-amber-900/20 border border-amber-700/30 rounded-lg px-3 py-1">
           <Text className="text-amber-400 text-[10px] text-center">
