@@ -67,6 +67,65 @@ export async function getTickersFromCSV(): Promise<string[]> {
 }
 
 /**
+ * Create a DividendStock object from CSV data only (no API calls)
+ */
+function createStockFromCSVOnly(csvData: TickerDividendData): DividendStock {
+  const dividendAmount = cleanCurrencyValue(csvData.dividendAmount);
+  const annualDividend = cleanCurrencyValue(csvData.annualDividend);
+  const dividendYield = cleanPercentageValue(csvData.dividendYield);
+  const payoutRatio = cleanPercentageValue(csvData.payoutRatio);
+  const frequency = convertFrequency(csvData.dividendFrequency);
+
+  // Use mock/default values for non-dividend data
+  const price = 100; // Default price
+
+  return {
+    symbol: csvData.ticker,
+    companyName: csvData.ticker,
+    sector: "Unknown",
+    industry: "Unknown",
+    indices: [],
+    marketCap: 0,
+    price,
+    priceData: {
+      current: price,
+      open: price,
+      previousClose: price,
+      dayHigh: price,
+      dayLow: price,
+      week52High: price * 1.2,
+      week52Low: price * 0.8,
+      change: 0,
+      changePercent: 0,
+    },
+    volume: {
+      current: 0,
+      average: 0,
+    },
+    // Dividend data from CSV
+    dividendAmount,
+    dividendYield,
+    exDividendDate: convertDateFormat(csvData.exDividendDate),
+    recordDate: convertDateFormat(csvData.recordDate),
+    paymentDate: convertDateFormat(csvData.payDate),
+    frequency,
+    annualDividend,
+    payoutRatio,
+    dividendGrowth5Year: 5,
+    // Default technical indicators
+    technicals: {
+      macd: { value: 0, signal: 0, histogram: 0 },
+      rsi: 50,
+      pegRatio: 1,
+      movingAverage50: price,
+      movingAverage200: price,
+    },
+    change: 0,
+    changePercent: 0,
+  };
+}
+
+/**
  * Create a DividendStock object from CSV dividend data and Polygon API data for everything else
  */
 async function createStockFromCSV(
@@ -195,7 +254,8 @@ async function createStockFromCSV(
 }
 
 /**
- * Load stocks from CSV - now always fetches all data from Polygon API except dividends
+ * Load stocks from CSV
+ * @param enrichWithPrices - If true, fetch all data from Polygon API. If false, use CSV data only.
  * @param onProgress - Progress callback
  */
 export async function loadStocksFromCSV(
@@ -206,38 +266,57 @@ export async function loadStocksFromCSV(
   const tickers = Array.from(csvData.keys());
   const stocks: DividendStock[] = [];
 
-  console.log(`Loading ${tickers.length} stocks from CSV (dividends from CSV, all other data from Polygon API)...`);
+  if (enrichWithPrices) {
+    console.log(`Loading ${tickers.length} stocks from CSV (dividends from CSV, all other data from Polygon API)...`);
 
-  for (let i = 0; i < tickers.length; i++) {
-    const ticker = tickers[i];
-    const tickerData = csvData.get(ticker);
+    for (let i = 0; i < tickers.length; i++) {
+      const ticker = tickers[i];
+      const tickerData = csvData.get(ticker);
 
-    if (!tickerData) continue;
+      if (!tickerData) continue;
 
-    if (onProgress && (i % 50 === 0 || i === tickers.length - 1)) {
-      onProgress(i + 1, tickers.length, ticker);
+      if (onProgress && (i % 50 === 0 || i === tickers.length - 1)) {
+        onProgress(i + 1, tickers.length, ticker);
+      }
+
+      // Fetch from API (dividends from CSV, everything else from Polygon)
+      try {
+        const stock = await createStockFromCSV(tickerData);
+
+        if (stock) {
+          stocks.push(stock);
+        } else {
+          console.warn(`Skipped ${ticker} - missing API data`);
+        }
+
+        // Rate limiting - small delay between stocks
+        if (i < tickers.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 600)); // 600ms delay for API rate limits
+        }
+      } catch (error) {
+        console.warn(`Failed to load ${ticker}:`, error);
+      }
     }
+  } else {
+    console.log(`Loading ${tickers.length} stocks from CSV only (no API calls)...`);
 
-    // Always fetch from API (dividends from CSV, everything else from Polygon)
-    try {
-      const stock = await createStockFromCSV(tickerData);
+    for (let i = 0; i < tickers.length; i++) {
+      const ticker = tickers[i];
+      const tickerData = csvData.get(ticker);
 
-      if (stock) {
-        stocks.push(stock);
-      } else {
-        console.warn(`Skipped ${ticker} - missing API data`);
+      if (!tickerData) continue;
+
+      if (onProgress && (i % 100 === 0 || i === tickers.length - 1)) {
+        onProgress(i + 1, tickers.length, ticker);
       }
 
-      // Rate limiting - small delay between stocks
-      if (i < tickers.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 600)); // 600ms delay for API rate limits
-      }
-    } catch (error) {
-      console.warn(`Failed to load ${ticker}:`, error);
+      // Use CSV data only, no API calls
+      const stock = createStockFromCSVOnly(tickerData);
+      stocks.push(stock);
     }
   }
 
-  console.log(`Successfully loaded ${stocks.length} stocks from CSV + Polygon API`);
+  console.log(`Successfully loaded ${stocks.length} stocks`);
   return stocks;
 }
 

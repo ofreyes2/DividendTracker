@@ -624,6 +624,35 @@ src/
 
 ---
 
+## Recent Updates - Version 2.0.9 (2025-11-20)
+
+### Data Source Fix & UI Refinements
+
+#### ✅ **Fixed CSV Data Loading**
+- **Respects enrichWithPrices Parameter**: CSV loader now properly respects the flag
+- **Fast Initial Load**: On first launch, loads CSV data only (no API calls) for instant display
+- **Background Enrichment**: Automatic daily refresh at 5-7 PM EST fetches full API data
+- **Two-Mode Operation**:
+  - `enrichWithPrices=false`: Instant CSV-only load (dividend data only)
+  - `enrichWithPrices=true`: Full Polygon API fetch (prices, technical indicators, company info)
+
+#### ✅ **Improved Bottom Section**
+- **Left-Aligned**: Company info now left-aligned instead of centered
+- **Different Delimiters**:
+  - Pipe `|` between Sector and Industry
+  - Bullet `•` between Industry and Index
+- **Example**: `Technology | Software • NASDAQ`
+
+#### 📊 **Card Structure (Updated)**
+```
+Header: Symbol, Company Name, Price, Change %
+Price Data: Open, Prev Close, Day Range, 52W High/Low, Volume
+Technical & Dividend: MACD, RSI, Yield, Ex-Date
+Company Info (Bottom): Sector | Industry • Index
+```
+
+---
+
 ## Recent Updates - Version 2.0.8 (2025-11-20)
 
 ### Completely Silent Background Updates

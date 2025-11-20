@@ -315,10 +315,10 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               </View>
             </View>
 
-            {/* Company Info at Bottom - Thin section */}
+            {/* Company Info at Bottom - Thin section, left-aligned */}
             <View className="bg-slate-800/30 rounded-lg px-2 py-1">
-              <Text className="text-slate-400 text-[9px] text-center">
-                {stock.sector || "Unknown"} • {stock.industry || "Unknown"} • {stock.indices?.length > 0 ? stock.indices[0] : "N/A"}
+              <Text className="text-slate-400 text-[9px]">
+                {stock.sector || "Unknown"} | {stock.industry || "Unknown"} • {stock.indices?.length > 0 ? stock.indices[0] : "N/A"}
               </Text>
             </View>
           </Pressable>
