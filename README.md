@@ -19,7 +19,8 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
   - Real technical indicators (RSI, MACD, Moving Averages)
   - Current market capitalization
   - Company details and sector information
-  - **11,628 ticker symbols available** by default (all US stocks)
+  - **11,628 ticker symbols available** (all US stocks in the database)
+  - **Recommended: Use 500-1000 tickers** due to API rate limits
 
 #### **Automated Background Refresh (NEW! 🔄)**
 - **Scheduled Daily Refresh** - Dividend data automatically refreshes once per day in the background
@@ -31,12 +32,12 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
   - **Dividend Data**: Refreshes once per 24 hours (background task)
   - **Price Data**: Updates continuously via WebSocket when app is active
 - **Crash-Resistant Loading** - Intelligent two-phase processing:
-  - **Phase 1 (FAST)**: Fetches only dividend data for all 11,628 tickers (DEFAULT)
-    - 1 API call per ticker, 10 requests/second = ~19 minutes for all tickers
-    - Filters to ~2000 stocks with upcoming ex-dividend dates
+  - **Phase 1 (FAST)**: Fetches only dividend data for selected tickers
+    - 1 API call per ticker, 10 requests/second
+    - Filters to stocks with upcoming ex-dividend dates
+    - **Recommended 500-1000 tickers** (not all 11,628 due to API limits)
   - **Phase 2 (TARGETED)**: Fetches full price/company data for filtered stocks only
     - 3 API calls per stock with 2-second delays between stocks
-    - Only processes ~2000 stocks instead of 11k+
   - 10-second timeout on all API requests to prevent hanging
   - Automatic error recovery - skips failed tickers and continues
   - Shows current phase and progress in UI
@@ -73,11 +74,14 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 - **Manual Refresh** - Tap refresh icon anytime to reload data
 
 #### **Data Flow Architecture**
-1. **First Launch**: User manually clicks "Load All Dividend Data" to load 11,628 tickers (two-phase processing)
-2. **Data Persists**: Loaded stocks are saved locally and remain available after app restarts
-3. **Daily Background**: Automatically refreshes dividend data once per day (only if 24+ hours have passed)
-4. **Live Updates**: WebSocket continuously updates prices when app is active
-5. **Manual Refresh**: User can tap refresh icon anytime to reload data
+1. **First Launch**: User opens Ticker Manager and selects/edits ticker list (recommended 500-1000 tickers)
+2. **Load Data**: Click "Load Stocks" in Ticker Manager to fetch dividend data for selected tickers
+3. **Data Persists**: Loaded stocks are saved locally and remain available after app restarts
+4. **Daily Background**: Automatically refreshes dividend data once per day (only if 24+ hours have passed)
+5. **Live Updates**: WebSocket continuously updates prices when app is active
+6. **Manual Refresh**: User can tap refresh icon anytime to reload data
+
+**Note**: Due to Polygon.io API rate limits, loading all 11,628 tickers is not feasible. A curated list of 500-1000 known dividend stocks is recommended for optimal performance.
 
 ### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks

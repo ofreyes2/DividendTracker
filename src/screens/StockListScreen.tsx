@@ -64,15 +64,12 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     websocketConnected,
   } = useStockDataStore();
 
-  // Only auto-load on FIRST LAUNCH EVER (never loaded before)
+  // NO AUTO-LOADING - Users must manually load data via Ticker Manager
   useEffect(() => {
-    // ONLY auto-load if:
-    // 1. No stocks are currently loaded
-    // 2. Never refreshed before (lastRefreshTime is null)
-    if (storedStocks.length === 0 && !lastRefreshTime) {
-      console.log("First launch ever - auto-loading initial stock data...");
-      refreshStocks(true);
-    } else if (storedStocks.length > 0) {
+    // Just log the current state - no automatic API calls
+    if (storedStocks.length === 0) {
+      console.log("No stocks loaded. User should use Ticker Manager to select tickers.");
+    } else {
       console.log(`App started with ${storedStocks.length} stocks already loaded from storage`);
     }
   }, []);
@@ -205,23 +202,29 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           )}
         </View>
 
-        {/* Load Real Data Button */}
-        {/* Show load button only if NO stocks are loaded */}
+        {/* Guide to Ticker Manager */}
+        {/* Show guidance only if NO stocks are loaded */}
         {storedStocks.length === 0 && !isRefreshing && (
-          <View className="bg-blue-900/30 border border-blue-600 rounded-xl p-4 mb-3">
-            <Text className="text-white font-semibold mb-2">
-              No dividend data loaded
+          <View className="bg-amber-900/30 border border-amber-600 rounded-xl p-4 mb-3">
+            <View className="flex-row items-start mb-2">
+              <Ionicons name="warning" size={24} color="#f59e0b" />
+              <Text className="text-white font-semibold ml-2 flex-1">
+                Get Started with Ticker Manager
+              </Text>
+            </View>
+            <Text className="text-slate-300 text-sm mb-2">
+              API rate limits prevent loading all 11,628 tickers at once.
             </Text>
             <Text className="text-slate-300 text-sm mb-3">
-              Load all 11,628 tickers to find dividend opportunities. This will take ~19 minutes for Phase 1 (dividend data).
+              Use Ticker Manager to create a curated list of 500-1000 tickers, then load dividend data. This is the realistic, working approach.
             </Text>
             <Pressable
-              onPress={() => refreshStocks(true)}
-              className="bg-emerald-600 rounded-xl px-4 py-3 flex-row items-center justify-center active:bg-emerald-700"
+              onPress={() => navigation.navigate("TickerManager")}
+              className="bg-blue-600 rounded-xl px-4 py-3 flex-row items-center justify-center active:bg-blue-700"
             >
-              <Ionicons name="cloud-download" size={20} color="white" />
+              <Ionicons name="list" size={20} color="white" />
               <Text className="text-white font-semibold ml-2">
-                Load All Dividend Data
+                Open Ticker Manager
               </Text>
             </Pressable>
           </View>
