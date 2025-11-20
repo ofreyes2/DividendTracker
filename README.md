@@ -624,6 +624,20 @@ src/
 
 ---
 
+## Recent Updates - Version 2.0.3 (2025-11-20)
+
+### Bug Fixes
+
+#### ✅ **Fixed Runtime Crash on Stock Cards**
+- Added optional chaining to all price data fields on stock cards
+- Fixed "Cannot read property 'toFixed' of undefined" error for `open` and `previousClose` fields
+- Added safe fallbacks ("N/A") when data is not yet loaded
+- Applied to all fields: open, previousClose, dayLow, dayHigh, week52High, week52Low, volume
+- Also added optional chaining to technical indicators (MACD, RSI) and dividendYield
+- App no longer crashes when displaying stocks with incomplete data
+
+---
+
 ## Recent Updates - Version 2.0.2 (2025-11-20)
 
 ### Major Data & UI Overhaul

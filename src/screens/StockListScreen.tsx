@@ -238,19 +238,19 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               <View className="flex-1">
                 <Text className="text-slate-400 text-[8px]">Open</Text>
                 <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.open.toFixed(2)}
+                  ${stock.priceData.open?.toFixed(2) || "N/A"}
                 </Text>
               </View>
               <View className="flex-1 items-center">
                 <Text className="text-slate-400 text-[8px]">Prev Close</Text>
                 <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.previousClose.toFixed(2)}
+                  ${stock.priceData.previousClose?.toFixed(2) || "N/A"}
                 </Text>
               </View>
               <View className="flex-1 items-end">
                 <Text className="text-slate-400 text-[8px]">Day Range</Text>
                 <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.dayLow.toFixed(2)}-${stock.priceData.dayHigh.toFixed(2)}
+                  ${stock.priceData.dayLow?.toFixed(2) || "N/A"}-${stock.priceData.dayHigh?.toFixed(2) || "N/A"}
                 </Text>
               </View>
             </View>
@@ -258,19 +258,19 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               <View className="flex-1">
                 <Text className="text-slate-400 text-[8px]">52W High</Text>
                 <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.week52High.toFixed(2)}
+                  ${stock.priceData.week52High?.toFixed(2) || "N/A"}
                 </Text>
               </View>
               <View className="flex-1 items-center">
                 <Text className="text-slate-400 text-[8px]">52W Low</Text>
                 <Text className="text-white text-[9px] font-semibold">
-                  ${stock.priceData.week52Low.toFixed(2)}
+                  ${stock.priceData.week52Low?.toFixed(2) || "N/A"}
                 </Text>
               </View>
               <View className="flex-1 items-end">
                 <Text className="text-slate-400 text-[8px]">Volume</Text>
                 <Text className="text-white text-[9px] font-semibold">
-                  {stock.volume.current.toFixed(1)}M
+                  {stock.volume.current?.toFixed(1) || "N/A"}M
                 </Text>
               </View>
             </View>
@@ -283,25 +283,25 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 <Text className="text-slate-400 text-[8px]">MACD</Text>
                 <Text className={cn(
                   "text-[9px] font-semibold",
-                  stock.technicals.macd.value > 0 ? "text-emerald-400" : "text-red-400"
+                  (stock.technicals?.macd?.value || 0) > 0 ? "text-emerald-400" : "text-red-400"
                 )}>
-                  {stock.technicals.macd.value.toFixed(2)}
+                  {stock.technicals?.macd?.value?.toFixed(2) || "N/A"}
                 </Text>
               </View>
               <View className="flex-1 items-center">
                 <Text className="text-slate-400 text-[8px]">RSI</Text>
                 <Text className={cn(
                   "text-[9px] font-semibold",
-                  stock.technicals.rsi >= 70 ? "text-red-400" :
-                  stock.technicals.rsi >= 50 ? "text-emerald-400" : "text-blue-400"
+                  (stock.technicals?.rsi || 0) >= 70 ? "text-red-400" :
+                  (stock.technicals?.rsi || 0) >= 50 ? "text-emerald-400" : "text-blue-400"
                 )}>
-                  {stock.technicals.rsi}
+                  {stock.technicals?.rsi || "N/A"}
                 </Text>
               </View>
               <View className="flex-1 items-center">
                 <Text className="text-slate-400 text-[8px]">Yield</Text>
                 <Text className="text-emerald-400 text-[9px] font-bold">
-                  {stock.dividendYield.toFixed(2)}%
+                  {stock.dividendYield?.toFixed(2) || "N/A"}%
                 </Text>
               </View>
               <View className="flex-1 items-end">
