@@ -141,19 +141,22 @@ export const useStockDataStore = create<StockDataState>()(
           const tickersToUse =
             state.customTickers.length > 0 ? state.customTickers : defaultTickers;
 
-          console.log(`Refreshing ${tickersToUse.length} tickers from Polygon.io...`);
+          // LIMIT TO FIRST 500 TICKERS TO PREVENT CRASHES
+          const limitedTickers = tickersToUse.slice(0, 500);
+
+          console.log(`Refreshing ${limitedTickers.length} tickers from Polygon.io (limited to 500)...`);
 
           let enhancedStocks: DividendStock[];
 
-          if (chunked && tickersToUse.length > CHUNK_SIZE) {
+          if (chunked && limitedTickers.length > CHUNK_SIZE) {
             // Use chunked loading for large lists
-            enhancedStocks = await processTickersInChunks(tickersToUse, (current, total, symbol) => {
+            enhancedStocks = await processTickersInChunks(limitedTickers, (current, total, symbol) => {
               set({ refreshProgress: { current, total, symbol } });
             });
           } else {
             // Regular loading for small lists
             enhancedStocks = await loadStocksFromTickers(
-              tickersToUse,
+              limitedTickers,
               (current, total, symbol) => {
                 set({ refreshProgress: { current, total, symbol } });
               },
@@ -244,6 +247,11 @@ export const useStockDataStore = create<StockDataState>()(
 
         if (!state.lastRefreshTime) {
           return true; // Should refresh if never refreshed
+        }
+
+        // If we have less than 100 stocks, something went wrong - refresh
+        if (state.stocks.length < 100) {
+          return true;
         }
 
         const hoursSinceRefresh = (Date.now() - state.lastRefreshTime) / (1000 * 60 * 60);
