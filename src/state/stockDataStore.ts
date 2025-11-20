@@ -10,6 +10,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { DividendStock } from "../api/comprehensive-stock-data";
 import { loadStocksFromTickers, loadStocksInTwoPhases } from "../api/comprehensive-stock-data";
+import { loadFutureStocksFromCSV } from "../api/csv-dividend-loader";
 import { TICKERS } from "../data/nanotickers";
 import { getWebSocketService } from "../services/polygonWebSocketService";
 
@@ -25,14 +26,17 @@ interface StockDataState {
   customTickers: string[]; // Store custom ticker list
   websocketConnected: boolean;
   websocketEnabled: boolean;
+  useCSVData: boolean; // Toggle between CSV and API data
 
   // Actions
   setStocks: (stocks: DividendStock[]) => void;
   updateStockPrice: (symbol: string, priceUpdate: Partial<DividendStock>) => void;
   refreshStocks: (chunked?: boolean) => Promise<void>;
   refreshFromTickers: (tickers: string[], chunked?: boolean) => Promise<void>;
+  refreshFromCSV: (enrichWithPrices?: boolean) => Promise<void>;
   setAutoRefresh: (enabled: boolean) => void;
   setRefreshInterval: (hours: number) => void;
+  setUseCSVData: (enabled: boolean) => void;
   shouldAutoRefresh: () => boolean;
   shouldRefreshDividendData: () => boolean;
   enableWebSocket: () => void;
@@ -56,6 +60,7 @@ export const useStockDataStore = create<StockDataState>()(
       customTickers: [], // Initialize empty
       websocketConnected: false,
       websocketEnabled: false, // Disabled by default due to auth issues
+      useCSVData: true, // Use CSV data by default
 
       setStocks: (stocks) => set({ stocks }),
 
@@ -178,9 +183,51 @@ export const useStockDataStore = create<StockDataState>()(
         }
       },
 
+      refreshFromCSV: async (enrichWithPrices = false) => {
+        const state = get();
+        if (state.isRefreshing) {
+          console.log("Refresh already in progress");
+          return;
+        }
+
+        set({ isRefreshing: true, refreshProgress: { current: 0, total: 0, symbol: "" } });
+
+        try {
+          console.log(`Loading stocks from CSV (enrichWithPrices: ${enrichWithPrices})...`);
+
+          const stocks = await loadFutureStocksFromCSV(
+            enrichWithPrices,
+            (current: number, total: number, symbol: string) => {
+              set({ refreshProgress: { current, total, symbol } });
+            }
+          );
+
+          set({
+            stocks,
+            lastRefreshTime: Date.now(),
+            lastDividendRefreshTime: Date.now(),
+            isRefreshing: false,
+          });
+
+          console.log(`CSV refresh complete: ${stocks.length} stocks with future ex-dates`);
+
+          // Subscribe to WebSocket if enabled
+          const { websocketEnabled } = get();
+          if (websocketEnabled && stocks.length > 0) {
+            const symbols = stocks.map((s) => s.symbol);
+            get().subscribeToWebSocket(symbols);
+          }
+        } catch (error) {
+          console.error("Failed to refresh from CSV:", error);
+          set({ isRefreshing: false });
+        }
+      },
+
       setAutoRefresh: (enabled) => set({ autoRefreshEnabled: enabled }),
 
       setRefreshInterval: (hours) => set({ refreshIntervalHours: hours }),
+
+      setUseCSVData: (enabled) => set({ useCSVData: enabled }),
 
       shouldAutoRefresh: () => {
         const state = get();
@@ -341,6 +388,7 @@ export const useStockDataStore = create<StockDataState>()(
         refreshIntervalHours: state.refreshIntervalHours,
         customTickers: state.customTickers,
         websocketEnabled: state.websocketEnabled,
+        useCSVData: state.useCSVData,
       }),
     }
   )

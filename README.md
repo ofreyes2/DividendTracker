@@ -13,14 +13,20 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 ### 0. **Advanced Real-Time Market Data System (NEW 🆕)**
 
 #### **Intelligent Data Management**
-- **Polygon.io Integration** - ALL data comes from Polygon.io API:
-  - Actual ex-dividend dates from market data
-  - Live stock prices and volumes (15-minute delayed)
-  - Real technical indicators (RSI, MACD, Moving Averages)
-  - Current market capitalization
-  - Company details and sector information
-  - **11,628 ticker symbols available** (all US stocks in the database)
-  - **Recommended: Use 500-1000 tickers** due to API rate limits
+- **Dual Data Sources** - Flexible data loading options:
+  - **CSV Data (NEW! 📄)**: Pre-loaded dividend data for ~926 tickers from local CSV file
+    - Instant loading without API calls
+    - Complete dividend information (amount, frequency, dates, yield, payout ratio)
+    - Can optionally enrich with live prices from Polygon.io
+    - Perfect for users without API keys or for offline use
+  - **Polygon.io API**: Live data from Polygon.io (recommended for real-time data)
+    - Actual ex-dividend dates from market data
+    - Live stock prices and volumes (15-minute delayed)
+    - Real technical indicators (RSI, MACD, Moving Averages)
+    - Current market capitalization
+    - Company details and sector information
+    - **11,628 ticker symbols available** (all US stocks in the database)
+    - **Recommended: Use 500-1000 tickers** due to API rate limits
 
 #### **Automated Background Refresh (NEW! 🔄)**
 - **Scheduled Daily Refresh** - Dividend data automatically refreshes once per day in the background
@@ -74,12 +80,21 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 - **Manual Refresh** - Tap refresh icon anytime to reload data
 
 #### **Data Flow Architecture**
-1. **First Launch**: User opens Ticker Manager and selects/edits ticker list (recommended 500-1000 tickers)
-2. **Load Data**: Click "Load Stocks" in Ticker Manager to fetch dividend data for selected tickers
-3. **Data Persists**: Loaded stocks are saved locally and remain available after app restarts
-4. **Daily Background**: Automatically refreshes dividend data once per day (only if 24+ hours have passed)
-5. **Live Updates**: WebSocket continuously updates prices when app is active
-6. **Manual Refresh**: User can tap refresh icon anytime to reload data
+1. **CSV Data Mode (NEW! Recommended for most users)**:
+   - App loads with ~926 pre-populated tickers from CSV file instantly
+   - No API key required for dividend data
+   - Optionally enable "Enrich with Prices" in Settings to fetch live prices
+   - Perfect for getting started without API setup
+
+2. **API Data Mode (Advanced users with Polygon.io API key)**:
+   - User opens Ticker Manager and selects/edits ticker list (recommended 500-1000 tickers)
+   - Click "Load Stocks" in Ticker Manager to fetch dividend data for selected tickers
+   - Data Persists: Loaded stocks are saved locally and remain available after app restarts
+   - Daily Background: Automatically refreshes dividend data once per day (only if 24+ hours have passed)
+   - Live Updates: WebSocket continuously updates prices when app is active
+   - Manual Refresh: User can tap refresh icon anytime to reload data
+
+**Switching Between Data Sources**: You can toggle between CSV and API data in the app settings. CSV data is recommended for most users as it provides instant access to nearly 1000 dividend stocks without requiring an API key.
 
 **Note**: Due to Polygon.io API rate limits, loading all 11,628 tickers is not feasible. A curated list of 500-1000 known dividend stocks is recommended for optimal performance.
 
