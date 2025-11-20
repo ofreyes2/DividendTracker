@@ -624,6 +624,55 @@ src/
 
 ---
 
+## Recent Updates - Version 2.0.4 (2025-11-20)
+
+### Data Architecture Enhancement
+
+#### ✅ **Complete API Integration for All Data Points**
+- **Dividend data ONLY** now comes from CSV file (ex-dates, amounts, frequency, yield, payout ratio)
+- **ALL other data** now fetched from Polygon.io API in real-time:
+  - Current price, open, previous close from Quote API
+  - Day high, day low, volume from Quote API
+  - 52-week high/low from Historical Aggregates API (365 days of data)
+  - Company name, sector, industry, market cap from Ticker Details API
+  - MACD (12/26/9) from Technical Indicators API
+  - RSI (14-day) from Technical Indicators API
+  - 50-day and 200-day moving averages from SMA API
+- **Result**: Real market data for everything except dividend information
+- **Performance**: Approximately 600ms per stock due to multiple API calls (quote, details, 4 technical indicators, historical data)
+
+#### 🔧 **Technical Changes**
+- Completely rewrote `createStockFromCSV()` function in `csv-dividend-loader.ts`
+- Now makes 7 API calls per stock:
+  1. Quote API (price, OHLC, volume)
+  2. Ticker Details API (company info, sector, market cap)
+  3. RSI API (technical indicator)
+  4. SMA 50-day API (moving average)
+  5. SMA 200-day API (moving average)
+  6. MACD API (technical indicator)
+  7. Historical Aggregates API (52-week range)
+- Added proper rate limiting with 200ms delays between batches
+- Removed mock/estimated data entirely
+
+#### 📊 **Data Flow Summary**
+```
+CSV File → Dividend Information Only
+  ├─ Ex-dividend dates
+  ├─ Dividend amounts
+  ├─ Payment dates
+  ├─ Frequency
+  └─ Payout ratios
+
+Polygon.io API → Everything Else
+  ├─ Real-time prices
+  ├─ Company information
+  ├─ Technical indicators
+  ├─ Historical data
+  └─ Volume metrics
+```
+
+---
+
 ## Recent Updates - Version 2.0.3 (2025-11-20)
 
 ### Bug Fixes

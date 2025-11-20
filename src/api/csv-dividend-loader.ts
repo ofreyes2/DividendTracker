@@ -1,10 +1,16 @@
 /**
  * CSV Dividend Loader
- * Loads dividend data from local CSV file instead of API calls
+ * Loads dividend data from local CSV file, fetches all other data from Polygon.io API
  */
 
 import type { DividendStock } from "./comprehensive-stock-data";
-import { fetchQuote, fetchTickerDetails } from "./polygon-api";
+import {
+  fetchQuote,
+  fetchTickerDetails,
+  fetchRSI,
+  fetchSMA,
+  fetchMACD
+} from "./polygon-api";
 import {
   parseTickerCSV,
   convertFrequency,
@@ -14,6 +20,9 @@ import {
   type TickerDividendData,
 } from "../utils/csvParser";
 import { TICKERS_CSV } from "../data/tickers-data";
+
+const POLYGON_API_KEY = process.env.EXPO_PUBLIC_POLYGON_API_KEY;
+const BASE_URL = "https://api.polygon.io";
 
 // Map to store parsed CSV data (cache)
 let csvDataCache: Map<string, TickerDividendData> | null = null;
@@ -58,77 +67,135 @@ export async function getTickersFromCSV(): Promise<string[]> {
 }
 
 /**
- * Create a DividendStock object from CSV data and optional price data
+ * Create a DividendStock object from CSV dividend data and Polygon API data for everything else
  */
-function createStockFromCSV(
-  csvData: TickerDividendData,
-  quote?: any,
-  details?: any
-): DividendStock {
-  const dividendAmount = cleanCurrencyValue(csvData.dividendAmount);
-  const annualDividend = cleanCurrencyValue(csvData.annualDividend);
-  const dividendYield = cleanPercentageValue(csvData.dividendYield);
-  const payoutRatio = cleanPercentageValue(csvData.payoutRatio);
-  const frequency = convertFrequency(csvData.dividendFrequency);
+async function createStockFromCSV(
+  csvData: TickerDividendData
+): Promise<DividendStock | null> {
+  try {
+    // Get dividend data from CSV
+    const dividendAmount = cleanCurrencyValue(csvData.dividendAmount);
+    const annualDividend = cleanCurrencyValue(csvData.annualDividend);
+    const dividendYield = cleanPercentageValue(csvData.dividendYield);
+    const payoutRatio = cleanPercentageValue(csvData.payoutRatio);
+    const frequency = convertFrequency(csvData.dividendFrequency);
 
-  // Price data from quote or defaults
-  const price = quote?.c || 0;
-  const dayHigh = quote?.h || price;
-  const dayLow = quote?.l || price;
-  const volume = quote?.v || 0;
+    // Fetch ALL other data from Polygon.io API
+    console.log(`Fetching market data for ${csvData.ticker}...`);
 
-  // Company details from API or defaults
-  const companyName = details?.name || csvData.ticker;
-  const sector = details?.sic_description || "Unknown";
-  const marketCap = details?.market_cap ? details.market_cap / 1_000_000_000 : 0;
+    // Fetch basic quote and company details
+    const [quote, details] = await Promise.all([
+      fetchQuote(csvData.ticker),
+      fetchTickerDetails(csvData.ticker),
+    ]);
 
-  return {
-    symbol: csvData.ticker,
-    companyName,
-    sector,
-    industry: sector,
-    indices: [],
-    marketCap,
-    price,
-    priceData: {
-      current: price,
-      open: quote?.o || price,
-      previousClose: quote ? quote.c - (quote.c - quote.o) : price,
-      dayHigh,
-      dayLow,
-      week52High: price * 1.2,
-      week52Low: price * 0.8,
-      change: quote ? quote.c - quote.o : 0,
-      changePercent: quote ? ((quote.c - quote.o) / quote.o) * 100 : 0,
-    },
-    volume: {
-      current: volume / 1_000_000,
-      average: volume / 1_000_000,
-    },
-    dividendAmount,
-    dividendYield,
-    exDividendDate: convertDateFormat(csvData.exDividendDate),
-    recordDate: convertDateFormat(csvData.recordDate),
-    paymentDate: convertDateFormat(csvData.payDate),
-    frequency,
-    annualDividend,
-    payoutRatio,
-    dividendGrowth5Year: 5,
-    technicals: {
-      macd: { value: 0, signal: 0, histogram: 0 },
-      rsi: 50,
-      pegRatio: 1,
-      movingAverage50: price,
-      movingAverage200: price,
-    },
-    change: quote ? quote.c - quote.o : 0,
-    changePercent: quote ? ((quote.c - quote.o) / quote.o) * 100 : 0,
-  };
+    if (!quote || !details) {
+      console.warn(`Missing essential API data for ${csvData.ticker}, skipping`);
+      return null;
+    }
+
+    // Add small delay before technical indicators
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Fetch technical indicators from Polygon API
+    const [rsi, sma50, sma200, macd] = await Promise.all([
+      fetchRSI(csvData.ticker),
+      fetchSMA(csvData.ticker, 50),
+      fetchSMA(csvData.ticker, 200),
+      fetchMACD(csvData.ticker),
+    ]);
+
+    // Add small delay before historical data
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Fetch 52-week high/low from historical data
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const oneYearAgoStr = oneYearAgo.toISOString().split("T")[0];
+    const today = new Date().toISOString().split("T")[0];
+
+    let week52High = quote.h * 1.1; // Default fallback
+    let week52Low = quote.l * 0.9; // Default fallback
+
+    try {
+      const histUrl = `${BASE_URL}/v2/aggs/ticker/${csvData.ticker}/range/1/day/${oneYearAgoStr}/${today}?adjusted=true&sort=asc&limit=365&apiKey=${POLYGON_API_KEY}`;
+      const histResponse = await fetch(histUrl, { signal: AbortSignal.timeout(10000) });
+      const histData = await histResponse.json();
+
+      if (histData.status === "OK" && histData.results && histData.results.length > 0) {
+        const highs = histData.results.map((r: any) => r.h);
+        const lows = histData.results.map((r: any) => r.l);
+        week52High = Math.max(...highs);
+        week52Low = Math.min(...lows);
+      }
+    } catch (error) {
+      console.warn(`Could not fetch 52-week range for ${csvData.ticker}, using estimate`);
+    }
+
+    // Price data from Polygon quote API
+    const price = quote.c;
+    const dayHigh = quote.h;
+    const dayLow = quote.l;
+    const volume = quote.v;
+
+    // Company details from Polygon API
+    const companyName = details.name;
+    const sector = details.sic_description || "Unknown";
+    const industry = details.sic_description || "Unknown";
+    const marketCap = details.market_cap ? details.market_cap / 1_000_000_000 : 0;
+
+    return {
+      symbol: csvData.ticker,
+      companyName,
+      sector,
+      industry,
+      indices: [], // Could be enhanced
+      marketCap,
+      price,
+      priceData: {
+        current: price,
+        open: quote.o,
+        previousClose: quote.c - (quote.c - quote.o),
+        dayHigh,
+        dayLow,
+        week52High,
+        week52Low,
+        change: quote.c - quote.o,
+        changePercent: ((quote.c - quote.o) / quote.o) * 100,
+      },
+      volume: {
+        current: volume / 1_000_000,
+        average: volume / 1_000_000,
+      },
+      // Dividend data from CSV
+      dividendAmount,
+      dividendYield,
+      exDividendDate: convertDateFormat(csvData.exDividendDate),
+      recordDate: convertDateFormat(csvData.recordDate),
+      paymentDate: convertDateFormat(csvData.payDate),
+      frequency,
+      annualDividend,
+      payoutRatio,
+      dividendGrowth5Year: 5,
+      // Technical indicators from Polygon API
+      technicals: {
+        macd: macd || { value: 0, signal: 0, histogram: 0 },
+        rsi: rsi || 50,
+        pegRatio: 1,
+        movingAverage50: sma50 || price,
+        movingAverage200: sma200 || price * 0.95,
+      },
+      change: quote.c - quote.o,
+      changePercent: ((quote.c - quote.o) / quote.o) * 100,
+    };
+  } catch (error) {
+    console.error(`Error creating stock from CSV for ${csvData.ticker}:`, error);
+    return null;
+  }
 }
 
 /**
- * Load stocks from CSV with optional price enrichment
- * @param enrichWithPrices - If true, fetch current prices from Polygon API
+ * Load stocks from CSV - now always fetches all data from Polygon API except dividends
  * @param onProgress - Progress callback
  */
 export async function loadStocksFromCSV(
@@ -139,7 +206,7 @@ export async function loadStocksFromCSV(
   const tickers = Array.from(csvData.keys());
   const stocks: DividendStock[] = [];
 
-  console.log(`Loading ${tickers.length} stocks from CSV...`);
+  console.log(`Loading ${tickers.length} stocks from CSV (dividends from CSV, all other data from Polygon API)...`);
 
   for (let i = 0; i < tickers.length; i++) {
     const ticker = tickers[i];
@@ -151,34 +218,26 @@ export async function loadStocksFromCSV(
       onProgress(i + 1, tickers.length, ticker);
     }
 
-    if (enrichWithPrices) {
-      // Fetch price data from Polygon API
-      try {
-        const [quote, details] = await Promise.all([
-          fetchQuote(ticker),
-          fetchTickerDetails(ticker),
-        ]);
+    // Always fetch from API (dividends from CSV, everything else from Polygon)
+    try {
+      const stock = await createStockFromCSV(tickerData);
 
-        const stock = createStockFromCSV(tickerData, quote, details);
+      if (stock) {
         stocks.push(stock);
-
-        // Rate limiting - 5 requests per second
-        if (i < tickers.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        }
-      } catch (error) {
-        console.warn(`Failed to enrich ${ticker}, using CSV data only:`, error);
-        const stock = createStockFromCSV(tickerData);
-        stocks.push(stock);
+      } else {
+        console.warn(`Skipped ${ticker} - missing API data`);
       }
-    } else {
-      // Use CSV data only (no API calls)
-      const stock = createStockFromCSV(tickerData);
-      stocks.push(stock);
+
+      // Rate limiting - small delay between stocks
+      if (i < tickers.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 600)); // 600ms delay for API rate limits
+      }
+    } catch (error) {
+      console.warn(`Failed to load ${ticker}:`, error);
     }
   }
 
-  console.log(`Loaded ${stocks.length} stocks from CSV`);
+  console.log(`Successfully loaded ${stocks.length} stocks from CSV + Polygon API`);
   return stocks;
 }
 
