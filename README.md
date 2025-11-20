@@ -624,6 +624,32 @@ src/
 
 ---
 
+## Recent Updates - Version 2.0.7 (2025-11-20)
+
+### Clean Automatic Background Updates
+
+#### ✅ **Removed Manual Refresh UI**
+- **Fully Automatic**: Removed all manual refresh buttons and banners
+- **Clean Interface**: No more prompts or reminders about refreshing data
+- **Background Only**: All data updates happen automatically at 5-7 PM EST
+- **Set and Forget**: Users never need to think about updating data
+
+#### ✅ **Improved Card Layout**
+- **Sector/Industry/Index Moved**: Relocated to bottom of card in thin bar
+- **Better Visual Hierarchy**: Company info at bottom matches original design
+- **Centered Text**: Sector/industry/index display centered in thin section
+- **Cleaner Look**: More organized card structure
+
+#### 📊 **Card Structure (Final)**
+```
+Header: Symbol, Company Name, Price, Change %
+Price Data: Open, Prev Close, Day Range, 52W High/Low, Volume
+Technical & Dividend: MACD, RSI, Yield, Ex-Date
+Company Info (Bottom): Sector • Industry • Index
+```
+
+---
+
 ## Recent Updates - Version 2.0.6 (2025-11-20)
 
 ### Automatic Daily Technical Indicator Updates
@@ -634,7 +660,6 @@ src/
 - **Complete Data Refresh**: Updates prices, MACD, RSI, moving averages, 52-week ranges, and all market data
 - **No Manual Work**: Runs in background even when app is closed
 - **Smart Scheduling**: Only refreshes once per day (skips if already refreshed within 20 hours)
-- **Green Status Banner**: New visual indicator showing automatic updates are enabled
 
 #### 🔧 **Technical Changes**
 - Updated `backgroundRefreshService.ts` to call `refreshFromCSV(true)` with full API enrichment
@@ -653,9 +678,8 @@ Daily Timeline (EST):
 
 #### 💡 **User Experience**
 - No action required - data stays current automatically
-- "Refresh Now" button still available for manual updates anytime
-- Green banner confirms automatic updates are working
 - ~10 minutes refresh time runs silently in background
+- Completely hands-off operation
 
 ---
 

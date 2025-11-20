@@ -234,13 +234,6 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           <Pressable
             onPress={() => navigation.navigate("StockDetail", { stock })}
           >
-            {/* Company Info */}
-            <View className="bg-slate-800/30 rounded-lg p-2 mb-2">
-              <Text className="text-slate-400 text-[10px]">
-                {stock.sector || "Unknown"} • {stock.industry || "Unknown"} • {stock.indices?.length > 0 ? stock.indices[0] : "N/A"}
-              </Text>
-            </View>
-
             {/* Price Data - 3-column layout with better spacing */}
             <View className="bg-slate-800/50 rounded-lg p-2 mb-2">
               <View className="flex-row justify-between mb-1.5">
@@ -286,7 +279,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             </View>
 
             {/* Technical & Dividend */}
-            <View className="bg-slate-800/50 rounded-lg p-2">
+            <View className="bg-slate-800/50 rounded-lg p-2 mb-2">
               <View className="flex-row justify-between">
                 <View className="flex-1">
                   <Text className="text-slate-400 text-[9px] mb-0.5">MACD</Text>
@@ -320,6 +313,13 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                   </Text>
                 </View>
               </View>
+            </View>
+
+            {/* Company Info at Bottom - Thin section */}
+            <View className="bg-slate-800/30 rounded-lg px-2 py-1">
+              <Text className="text-slate-400 text-[9px] text-center">
+                {stock.sector || "Unknown"} • {stock.industry || "Unknown"} • {stock.indices?.length > 0 ? stock.indices[0] : "N/A"}
+              </Text>
             </View>
           </Pressable>
         </View>
@@ -425,29 +425,6 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
         )}
 
-        {/* NEW: Message about automatic technical indicator refresh */}
-        {storedStocks.length > 0 && !isRefreshing && (
-          <View className="bg-green-900/30 border border-green-600 rounded-xl p-4 mb-3">
-            <View className="flex-row items-start mb-2">
-              <Ionicons name="checkmark-circle" size={24} color="#10b981" />
-              <Text className="text-white font-semibold ml-2 flex-1">
-                Automatic Daily Updates Enabled
-              </Text>
-            </View>
-            <Text className="text-slate-300 text-sm mb-3">
-              Stock data with technical indicators (MACD, RSI, Moving Averages) refreshes automatically every day at 5-7 PM EST after market close. Your data stays current without manual refresh.
-            </Text>
-            <Pressable
-              onPress={() => refreshFromCSV(true)}
-              className="bg-green-600 rounded-xl px-4 py-3 flex-row items-center justify-center active:bg-green-700"
-            >
-              <Ionicons name="refresh" size={20} color="white" />
-              <Text className="text-white font-semibold ml-2">
-                Refresh Now
-              </Text>
-            </Pressable>
-          </View>
-        )}
 
         {/* Loading Progress - Show phase */}
         {isRefreshing && (
