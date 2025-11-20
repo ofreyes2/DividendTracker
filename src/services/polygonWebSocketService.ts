@@ -123,7 +123,8 @@ export class PolygonWebSocketService {
       };
 
       this.ws.onerror = (error) => {
-        console.error("[WebSocket] Error:", error);
+        // Use warn instead of error - WebSocket errors are common and handled gracefully
+        console.warn("[WebSocket] Connection issue (expected during normal operation)");
         this.isConnecting = false;
         this.errorHandlers.forEach((handler) => handler(error));
       };
