@@ -189,18 +189,18 @@ export const useStockDataStore = create<StockDataState>()(
         }
 
         if (!state.lastRefreshTime) {
-          return true; // Should refresh if never refreshed
+          return true; // Should refresh if never refreshed (initial load)
         }
 
-        // If we have less than 100 stocks, something went wrong - refresh
-        if (state.stocks.length < 100) {
-          return true;
+        // If we have stocks loaded, don't auto-refresh on restart
+        if (state.stocks.length > 0) {
+          const hoursSinceRefresh = (Date.now() - state.lastRefreshTime) / (1000 * 60 * 60);
+          // Only auto-refresh if more than 24 hours have passed
+          return hoursSinceRefresh >= state.refreshIntervalHours;
         }
 
-        const hoursSinceRefresh = (Date.now() - state.lastRefreshTime) / (1000 * 60 * 60);
-
-        // Only auto-refresh if more than 24 hours have passed
-        return hoursSinceRefresh >= state.refreshIntervalHours;
+        // No stocks and never refreshed - should load
+        return true;
       },
 
       shouldRefreshDividendData: () => {

@@ -73,10 +73,11 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 - **Manual Refresh** - Tap refresh icon anytime to reload data
 
 #### **Data Flow Architecture**
-1. **First Launch**: Loads 11,628 tickers with dividend data (two-phase processing)
-2. **Daily Background**: Automatically refreshes dividend data once per day
-3. **Live Updates**: WebSocket continuously updates prices when app is active
-4. **Manual Override**: User can trigger full refresh anytime
+1. **First Launch**: User manually clicks "Load All Dividend Data" to load 11,628 tickers (two-phase processing)
+2. **Data Persists**: Loaded stocks are saved locally and remain available after app restarts
+3. **Daily Background**: Automatically refreshes dividend data once per day (only if 24+ hours have passed)
+4. **Live Updates**: WebSocket continuously updates prices when app is active
+5. **Manual Refresh**: User can tap refresh icon anytime to reload data
 
 ### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks

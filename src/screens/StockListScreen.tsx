@@ -64,11 +64,12 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     websocketConnected,
   } = useStockDataStore();
 
-  // Auto-refresh on mount if needed
+  // Auto-refresh only on first launch (when no stocks are loaded)
   useEffect(() => {
-    if (shouldAutoRefresh()) {
-      console.log("Auto-refreshing stocks data...");
-      refreshStocks(true); // Use chunked loading
+    // Only auto-load if we have no stocks at all (first time user)
+    if (storedStocks.length === 0 && !lastRefreshTime && shouldAutoRefresh()) {
+      console.log("First launch - loading initial stock data...");
+      refreshStocks(true);
     }
   }, []);
 
@@ -201,16 +202,25 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         </View>
 
         {/* Load Real Data Button */}
+        {/* Show load button only if NO stocks are loaded */}
         {storedStocks.length === 0 && !isRefreshing && (
-          <Pressable
-            onPress={() => refreshStocks(true)}
-            className="bg-emerald-600 rounded-xl px-4 py-3 flex-row items-center justify-center mb-3 active:bg-emerald-700"
-          >
-            <Ionicons name="cloud-download" size={20} color="white" />
-            <Text className="text-white font-semibold ml-2">
-              Load Real-Time Data from Polygon.io
+          <View className="bg-blue-900/30 border border-blue-600 rounded-xl p-4 mb-3">
+            <Text className="text-white font-semibold mb-2">
+              No dividend data loaded
             </Text>
-          </Pressable>
+            <Text className="text-slate-300 text-sm mb-3">
+              Load all 11,628 tickers to find dividend opportunities. This will take ~19 minutes for Phase 1 (dividend data).
+            </Text>
+            <Pressable
+              onPress={() => refreshStocks(true)}
+              className="bg-emerald-600 rounded-xl px-4 py-3 flex-row items-center justify-center active:bg-emerald-700"
+            >
+              <Ionicons name="cloud-download" size={20} color="white" />
+              <Text className="text-white font-semibold ml-2">
+                Load All Dividend Data
+              </Text>
+            </Pressable>
+          </View>
         )}
 
         {/* Loading Progress - Show phase */}
@@ -236,10 +246,10 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
         )}
 
-        {/* Real Data Indicator with Timestamp */}
+        {/* Real Data Indicator with Timestamp and Manual Refresh */}
         {storedStocks.length > 0 && (
-          <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-2 mb-3">
-            <View className="flex-row items-center justify-between">
+          <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-3 mb-3">
+            <View className="flex-row items-center justify-between mb-2">
               <View className="flex-row items-center flex-1">
                 <Ionicons name="checkmark-circle" size={20} color="#10b981" />
                 <Text className="text-emerald-400 font-semibold ml-2">
@@ -252,32 +262,16 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                   </View>
                 )}
               </View>
-              {storedStocks.length < 1000 && (
-                <Pressable
-                  onPress={() => refreshStocks(true)}
-                  className="bg-blue-600 px-3 py-1 rounded-lg active:bg-blue-700"
-                >
-                  <Text className="text-white text-xs font-semibold">Load All 11k</Text>
-                </Pressable>
-              )}
+              <Pressable
+                onPress={() => refreshStocks(true)}
+                className="bg-emerald-600 rounded-lg px-3 py-2 active:bg-emerald-700"
+              >
+                <Ionicons name="refresh" size={16} color="white" />
+              </Pressable>
             </View>
-            {/* Dividend data refresh timestamp */}
-            {lastDividendRefreshTime && (
-              <Text className="text-slate-500 text-[9px] mt-1">
-                Dividend data: {new Date(lastDividendRefreshTime).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                  hour: "numeric",
-                  minute: "2-digit",
-                  hour12: true
-                })}
-              </Text>
-            )}
-            {/* WebSocket price update timestamp */}
-            {lastWebSocketUpdate && websocketConnected && (
-              <Text className="text-slate-500 text-[9px] text-right">
-                Live prices: {new Date(lastWebSocketUpdate).toLocaleTimeString()}
+            {lastRefreshTime && (
+              <Text className="text-slate-400 text-xs">
+                Last updated: {new Date(lastRefreshTime).toLocaleString()}
               </Text>
             )}
           </View>
