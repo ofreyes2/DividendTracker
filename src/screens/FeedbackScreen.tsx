@@ -73,6 +73,7 @@ Sent from Daily Dividend Capture App
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify({
           email: email || "anonymous@user.com",
@@ -82,6 +83,10 @@ Sent from Daily Dividend Capture App
           _subject: emailSubject,
         }),
       });
+
+      console.log("Formspree response status:", response.status);
+      const responseText = await response.text();
+      console.log("Formspree response body:", responseText);
 
       if (response.ok) {
         // Show success message
@@ -103,7 +108,8 @@ Sent from Daily Dividend Capture App
           ]
         );
       } else {
-        throw new Error("Failed to send feedback");
+        console.error("Formspree error response:", responseText);
+        throw new Error(`Failed to send feedback: ${response.status} - ${responseText}`);
       }
     } catch (error) {
       console.error("Error sending feedback:", error);
