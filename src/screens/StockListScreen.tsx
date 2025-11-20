@@ -209,22 +209,40 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             <View className="flex-row items-start mb-2">
               <Ionicons name="warning" size={24} color="#f59e0b" />
               <Text className="text-white font-semibold ml-2 flex-1">
-                Get Started with Ticker Manager
+                Load Top 1000 Dividend Stocks
               </Text>
             </View>
-            <Text className="text-slate-300 text-sm mb-2">
-              API rate limits prevent loading all 11,628 tickers at once.
-            </Text>
             <Text className="text-slate-300 text-sm mb-3">
-              Use Ticker Manager to create a curated list of 500-1000 tickers, then load dividend data. This is the realistic, working approach.
+              Instead of trying all 11,628 tickers, start with the top 1000 known dividend payers. This will load successfully and you&apos;ll have data in ~2 minutes.
             </Text>
+            <Pressable
+              onPress={() => {
+                // Load the curated top 1000 list
+                const { TOP_DIVIDEND_TICKERS } = require("../data/top-dividend-stocks");
+                const tickers = TOP_DIVIDEND_TICKERS.split("\n")
+                  .map((line: string) => line.trim())
+                  .filter((line: string) => line && !line.startsWith("#"));
+
+                console.log(`Loading top ${tickers.length} dividend stocks...`);
+
+                // Use refreshFromTickers with the curated list
+                const { refreshFromTickers } = require("../state/stockDataStore").useStockDataStore.getState();
+                refreshFromTickers(tickers, true);
+              }}
+              className="bg-emerald-600 rounded-xl px-4 py-3 flex-row items-center justify-center mb-2 active:bg-emerald-700"
+            >
+              <Ionicons name="rocket" size={20} color="white" />
+              <Text className="text-white font-semibold ml-2">
+                Load Top 1000 Now
+              </Text>
+            </Pressable>
             <Pressable
               onPress={() => navigation.navigate("TickerManager")}
               className="bg-blue-600 rounded-xl px-4 py-3 flex-row items-center justify-center active:bg-blue-700"
             >
               <Ionicons name="list" size={20} color="white" />
               <Text className="text-white font-semibold ml-2">
-                Open Ticker Manager
+                Or Customize in Ticker Manager
               </Text>
             </Pressable>
           </View>
