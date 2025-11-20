@@ -169,8 +169,8 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               : "bg-[#1e293b] border-slate-700"
           )}
         >
-          {/* Header Row */}
-          <View className="flex-row items-center justify-between mb-2">
+          {/* Header Row - More compact */}
+          <View className="flex-row items-center justify-between mb-1.5">
             <View className="flex-row items-center flex-1">
               {/* Checkbox */}
               <Pressable
@@ -182,35 +182,35 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               >
                 <View
                   className={cn(
-                    "w-5 h-5 rounded-md border-2 items-center justify-center",
+                    "w-4 h-4 rounded-md border-2 items-center justify-center",
                     selectedStocks.includes(stock.symbol)
                       ? "bg-blue-600 border-blue-600"
                       : "border-slate-600"
                   )}
                 >
                   {selectedStocks.includes(stock.symbol) && (
-                    <Ionicons name="checkmark" size={14} color="white" />
+                    <Ionicons name="checkmark" size={12} color="white" />
                   )}
                 </View>
               </Pressable>
 
               <View className="flex-1">
-                <Text className="text-white text-base font-bold">
+                <Text className="text-white text-sm font-bold">
                   {stock.symbol}
                 </Text>
-                <Text className="text-slate-400 text-xs" numberOfLines={1}>
+                <Text className="text-slate-400 text-[10px]" numberOfLines={1}>
                   {stock.companyName}
                 </Text>
               </View>
             </View>
 
             <View className="items-end">
-              <Text className="text-white text-lg font-bold">
+              <Text className="text-white text-base font-bold">
                 {formatCurrency(stock.price)}
               </Text>
               <Text
                 className={cn(
-                  "text-xs font-medium",
+                  "text-[10px] font-medium",
                   stock.change >= 0 ? "text-emerald-400" : "text-red-400"
                 )}
               >
@@ -220,111 +220,87 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             </View>
           </View>
 
-          {/* Dividend Info */}
-          <View className="bg-slate-800/50 rounded-lg p-2 mb-1.5">
+          {/* Dividend Info - More compact */}
+          <View className="bg-slate-800/50 rounded-lg p-1.5 mb-1">
             <View className="flex-row justify-between">
               <View>
-                <Text className="text-slate-400 text-[10px]">Yield</Text>
-                <Text className="text-emerald-400 text-sm font-bold">
+                <Text className="text-slate-400 text-[9px]">Yield</Text>
+                <Text className="text-emerald-400 text-xs font-bold">
                   {stock.dividendYield.toFixed(2)}%
                 </Text>
               </View>
               <View className="items-center">
-                <Text className="text-slate-400 text-[10px]">Distribution</Text>
-                <Text className="text-white text-xs font-semibold">
+                <Text className="text-slate-400 text-[9px]">Dist</Text>
+                <Text className="text-white text-[10px] font-semibold">
                   {formatCurrency(stock.dividendAmount)}
                 </Text>
               </View>
               <View className="items-center">
-                <Text className="text-slate-400 text-[10px]">Annual</Text>
-                <Text className="text-white text-xs font-semibold">
+                <Text className="text-slate-400 text-[9px]">Annual</Text>
+                <Text className="text-white text-[10px] font-semibold">
                   {formatCurrency(stock.annualDividend)}
                 </Text>
               </View>
               <View className="items-end">
-                <Text className="text-slate-400 text-[10px]">Ex-Date</Text>
-                <Text className="text-white text-xs font-semibold">
+                <Text className="text-slate-400 text-[9px]">Ex-Date</Text>
+                <Text className="text-white text-[10px] font-semibold">
                   {formatDate(stock.exDividendDate)}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Price & Volume Info */}
-          <View className="bg-slate-800/30 rounded-lg p-2 mb-1.5">
-            <View className="flex-row justify-between mb-1">
+          {/* Price & Volume Info - More compact */}
+          <View className="bg-slate-800/30 rounded-lg p-1.5 mb-1">
+            <View className="flex-row justify-between mb-0.5">
               <View className="flex-1">
-                <Text className="text-slate-400 text-[10px]">Day Range</Text>
-                <Text className="text-white text-[11px] font-semibold">
+                <Text className="text-slate-400 text-[9px]">Day Range</Text>
+                <Text className="text-white text-[10px] font-semibold">
                   {formatCurrency(stock.priceData.dayLow)} - {formatCurrency(stock.priceData.dayHigh)}
                 </Text>
               </View>
               <View className="flex-1 items-end">
-                <Text className="text-slate-400 text-[10px]">52-Week</Text>
-                <Text className="text-white text-[11px] font-semibold">
+                <Text className="text-slate-400 text-[9px]">52-Week</Text>
+                <Text className="text-white text-[10px] font-semibold">
                   {formatCurrency(stock.priceData.week52Low)} - {formatCurrency(stock.priceData.week52High)}
                 </Text>
               </View>
             </View>
             <View className="flex-row justify-between">
               <View>
-                <Text className="text-slate-400 text-[10px]">Volume</Text>
-                <Text className="text-white text-[11px] font-semibold">
+                <Text className="text-slate-400 text-[9px]">Volume</Text>
+                <Text className="text-white text-[10px] font-semibold">
                   {stock.volume.current.toFixed(1)}M
                 </Text>
               </View>
+              <View className="items-center">
+                <Text className="text-slate-400 text-[9px]">MACD</Text>
+                <Text className={cn(
+                  "text-[10px] font-semibold",
+                  stock.technicals.macd.value > 0 ? "text-emerald-400" : "text-red-400"
+                )}>
+                  {stock.technicals.macd.value.toFixed(2)}
+                </Text>
+              </View>
               <View className="items-end">
-                <Text className="text-slate-400 text-[10px]">Avg Volume</Text>
-                <Text className="text-white text-[11px] font-semibold">
-                  {stock.volume.average.toFixed(1)}M
+                <Text className="text-slate-400 text-[9px]">RSI</Text>
+                <Text className={cn(
+                  "text-[10px] font-semibold",
+                  stock.technicals.rsi >= 70 ? "text-red-400" :
+                  stock.technicals.rsi >= 50 ? "text-emerald-400" : "text-blue-400"
+                )}>
+                  {stock.technicals.rsi}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Company Details */}
-          <View className="flex-row justify-between items-center pt-1.5 border-t border-slate-700">
+          {/* Company Details - More compact */}
+          <View className="flex-row justify-between items-center pt-1 border-t border-slate-700">
             <View className="flex-1">
-              <Text className="text-slate-500 text-[10px]">
+              <Text className="text-slate-500 text-[9px]">
                 {stock.sector} • {stock.industry}
               </Text>
-            </View>
-            <View className="items-end">
-              <View className="flex-row items-center">
-                <Ionicons
-                  name="star"
-                  size={12}
-                  color={
-                    stock.technicals.rsi >= 70
-                      ? "#ef4444"
-                      : stock.technicals.rsi >= 50
-                      ? "#10b981"
-                      : stock.technicals.rsi >= 30
-                      ? "#3b82f6"
-                      : "#ef4444"
-                  }
-                />
-                <Text
-                  className={cn(
-                    "text-xs font-bold ml-1",
-                    stock.technicals.rsi >= 70
-                      ? "text-red-400"
-                      : stock.technicals.rsi >= 50
-                      ? "text-emerald-400"
-                      : stock.technicals.rsi >= 30
-                      ? "text-blue-400"
-                      : "text-red-400"
-                  )}
-                >
-                  {stock.technicals.rsi >= 70
-                    ? "Overbought"
-                    : stock.technicals.rsi >= 50
-                    ? "Strong"
-                    : stock.technicals.rsi >= 30
-                    ? "Neutral"
-                    : "Oversold"}
-                </Text>
-              </View>
             </View>
           </View>
         </Pressable>
@@ -453,19 +429,9 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
           </View>
         )}
 
-        {/* Live Connection Indicator */}
-        {storedStocks.length > 0 && websocketConnected && (
-          <View className="bg-emerald-900/30 border border-emerald-600 rounded-xl px-4 py-3 mb-3">
-            <View className="flex-row items-center">
-              <View className="w-2 h-2 rounded-full bg-green-500 mr-2" />
-              <Text className="text-green-400 text-xs font-medium">Live Data Connected</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Data disclaimer */}
-        <View className="mb-3 bg-amber-900/20 border border-amber-700/30 rounded-lg p-2">
-          <Text className="text-amber-400 text-xs text-center">
+        {/* Data disclaimer - thinner */}
+        <View className="mb-3 bg-amber-900/20 border border-amber-700/30 rounded-lg px-3 py-1">
+          <Text className="text-amber-400 text-[10px] text-center">
             ⚠️ Market data delayed 15 minutes
           </Text>
         </View>

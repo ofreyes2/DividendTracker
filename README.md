@@ -624,6 +624,48 @@ src/
 
 ---
 
+## Recent Updates - Version 2.0.1 (2025-11-20)
+
+### UI/UX Improvements
+
+#### ✅ **Compact Card Design**
+- Made all stock cards more compact across all screens
+- Reduced padding and spacing for better information density
+- Smaller font sizes for labels and secondary information
+- More data visible on screen without scrolling
+
+#### ✅ **Removed Live Connection Banner**
+- Removed the green "Live Data Connected" banner to declutter UI
+- WebSocket status still tracked internally
+
+#### ✅ **Thinner Data Disclaimer**
+- Made the "Market data delayed 15 minutes" bar thinner and more subtle
+- Changed from `p-2` to `px-3 py-1` for less visual weight
+- Reduced text from `text-xs` to `text-[10px]`
+
+#### ✅ **Enhanced Stock Cards**
+- Added MACD and RSI directly to list view cards
+- Shows real-time technical indicators without clicking into details
+- Better use of space with 3-column layout for Volume/MACD/RSI
+- Color-coded indicators (green/red for MACD, dynamic colors for RSI)
+
+#### ✅ **Real Data Integration**
+- Connected all data points to Polygon.io APIs:
+  - Real 52-week high/low from historical data (365 days)
+  - Real RSI (14-day) from Polygon indicators API
+  - Real MACD values (12/26/9) from Polygon indicators API
+  - Real 50-day and 200-day moving averages from Polygon SMA API
+- Price change correctly reflects opening price (close - open)
+- All technical indicators now show actual market data when available
+
+#### 🔧 **Technical Changes**
+- Updated `polygon-api.ts` to fetch technical indicators
+- Added 52-week range calculation from historical aggregate data
+- Improved error handling with fallback to estimates when API fails
+- Added proper delays between API calls to respect rate limits
+
+---
+
 ## Recent Updates - Version 2.0.0 (2025-11-19)
 
 ### Major Feature Release

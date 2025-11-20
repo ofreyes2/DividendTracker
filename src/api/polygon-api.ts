@@ -254,7 +254,7 @@ export async function fetchDividendDataOnly(symbol: string): Promise<{
 
 /**
  * Fetch complete stock data for a symbol
- * Modified to fetch sequentially with delays to prevent overwhelming the API
+ * Modified to fetch real data from all available APIs
  */
 export async function fetchCompleteStockData(symbol: string): Promise<DividendStock | null> {
   try {
@@ -268,12 +268,18 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
     await new Promise(resolve => setTimeout(resolve, 250)); // 250ms delay
 
     const tickerDetails = await fetchTickerDetails(symbol);
+    await new Promise(resolve => setTimeout(resolve, 250)); // 250ms delay
 
-    // Skip technical indicators to speed up loading and reduce API calls
-    const rsi = null;
-    const sma50 = null;
-    const sma200 = null;
-    const macd = null;
+    // Fetch technical indicators from Polygon API
+    const [rsi, sma50, sma200, macd] = await Promise.all([
+      fetchRSI(symbol),
+      fetchSMA(symbol, 50),
+      fetchSMA(symbol, 200),
+      fetchMACD(symbol),
+    ]);
+
+    // Add delays between batched requests
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     if (!quote || !tickerDetails) {
       console.warn(`Missing essential data for ${symbol}, skipping`);
@@ -296,7 +302,31 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
     // Calculate volume in millions
     const volumeInMillions = quote.v / 1000000;
 
-    // Build technical indicators
+    // Fetch 52-week high/low from historical data
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const oneYearAgoStr = oneYearAgo.toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+
+    let week52High = quote.h * 1.1; // Default fallback
+    let week52Low = quote.l * 0.9; // Default fallback
+
+    try {
+      const histUrl = `${BASE_URL}/v2/aggs/ticker/${symbol}/range/1/day/${oneYearAgoStr}/${today}?adjusted=true&sort=asc&limit=365&apiKey=${POLYGON_API_KEY}`;
+      const histResponse = await fetch(histUrl, { signal: AbortSignal.timeout(10000) });
+      const histData = await histResponse.json();
+
+      if (histData.status === "OK" && histData.results && histData.results.length > 0) {
+        const highs = histData.results.map((r: any) => r.h);
+        const lows = histData.results.map((r: any) => r.l);
+        week52High = Math.max(...highs);
+        week52Low = Math.min(...lows);
+      }
+    } catch (error) {
+      console.warn(`Could not fetch 52-week range for ${symbol}, using estimate`);
+    }
+
+    // Build technical indicators with real data
     const technicals: TechnicalIndicators = {
       macd: macd || { value: 0, signal: 0, histogram: 0 },
       rsi: rsi || 50,
@@ -323,9 +353,9 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
         current: quote.c,
         dayHigh: quote.h,
         dayLow: quote.l,
-        week52High: quote.h * 1.1, // Approximate
-        week52Low: quote.l * 0.9, // Approximate
-        change: quote.c - quote.o,
+        week52High: week52High,
+        week52Low: week52Low,
+        change: quote.c - quote.o, // Change from opening price
         changePercent: ((quote.c - quote.o) / quote.o) * 100,
       },
 
@@ -346,7 +376,7 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
 
       technicals: technicals,
 
-      change: quote.c - quote.o,
+      change: quote.c - quote.o, // Change from opening price
       changePercent: ((quote.c - quote.o) / quote.o) * 100,
     };
 
