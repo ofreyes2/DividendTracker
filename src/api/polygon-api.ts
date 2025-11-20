@@ -67,17 +67,18 @@ interface PolygonTickerDetails {
 export async function fetchDividends(symbol: string): Promise<PolygonDividend[]> {
   try {
     const url = `${BASE_URL}/v3/reference/dividends?ticker=${symbol}&limit=10&apiKey=${POLYGON_API_KEY}`;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) }); // 10s timeout
     const data = await response.json();
 
     if (data.status === "OK" && data.results) {
       return data.results;
     }
 
-    console.warn(`No dividend data found for ${symbol}`);
     return [];
   } catch (error) {
-    console.error(`Error fetching dividends for ${symbol}:`, error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn(`Timeout fetching dividends for ${symbol}`);
+    }
     return [];
   }
 }
@@ -89,17 +90,18 @@ export async function fetchQuote(symbol: string): Promise<PolygonQuote | null> {
   try {
     // Get previous day's close
     const url = `${BASE_URL}/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${POLYGON_API_KEY}`;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) }); // 10s timeout
     const data = await response.json();
 
     if (data.status === "OK" && data.results && data.results.length > 0) {
       return data.results[0];
     }
 
-    console.warn(`No quote data found for ${symbol}`);
     return null;
   } catch (error) {
-    console.error(`Error fetching quote for ${symbol}:`, error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn(`Timeout fetching quote for ${symbol}`);
+    }
     return null;
   }
 }
@@ -110,17 +112,18 @@ export async function fetchQuote(symbol: string): Promise<PolygonQuote | null> {
 export async function fetchTickerDetails(symbol: string): Promise<PolygonTickerDetails | null> {
   try {
     const url = `${BASE_URL}/v3/reference/tickers/${symbol}?apiKey=${POLYGON_API_KEY}`;
-    const response = await fetch(url);
+    const response = await fetch(url, { signal: AbortSignal.timeout(10000) }); // 10s timeout
     const data = await response.json();
 
     if (data.status === "OK" && data.results) {
       return data.results;
     }
 
-    console.warn(`No ticker details found for ${symbol}`);
     return null;
   } catch (error) {
-    console.error(`Error fetching ticker details for ${symbol}:`, error);
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.warn(`Timeout fetching ticker details for ${symbol}`);
+    }
     return null;
   }
 }
@@ -212,21 +215,26 @@ function convertFrequency(polygonFreq: number): "monthly" | "quarterly" | "semi-
 
 /**
  * Fetch complete stock data for a symbol
+ * Modified to fetch sequentially with delays to prevent overwhelming the API
  */
 export async function fetchCompleteStockData(symbol: string): Promise<DividendStock | null> {
   try {
     console.log(`Fetching complete data for ${symbol}...`);
 
-    // Fetch all data in parallel
-    const [dividends, quote, tickerDetails, rsi, sma50, sma200, macd] = await Promise.all([
-      fetchDividends(symbol),
-      fetchQuote(symbol),
-      fetchTickerDetails(symbol),
-      fetchRSI(symbol),
-      fetchSMA(symbol, 50),
-      fetchSMA(symbol, 200),
-      fetchMACD(symbol),
-    ]);
+    // Fetch critical data first
+    const dividends = await fetchDividends(symbol);
+    await new Promise(resolve => setTimeout(resolve, 250)); // 250ms delay
+
+    const quote = await fetchQuote(symbol);
+    await new Promise(resolve => setTimeout(resolve, 250)); // 250ms delay
+
+    const tickerDetails = await fetchTickerDetails(symbol);
+
+    // Skip technical indicators to speed up loading and reduce API calls
+    const rsi = null;
+    const sma50 = null;
+    const sma200 = null;
+    const macd = null;
 
     if (!quote || !tickerDetails) {
       console.warn(`Missing essential data for ${symbol}, skipping`);

@@ -674,9 +674,10 @@ export async function loadStocksFromTickers(
       enhancedStocks.push(enhanced);
     }
 
-    // Increased delay - 1000ms between requests (1 request per second) to prevent crashes
+    // Increased delay - 2000ms between tickers (0.5 tickers per second) to prevent crashes
+    // Each ticker makes 3+ API calls, so this gives ~6 seconds per ticker total
     if (i < tickers.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
   }
 
