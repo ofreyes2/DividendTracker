@@ -83,6 +83,9 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   const filteredStocks = useMemo(() => {
     let stocks = availableStocks;
 
+    // Filter out stocks with $0 price (invalid data)
+    stocks = stocks.filter((s) => s.price > 0);
+
     // Apply search filter first
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -94,7 +97,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     }
 
     // Apply quick filters
-    // Use local date to avoid timezone issues
+    // Use local date components to avoid timezone issues
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -115,8 +118,10 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
       const endOfWeek = new Date();
       endOfWeek.setDate(endOfWeek.getDate() + 7);
       stocks = stocks.filter((s) => {
-        const exDate = new Date(s.exDividendDate + "T00:00:00");
-        const todayDate = new Date(today + "T00:00:00");
+        // Parse date strings carefully to avoid timezone issues
+        const [exYear, exMonth, exDay] = s.exDividendDate.split('-').map(Number);
+        const exDate = new Date(exYear, exMonth - 1, exDay);
+        const todayDate = new Date(year, now.getMonth(), now.getDate());
         return exDate >= todayDate && exDate <= endOfWeek;
       });
     } else if (quickFilter === "day" && selectedDay) {
@@ -169,8 +174,8 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
               : "bg-[#1e293b] border-slate-700"
           )}
         >
-          {/* Header Row - More compact */}
-          <View className="flex-row items-center justify-between mb-1.5">
+          {/* Header Row - Compact */}
+          <View className="flex-row items-center justify-between mb-1">
             <View className="flex-row items-center flex-1">
               {/* Checkbox */}
               <Pressable
@@ -198,109 +203,113 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
                 <Text className="text-white text-sm font-bold">
                   {stock.symbol}
                 </Text>
-                <Text className="text-slate-400 text-[10px]" numberOfLines={1}>
+                <Text className="text-slate-400 text-[9px]" numberOfLines={1}>
                   {stock.companyName}
                 </Text>
               </View>
             </View>
 
             <View className="items-end">
-              <Text className="text-white text-base font-bold">
-                {formatCurrency(stock.price)}
+              <Text className="text-white text-sm font-bold">
+                ${stock.price.toFixed(2)}
               </Text>
               <Text
                 className={cn(
-                  "text-[10px] font-medium",
+                  "text-[9px] font-medium",
                   stock.change >= 0 ? "text-emerald-400" : "text-red-400"
                 )}
               >
                 {stock.change >= 0 ? "+" : ""}
-                {stock.change.toFixed(2)}
+                {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
               </Text>
             </View>
           </View>
 
-          {/* Dividend Info - More compact */}
-          <View className="bg-slate-800/50 rounded-lg p-1.5 mb-1">
+          {/* Company Info - Compact */}
+          <View className="bg-slate-800/30 rounded-lg p-1 mb-1">
+            <Text className="text-slate-400 text-[8px]">
+              {stock.sector} • {stock.industry} • {stock.indices.length > 0 ? stock.indices[0] : "N/A"}
+            </Text>
+          </View>
+
+          {/* Price Data - Compact 3-column */}
+          <View className="bg-slate-800/50 rounded-lg p-1 mb-1">
+            <View className="flex-row justify-between mb-0.5">
+              <View className="flex-1">
+                <Text className="text-slate-400 text-[8px]">Open</Text>
+                <Text className="text-white text-[9px] font-semibold">
+                  ${stock.priceData.open.toFixed(2)}
+                </Text>
+              </View>
+              <View className="flex-1 items-center">
+                <Text className="text-slate-400 text-[8px]">Prev Close</Text>
+                <Text className="text-white text-[9px] font-semibold">
+                  ${stock.priceData.previousClose.toFixed(2)}
+                </Text>
+              </View>
+              <View className="flex-1 items-end">
+                <Text className="text-slate-400 text-[8px]">Day Range</Text>
+                <Text className="text-white text-[9px] font-semibold">
+                  ${stock.priceData.dayLow.toFixed(2)}-${stock.priceData.dayHigh.toFixed(2)}
+                </Text>
+              </View>
+            </View>
             <View className="flex-row justify-between">
-              <View>
-                <Text className="text-slate-400 text-[9px]">Yield</Text>
-                <Text className="text-emerald-400 text-xs font-bold">
-                  {stock.dividendYield.toFixed(2)}%
+              <View className="flex-1">
+                <Text className="text-slate-400 text-[8px]">52W High</Text>
+                <Text className="text-white text-[9px] font-semibold">
+                  ${stock.priceData.week52High.toFixed(2)}
                 </Text>
               </View>
-              <View className="items-center">
-                <Text className="text-slate-400 text-[9px]">Dist</Text>
-                <Text className="text-white text-[10px] font-semibold">
-                  {formatCurrency(stock.dividendAmount)}
+              <View className="flex-1 items-center">
+                <Text className="text-slate-400 text-[8px]">52W Low</Text>
+                <Text className="text-white text-[9px] font-semibold">
+                  ${stock.priceData.week52Low.toFixed(2)}
                 </Text>
               </View>
-              <View className="items-center">
-                <Text className="text-slate-400 text-[9px]">Annual</Text>
-                <Text className="text-white text-[10px] font-semibold">
-                  {formatCurrency(stock.annualDividend)}
-                </Text>
-              </View>
-              <View className="items-end">
-                <Text className="text-slate-400 text-[9px]">Ex-Date</Text>
-                <Text className="text-white text-[10px] font-semibold">
-                  {formatDate(stock.exDividendDate)}
+              <View className="flex-1 items-end">
+                <Text className="text-slate-400 text-[8px]">Volume</Text>
+                <Text className="text-white text-[9px] font-semibold">
+                  {stock.volume.current.toFixed(1)}M
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Price & Volume Info - More compact */}
-          <View className="bg-slate-800/30 rounded-lg p-1.5 mb-1">
-            <View className="flex-row justify-between mb-0.5">
-              <View className="flex-1">
-                <Text className="text-slate-400 text-[9px]">Day Range</Text>
-                <Text className="text-white text-[10px] font-semibold">
-                  {formatCurrency(stock.priceData.dayLow)} - {formatCurrency(stock.priceData.dayHigh)}
-                </Text>
-              </View>
-              <View className="flex-1 items-end">
-                <Text className="text-slate-400 text-[9px]">52-Week</Text>
-                <Text className="text-white text-[10px] font-semibold">
-                  {formatCurrency(stock.priceData.week52Low)} - {formatCurrency(stock.priceData.week52High)}
-                </Text>
-              </View>
-            </View>
+          {/* Technical & Dividend - Compact */}
+          <View className="bg-slate-800/50 rounded-lg p-1 mb-1">
             <View className="flex-row justify-between">
-              <View>
-                <Text className="text-slate-400 text-[9px]">Volume</Text>
-                <Text className="text-white text-[10px] font-semibold">
-                  {stock.volume.current.toFixed(1)}M
-                </Text>
-              </View>
-              <View className="items-center">
-                <Text className="text-slate-400 text-[9px]">MACD</Text>
+              <View className="flex-1">
+                <Text className="text-slate-400 text-[8px]">MACD</Text>
                 <Text className={cn(
-                  "text-[10px] font-semibold",
+                  "text-[9px] font-semibold",
                   stock.technicals.macd.value > 0 ? "text-emerald-400" : "text-red-400"
                 )}>
                   {stock.technicals.macd.value.toFixed(2)}
                 </Text>
               </View>
-              <View className="items-end">
-                <Text className="text-slate-400 text-[9px]">RSI</Text>
+              <View className="flex-1 items-center">
+                <Text className="text-slate-400 text-[8px]">RSI</Text>
                 <Text className={cn(
-                  "text-[10px] font-semibold",
+                  "text-[9px] font-semibold",
                   stock.technicals.rsi >= 70 ? "text-red-400" :
                   stock.technicals.rsi >= 50 ? "text-emerald-400" : "text-blue-400"
                 )}>
                   {stock.technicals.rsi}
                 </Text>
               </View>
-            </View>
-          </View>
-
-          {/* Company Details - More compact */}
-          <View className="flex-row justify-between items-center pt-1 border-t border-slate-700">
-            <View className="flex-1">
-              <Text className="text-slate-500 text-[9px]">
-                {stock.sector} • {stock.industry}
-              </Text>
+              <View className="flex-1 items-center">
+                <Text className="text-slate-400 text-[8px]">Yield</Text>
+                <Text className="text-emerald-400 text-[9px] font-bold">
+                  {stock.dividendYield.toFixed(2)}%
+                </Text>
+              </View>
+              <View className="flex-1 items-end">
+                <Text className="text-slate-400 text-[8px]">Ex-Date</Text>
+                <Text className="text-white text-[9px] font-semibold">
+                  {formatDate(stock.exDividendDate)}
+                </Text>
+              </View>
             </View>
           </View>
         </Pressable>

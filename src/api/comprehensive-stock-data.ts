@@ -17,6 +17,8 @@ export interface TechnicalIndicators {
 
 export interface PriceData {
   current: number;
+  open: number; // Opening price for the day
+  previousClose: number; // Previous day's close
   dayHigh: number;
   dayLow: number;
   week52High: number;
@@ -117,6 +119,8 @@ function createStock(
     price,
     priceData: {
       current: price,
+      open: price * 0.99, // Approximate open
+      previousClose: price - change,
       dayHigh: price + Math.abs(change) * 1.2,
       dayLow: price - Math.abs(change) * 0.8,
       week52High: price * (1.15 + Math.random() * 0.25),
@@ -638,6 +642,8 @@ export async function loadStocksFromTickers(
       price: 0,
       priceData: {
         current: 0,
+        open: 0,
+        previousClose: 0,
         dayHigh: 0,
         dayLow: 0,
         week52High: 0,

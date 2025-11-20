@@ -351,6 +351,8 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
       price: quote.c,
       priceData: {
         current: quote.c,
+        open: quote.o,
+        previousClose: quote.c - (quote.c - quote.o), // Calculate from open
         dayHigh: quote.h,
         dayLow: quote.l,
         week52High: week52High,

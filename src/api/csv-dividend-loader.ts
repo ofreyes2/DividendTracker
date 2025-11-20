@@ -92,6 +92,8 @@ function createStockFromCSV(
     price,
     priceData: {
       current: price,
+      open: quote?.o || price,
+      previousClose: quote ? quote.c - (quote.c - quote.o) : price,
       dayHigh,
       dayLow,
       week52High: price * 1.2,

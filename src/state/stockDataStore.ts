@@ -287,6 +287,8 @@ export const useStockDataStore = create<StockDataState>()(
                 changePercent: ((message.c - message.o) / message.o) * 100,
                 priceData: {
                   current: message.c,
+                  open: message.o,
+                  previousClose: message.c - (message.c - message.o),
                   dayHigh: message.h,
                   dayLow: message.l,
                   change: message.c - message.o,

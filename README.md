@@ -624,6 +624,55 @@ src/
 
 ---
 
+## Recent Updates - Version 2.0.2 (2025-11-20)
+
+### Major Data & UI Overhaul
+
+#### ✅ **Complete Card Redesign**
+- Completely restructured stock cards to show all essential data
+- **Header**: Symbol, Company Name, Current Price, Change with %
+- **Company Info**: Sector • Industry • Index (S&P 500, Dow Jones, etc.)
+- **Price Data Section**:
+  - Opening Price
+  - Previous Close
+  - Day Range (Low-High)
+  - 52-Week High
+  - 52-Week Low
+  - Volume (in millions)
+- **Technical & Dividend Section**:
+  - MACD (color-coded: green/red)
+  - RSI (color-coded: red>70, green>50, blue<50)
+  - Dividend Yield
+  - Ex-Dividend Date
+- Ultra-compact design with 8px-9px font sizes for maximum information density
+
+#### ✅ **Enhanced API Integration**
+- Added `open` and `previousClose` fields to PriceData interface
+- All price data now comes from Polygon.io APIs:
+  - Opening price from daily aggregate
+  - Previous close calculated from open
+  - Real 52-week high/low from historical data
+  - Real MACD, RSI, and Moving Averages
+- Updated all data models across the codebase
+
+#### ✅ **Fixed Date Filtering**
+- Resolved timezone offset issues causing off-by-one-day errors
+- Date comparisons now use local date components to avoid UTC conversion issues
+- "Today", "Tomorrow", and "Week" filters now work correctly
+
+#### ✅ **Data Quality Filter**
+- Automatically filters out stocks with $0 price (invalid/missing data)
+- Only shows stocks with valid pricing information
+- Prevents display of incomplete API responses
+
+#### 🔧 **Technical Improvements**
+- Updated TypeScript interfaces across all files
+- Fixed WebSocket price updates to include new fields
+- Improved CSV loader to handle new price data format
+- Enhanced stock data store with proper type safety
+
+---
+
 ## Recent Updates - Version 2.0.1 (2025-11-20)
 
 ### UI/UX Improvements
