@@ -2,11 +2,11 @@
 
 A professional daily dividend capture trading app with AI-powered stock screening and analysis. Find stocks with ex-dividend dates, calculate optimal positions to hit daily dividend targets, track trading opportunities, and execute a systematic buy-hold-sell rotation strategy.
 
-**🚀 NEW: Advanced Real-Time Data System with Background Refresh & WebSocket Updates** - Complete data management system with automatic scheduled refreshes, chunked loading for 11k+ tickers, and real-time WebSocket price updates.
+**🚀 NEW: Advanced Real-Time Data System with Background Refresh & WebSocket Updates** - Complete data management system with automatic scheduled refreshes, two-phase loading for 11,628 tickers, and real-time WebSocket price updates.
 
 ## Overview
 
-This app helps active traders execute a **daily dividend capture strategy**—buying stocks the day before their ex-dividend date, collecting the dividend payment, then selling and rotating capital to the next opportunity. Features comprehensive stock database with 11,000+ dividend-eligible tickers, date-based filtering, AI-powered position sizing to hit daily targets (e.g., $1,000/day), volume analysis for safe exits, and real-time trading calculations with Polygon.io integration for live market data.
+This app helps active traders execute a **daily dividend capture strategy**—buying stocks the day before their ex-dividend date, collecting the dividend payment, then selling and rotating capital to the next opportunity. Features comprehensive stock database with 11,628 dividend-eligible tickers, date-based filtering, AI-powered position sizing to hit daily targets (e.g., $1,000/day), volume analysis for safe exits, and real-time trading calculations with Polygon.io integration for live market data.
 
 ## Key Features
 
@@ -19,7 +19,7 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
   - Real technical indicators (RSI, MACD, Moving Averages)
   - Current market capitalization
   - Company details and sector information
-  - **11,000+ ticker symbols available** by default
+  - **11,628 ticker symbols available** by default (all US stocks)
 
 #### **Automated Background Refresh (NEW! 🔄)**
 - **Scheduled Daily Refresh** - Dividend data automatically refreshes once per day in the background
@@ -31,8 +31,8 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
   - **Dividend Data**: Refreshes once per 24 hours (background task)
   - **Price Data**: Updates continuously via WebSocket when app is active
 - **Crash-Resistant Loading** - Intelligent two-phase processing:
-  - **Phase 1 (FAST)**: Fetches only dividend data for all 11k+ tickers
-    - 1 API call per ticker, 10 requests/second = ~18 minutes for all tickers
+  - **Phase 1 (FAST)**: Fetches only dividend data for all 11,628 tickers (DEFAULT)
+    - 1 API call per ticker, 10 requests/second = ~19 minutes for all tickers
     - Filters to ~2000 stocks with upcoming ex-dividend dates
   - **Phase 2 (TARGETED)**: Fetches full price/company data for filtered stocks only
     - 3 API calls per stock with 2-second delays between stocks
@@ -73,7 +73,7 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 - **Manual Refresh** - Tap refresh icon anytime to reload data
 
 #### **Data Flow Architecture**
-1. **First Launch**: Loads 11k+ tickers with dividend data (chunked processing)
+1. **First Launch**: Loads 11,628 tickers with dividend data (two-phase processing)
 2. **Daily Background**: Automatically refreshes dividend data once per day
 3. **Live Updates**: WebSocket continuously updates prices when app is active
 4. **Manual Override**: User can trigger full refresh anytime
@@ -691,8 +691,8 @@ src/
   - "Annual Total" shows the full year dividend amount
   - All calculators and stock details properly distinguish between payment cycle and annual dividends
 - **Ticker Manager** allows users to manually edit and load custom tickers
-  - Automatically loads 11,000+ tickers from `/src/data/nanotickers.ts` by default
-  - Default refresh uses all 11,000+ tickers to find dividend opportunities
+  - Automatically loads 11,628 tickers from `/src/data/nanotickers.ts` by default
+  - Default refresh uses all 11,628 tickers to find dividend opportunities
   - Users can edit the ticker list directly in the app via purple list icon
   - Custom ticker lists are saved and used for future refreshes
   - To update the default ticker list: edit `/assets/nanotickers.txt` via SSH, then regenerate the TypeScript module
