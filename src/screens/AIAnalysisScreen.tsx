@@ -75,6 +75,7 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
     };
     message: string;
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   interface StockAllocation {
     stock: any;
@@ -98,6 +99,7 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
 
   const calculateMaximumDividend = async () => {
     setIsAnalyzing(true);
+    setError(null);
     try {
       const { calculateMaximumSafeDividend } = await import("../api/ai-analysis");
       const result = await calculateMaximumSafeDividend(
@@ -123,8 +125,9 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
         });
         setMultiStockAllocations(initialAllocations);
       }
-    } catch (error) {
-      console.error("Failed to calculate maximum dividend:", error);
+    } catch (error: any) {
+      const errorMessage = error?.message || "Unknown error occurred";
+      setError(errorMessage);
     } finally {
       setIsAnalyzing(false);
     }
@@ -132,6 +135,7 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
 
   const calculateSmartSuggestions = async () => {
     setIsAnalyzing(true);
+    setError(null);
     try {
       const result = await calculateStockSuggestions(
         stocks,
@@ -139,9 +143,16 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
         targetDividend!,
         selectedDay
       );
-      setSmartSuggestions(result);
-    } catch (error) {
-      console.error("Failed to calculate suggestions:", error);
+
+      // Check if no suggestions were found
+      if (result.suggestions.length === 0) {
+        setError(result.message || "No stocks found for the selected criteria.");
+      } else {
+        setSmartSuggestions(result);
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to calculate suggestions";
+      setError(errorMessage);
     } finally {
       setIsAnalyzing(false);
     }
@@ -196,6 +207,7 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
 
   const analyzeStocks = async () => {
     setIsAnalyzing(true);
+    setError(null);
     try {
       const result = await analyzeStocksInBulk(stocks, investmentAmount);
       setAnalyses(result.analyses);
@@ -204,8 +216,9 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
         highYield: result.highYieldScenario,
         lowRisk: result.lowRiskScenario,
       });
-    } catch (error) {
-      console.error("Failed to analyze stocks:", error);
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to analyze stocks";
+      setError(errorMessage);
     } finally {
       setIsAnalyzing(false);
     }
@@ -292,6 +305,29 @@ export default function AIAnalysisScreen({ navigation, route }: Props) {
           <Text className="text-slate-400 text-sm mt-2">
             This may take a moment
           </Text>
+        </View>
+      ) : error ? (
+        // Error State
+        <View className="flex-1 items-center justify-center px-6">
+          <View className="bg-red-900/30 border border-red-600 rounded-2xl p-6 w-full">
+            <View className="items-center mb-4">
+              <Ionicons name="alert-circle" size={64} color="#ef4444" />
+            </View>
+            <Text className="text-white text-xl font-bold text-center mb-3">
+              No Stocks Available
+            </Text>
+            <Text className="text-slate-300 text-base text-center mb-6">
+              {error}
+            </Text>
+            <Pressable
+              onPress={() => navigation.goBack()}
+              className="bg-blue-600 rounded-xl py-4 items-center active:bg-blue-700"
+            >
+              <Text className="text-white text-base font-bold">
+                Go Back
+              </Text>
+            </Pressable>
+          </View>
         </View>
       ) : maximumResult ? (
         // Maximum Safe Dividend View
