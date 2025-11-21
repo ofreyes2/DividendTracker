@@ -768,3 +768,173 @@ export async function loadStocksInTwoPhases(
   console.log(`Phase 2 complete: Loaded ${fullStocks.length} stocks with complete data`);
   return fullStocks;
 }
+
+/**
+ * AUTOMATIC DAILY DATA REFRESH SYSTEM
+ * This module manages background data refresh that runs once per day automatically
+ * All data metrics (price, volume, technical indicators, dividends) are updated
+ */
+
+// Store last refresh timestamp
+let lastAutoRefreshTime: number | null = null;
+let autoRefreshInterval: NodeJS.Timeout | null = null;
+
+/**
+ * Check if a daily refresh is needed (24 hours since last refresh)
+ */
+export function shouldRunDailyRefresh(): boolean {
+  if (!lastAutoRefreshTime) {
+    return true; // Never refreshed
+  }
+
+  const now = Date.now();
+  const hoursSinceRefresh = (now - lastAutoRefreshTime) / (1000 * 60 * 60);
+
+  return hoursSinceRefresh >= 24;
+}
+
+/**
+ * Schedule automatic daily data refresh
+ * Runs in background, updates all stock metrics once per day
+ */
+export function startAutomaticDailyRefresh(
+  onRefreshStart?: () => void,
+  onRefreshComplete?: (stockCount: number) => void,
+  onRefreshError?: (error: Error) => void
+): void {
+  console.log("[Auto-Refresh] Starting automatic daily refresh scheduler");
+
+  // Clear any existing interval
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+  }
+
+  // Function to perform the refresh
+  const performRefresh = async () => {
+    try {
+      if (!shouldRunDailyRefresh()) {
+        console.log("[Auto-Refresh] Skipping - last refresh was less than 24 hours ago");
+        return;
+      }
+
+      console.log("[Auto-Refresh] Starting daily data refresh...");
+      if (onRefreshStart) {
+        onRefreshStart();
+      }
+
+      // Get store and trigger refresh
+      const { useStockDataStore } = await import("../state/stockDataStore");
+      const store = useStockDataStore.getState();
+
+      // If using CSV data, refresh from CSV with price enrichment
+      if (store.useCSVData) {
+        await store.refreshFromCSV(true); // true = enrich with live prices
+      } else {
+        // Otherwise use the normal refresh method
+        await store.refreshStocks();
+      }
+
+      lastAutoRefreshTime = Date.now();
+      const stockCount = store.stocks.length;
+
+      console.log(`[Auto-Refresh] Daily refresh complete - updated ${stockCount} stocks`);
+
+      if (onRefreshComplete) {
+        onRefreshComplete(stockCount);
+      }
+    } catch (error) {
+      console.error("[Auto-Refresh] Failed to perform daily refresh:", error);
+      if (onRefreshError && error instanceof Error) {
+        onRefreshError(error);
+      }
+    }
+  };
+
+  // Run immediately if needed
+  performRefresh();
+
+  // Schedule to run every 6 hours (checks if 24 hours have passed)
+  autoRefreshInterval = setInterval(() => {
+    performRefresh();
+  }, 6 * 60 * 60 * 1000); // Check every 6 hours
+
+  console.log("[Auto-Refresh] Scheduler initialized - will check every 6 hours");
+}
+
+/**
+ * Stop automatic daily refresh
+ */
+export function stopAutomaticDailyRefresh(): void {
+  if (autoRefreshInterval) {
+    clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+    console.log("[Auto-Refresh] Automatic daily refresh stopped");
+  }
+}
+
+/**
+ * Manually trigger a data refresh (bypasses 24-hour check)
+ */
+export async function manualDataRefresh(
+  onProgress?: (phase: string, current: number, total: number, symbol: string) => void
+): Promise<DividendStock[]> {
+  console.log("[Manual Refresh] Starting manual data refresh...");
+
+  try {
+    const { useStockDataStore } = await import("../state/stockDataStore");
+    const store = useStockDataStore.getState();
+
+    // Wrapper for progress updates
+    const progressWrapper = (phase: string) => {
+      return (current: number, total: number, symbol: string) => {
+        if (onProgress) {
+          onProgress(phase, current, total, symbol);
+        }
+      };
+    };
+
+    // If using CSV data, refresh from CSV with price enrichment
+    if (store.useCSVData) {
+      await store.refreshFromCSV(true); // true = enrich with live prices
+    } else {
+      await store.refreshStocks();
+    }
+
+    lastAutoRefreshTime = Date.now();
+
+    console.log(`[Manual Refresh] Complete - loaded ${store.stocks.length} stocks`);
+    return store.stocks;
+  } catch (error) {
+    console.error("[Manual Refresh] Failed:", error);
+    throw error;
+  }
+}
+
+/**
+ * Get info about the auto-refresh system status
+ */
+export function getAutoRefreshStatus(): {
+  isRunning: boolean;
+  lastRefreshTime: number | null;
+  nextRefreshIn: number | null; // milliseconds until next refresh
+  hoursSinceLastRefresh: number | null;
+} {
+  const isRunning = autoRefreshInterval !== null;
+  const hoursSinceLastRefresh = lastAutoRefreshTime
+    ? (Date.now() - lastAutoRefreshTime) / (1000 * 60 * 60)
+    : null;
+
+  let nextRefreshIn: number | null = null;
+  if (lastAutoRefreshTime) {
+    const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+    const timeSinceRefresh = Date.now() - lastAutoRefreshTime;
+    nextRefreshIn = Math.max(0, twentyFourHoursInMs - timeSinceRefresh);
+  }
+
+  return {
+    isRunning,
+    lastRefreshTime: lastAutoRefreshTime,
+    nextRefreshIn,
+    hoursSinceLastRefresh,
+  };
+}

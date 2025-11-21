@@ -29,14 +29,23 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
     - **Recommended: Use 500-1000 tickers** due to API rate limits
 
 #### **Automated Background Refresh (NEW! 🔄)**
-- **Scheduled Daily Refresh** - Dividend data automatically refreshes once per day in the background
-  - No manual refresh needed for dividend information
-  - Runs automatically even when app is closed
-  - Optimized to run during off-hours to minimize battery impact
-  - Dividend dates only change daily, so no need for constant updates
-- **Smart Refresh Strategy** - Two-tier data update system:
-  - **Dividend Data**: Refreshes once per 24 hours (background task)
-  - **Price Data**: Updates continuously via WebSocket when app is active
+- **Automatic Daily Data Refresh** - All data metrics update once per day in the background
+  - **Runs automatically without user action** - System checks every 6 hours and refreshes if 24+ hours have passed
+  - Refreshes ALL data metrics:
+    - Stock prices (current, open, close, high, low, 52-week range)
+    - Volume data (current, average)
+    - Technical indicators (MACD, RSI, Moving Averages, PEG ratio)
+    - Dividend information (amount, yield, ex-dates, payment dates)
+    - Company fundamentals (market cap, sector, industry)
+  - **Starts automatically on app launch** - No configuration needed
+  - **Continues in background** - Updates happen even when app is closed (via expo-background-fetch)
+  - **Scheduled for optimal timing** - Background service runs 5-7 PM EST after market close when technical indicators are finalized
+  - **Smart caching** - Updated data persists between sessions
+  - **Status tracking** - Can check last refresh time and next scheduled refresh
+- **Smart Refresh Strategy** - Optimized two-tier update system:
+  - **In-App Refresh**: Runs when app is active, checks every 6 hours (refreshes if 24+ hours passed)
+  - **Background Refresh**: Scheduled daily 5-7 PM EST via expo-background-fetch
+  - Both systems coordinate to ensure one refresh per day maximum
 - **Crash-Resistant Loading** - Intelligent two-phase processing:
   - **Phase 1 (FAST)**: Fetches only dividend data for selected tickers
     - 1 API call per ticker, 10 requests/second

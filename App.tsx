@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import RootNavigator from "./src/navigation/RootNavigator";
 import { registerBackgroundRefreshTask } from "./src/services/backgroundRefreshService";
 import { useStockDataStore } from "./src/state/stockDataStore";
+import { startAutomaticDailyRefresh } from "./src/api/comprehensive-stock-data";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -41,6 +42,19 @@ export default function App() {
       .catch((error) => {
         console.error("[App] Failed to register background refresh:", error);
       });
+
+    // Start automatic daily data refresh (checks every 6 hours, refreshes once per day)
+    startAutomaticDailyRefresh(
+      () => {
+        console.log("[App] Automatic daily refresh started");
+      },
+      (stockCount) => {
+        console.log(`[App] Automatic daily refresh complete - updated ${stockCount} stocks`);
+      },
+      (error) => {
+        console.error("[App] Automatic daily refresh error:", error);
+      }
+    );
 
     // Enable WebSocket for real-time updates if enabled
     if (websocketEnabled) {
