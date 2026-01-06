@@ -88,14 +88,34 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
 - **Persistent Storage** - Data cached locally between app sessions
 - **Manual Refresh** - Tap refresh icon anytime to reload data
 
-#### **Data Flow Architecture**
+#### **Data Flow Architecture (NEW! Master Dataset System)**
 
-**Simplified Automatic Loading (NEW!)**:
-- App loads **instantly** with ~926 dividend stocks from CSV file
-- Dividend data (amount, frequency, dates, yield, payout ratio) from CSV
-- **Manual Refresh**: Tap the refresh button to fetch current prices from Polygon.io
-- Data persists between app restarts - no re-loading needed
-- Background task refreshes dividend data daily during off-hours
+**Key Architecture Change**: All data is now keyed by symbol/ticker. Joins are ALWAYS done on symbol, never by array index. This prevents the "all stocks having the same info" bug.
+
+**Master Dataset System**:
+- **Once per day**: Fetch all relatively static data from Polygon APIs:
+  - Company info (name, sector, industry, market cap)
+  - Dividend data (amount, dates, frequency, yield)
+  - 52-week high/low
+  - Average volume
+- **Normalize and merge**: All data merged into single master dataset file (JSON)
+- **Symbol-keyed storage**: Every row keyed by ticker symbol for O(1) lookups
+- **File-based persistence**: Saved to device storage via expo-file-system
+
+**On App Startup**:
+1. Load master dataset from file (instant, cached)
+2. If dataset >24 hours old, rebuild in background from CSV + Polygon APIs
+3. Display stocks immediately with dividend data
+4. Fetch live prices separately for intra-day updates
+
+**For Real-Time/Delayed Data**:
+- Price, volume, daily change fetched directly from Polygon APIs
+- Updates every 15 minutes during market hours
+- Merged with master dataset using symbol-based joins
+
+**Data Files**:
+- `master-data/master-dataset.json` - All static stock data keyed by symbol
+- `master-data/metadata.json` - Last update timestamp, ticker count
 
 **Updating Dividend Data**:
 - Replace the CSV file (`src/data/tickers.csv`) with new data
@@ -103,9 +123,9 @@ This app helps active traders execute a **daily dividend capture strategy**—bu
   ```bash
   node -e "const fs = require('fs'); const csv = fs.readFileSync('src/data/tickers.csv', 'utf-8'); const escaped = csv.replace(/\`/g, '\\\`').replace(/\\\$/g, '\\\$'); fs.writeFileSync('src/data/tickers-data.ts', 'export const TICKERS_CSV = \`' + escaped + '\`;');"
   ```
-- App automatically uses the new data on next refresh
+- Master dataset auto-rebuilds on next app launch
 
-**Note**: Dividend information comes from your CSV file. Tap refresh to get current prices and volumes from Polygon.io (~3 minutes for 925 tickers).
+**Note**: Dividend information comes from CSV file. Live prices fetched from Polygon.io. All data properly merged by symbol.
 
 ### 1. **Daily Dividend Calendar with Smart Filtering**
 - **Complete Stock Universe** - Browse all 45+ dividend-paying stocks
@@ -480,8 +500,16 @@ The app includes 45+ dividend stocks across multiple sectors with complete techn
 ```
 src/
 ├── api/
+│   ├── master-dataset-service.ts    # Master dataset file operations (NEW!)
+│   │                                 # Symbol-keyed storage, merge utilities
+│   ├── daily-data-fetcher.ts        # Daily batch fetch from Polygon APIs (NEW!)
+│   │                                 # Builds master dataset from CSV + API
+│   ├── realtime-price-service.ts    # Live/15-min delayed price fetcher (NEW!)
+│   │                                 # Symbol-based batch price updates
 │   ├── comprehensive-stock-data.ts  # Complete stock database with 45+ stocks
 │   │                                 # Technical indicators, volume, price ranges
+│   ├── polygon-api.ts               # Polygon.io API integration
+│   ├── csv-dividend-loader.ts       # CSV data parser
 │   ├── ai-analysis.ts               # AI-powered stock analysis
 │   └── chat-service.ts              # OpenAI API integration (GPT-4o)
 ├── screens/
@@ -491,7 +519,8 @@ src/
 │   ├── BulkCalculatorScreen.tsx     # Investment calculator
 │   └── AIAnalysisScreen.tsx         # AI analysis & recommendations
 ├── state/
-│   └── portfolioStore.ts            # Zustand store for portfolio management
+│   └── stockDataStore.ts            # Zustand store with master dataset support
+│                                     # Symbol-keyed updates, price refresh
 ├── navigation/
 │   └── RootNavigator.tsx            # Navigation structure
 └── utils/
