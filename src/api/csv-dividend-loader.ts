@@ -324,13 +324,39 @@ export async function loadStocksFromCSV(
  * Filter stocks to only those with future ex-dividend dates
  */
 export function filterFutureStocks(stocks: DividendStock[]): DividendStock[] {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const todayYear = now.getFullYear();
+  const todayMonth = now.getMonth();
+  const todayDay = now.getDate();
+  const todayDate = new Date(todayYear, todayMonth, todayDay);
+
+  console.log(`[FilterFuture] Today's date for comparison: ${todayDate.toISOString().split("T")[0]}`);
 
   return stocks.filter((stock) => {
-    const exDate = new Date(stock.exDividendDate);
-    exDate.setHours(0, 0, 0, 0);
-    return exDate >= today;
+    if (!stock.exDividendDate) {
+      return false;
+    }
+
+    // Parse the ex-dividend date (format: YYYY-MM-DD)
+    const parts = stock.exDividendDate.split("-");
+    if (parts.length !== 3) {
+      console.warn(`[FilterFuture] Invalid date format for ${stock.symbol}: ${stock.exDividendDate}`);
+      return false;
+    }
+
+    const exYear = parseInt(parts[0], 10);
+    const exMonth = parseInt(parts[1], 10) - 1; // JavaScript months are 0-indexed
+    const exDay = parseInt(parts[2], 10);
+    const exDate = new Date(exYear, exMonth, exDay);
+
+    const isFuture = exDate >= todayDate;
+
+    // Log some samples for debugging
+    if (Math.random() < 0.01) { // Log 1% of stocks
+      console.log(`[FilterFuture] ${stock.symbol}: ex-date ${stock.exDividendDate}, isFuture: ${isFuture}`);
+    }
+
+    return isFuture;
   });
 }
 

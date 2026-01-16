@@ -62,17 +62,27 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     lastWebSocketUpdate,
     shouldAutoRefresh,
     refreshFromCSV,
+    refreshStocks,
     websocketConnected,
   } = useStockDataStore();
 
-  // Auto-load CSV data on first launch
+  // Auto-load data on first launch - use CSV with API enrichment to get current data
   useEffect(() => {
     if (storedStocks.length === 0 && !isRefreshing) {
-      console.log("First launch - loading stocks from CSV (instant, no API calls)...");
-      // Load CSV data without prices first for instant display
-      refreshFromCSV(false);
+      console.log("First launch - loading stocks from CSV with live price enrichment...");
+      // Load CSV data WITH prices to get current data
+      refreshFromCSV(true);
     } else if (storedStocks.length > 0) {
       console.log(`App started with ${storedStocks.length} stocks already loaded from storage`);
+
+      // Check if data is stale (more than 24 hours old) and refresh
+      if (lastRefreshTime) {
+        const hoursSinceRefresh = (Date.now() - lastRefreshTime) / (1000 * 60 * 60);
+        if (hoursSinceRefresh > 24) {
+          console.log(`Data is ${hoursSinceRefresh.toFixed(1)} hours old - refreshing...`);
+          refreshFromCSV(true);
+        }
+      }
     }
   }, []);
 
@@ -86,6 +96,21 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     // Filter out stocks with $0 price (invalid data)
     stocks = stocks.filter((s) => s.price > 0);
 
+    // CRITICAL: Filter out stocks with PAST ex-dividend dates
+    // Today's date for comparison
+    const now = new Date();
+    const todayYear = now.getFullYear();
+    const todayMonth = now.getMonth();
+    const todayDay = now.getDate();
+    const todayDate = new Date(todayYear, todayMonth, todayDay);
+
+    stocks = stocks.filter((s) => {
+      if (!s.exDividendDate) return false;
+      const [exYear, exMonth, exDay] = s.exDividendDate.split("-").map(Number);
+      const exDate = new Date(exYear, exMonth - 1, exDay);
+      return exDate >= todayDate; // Only include today or future
+    });
+
     // Apply search filter first
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -98,7 +123,6 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
 
     // Apply quick filters
     // Use local date components to avoid timezone issues
-    const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const day = String(now.getDate()).padStart(2, "0");
@@ -384,6 +408,38 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
             </Pressable>
           )}
         </View>
+
+        {/* Stale Data Warning - Show when we have stocks but none are current/future */}
+        {storedStocks.length > 0 && filteredStocks.length === 0 && !isRefreshing && (
+          <View className="bg-red-900/30 border border-red-600 rounded-xl p-4 mb-3">
+            <View className="flex-row items-start mb-2">
+              <Ionicons name="alert-circle" size={24} color="#ef4444" />
+              <Text className="text-white font-semibold ml-2 flex-1">
+                Stale Data Detected
+              </Text>
+            </View>
+            <Text className="text-slate-300 text-sm mb-3">
+              Your cached data contains old ex-dividend dates. Today is {new Date().toLocaleDateString()}. Tap below to refresh with current dividend data.
+            </Text>
+            <Pressable
+              onPress={async () => {
+                // Clear the cached stocks and refresh
+                const store = require("../state/stockDataStore").useStockDataStore.getState();
+                store.setStocks([]);
+                // Small delay then refresh
+                setTimeout(() => {
+                  store.refreshFromCSV(true);
+                }, 100);
+              }}
+              className="bg-red-600 rounded-xl px-4 py-3 flex-row items-center justify-center active:bg-red-700"
+            >
+              <Ionicons name="refresh" size={20} color="white" />
+              <Text className="text-white font-semibold ml-2">
+                Clear Cache & Refresh Data
+              </Text>
+            </Pressable>
+          </View>
+        )}
 
         {/* Guide to Ticker Manager */}
         {/* Show guidance only if NO stocks are loaded */}
@@ -690,15 +746,39 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         keyExtractor={(item, index) => `${item.symbol}-${index}`}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: selectedStocks.length > 0 ? 120 : 20 }}
         ListEmptyComponent={
-          <View className="items-center py-20">
-            <Ionicons name="calendar-outline" size={64} color="#64748b" />
-            <Text className="text-white text-xl font-semibold mt-4">
-              No Stocks Found
-            </Text>
-            <Text className="text-slate-400 text-base mt-2 text-center">
-              Try adjusting your filters
-            </Text>
-          </View>
+          isRefreshing ? (
+            <View className="items-center py-20">
+              <ActivityIndicator size="large" color="#60a5fa" />
+              <Text className="text-white text-xl font-semibold mt-4">
+                Loading Dividend Data...
+              </Text>
+              <Text className="text-slate-400 text-base mt-2 text-center">
+                {refreshProgress.phase || `Fetching ${refreshProgress.symbol || "stocks"}...`}
+              </Text>
+              {refreshProgress.total > 0 && (
+                <Text className="text-blue-400 text-sm mt-2">
+                  {refreshProgress.current} / {refreshProgress.total}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <View className="items-center py-20">
+              <Ionicons name="calendar-outline" size={64} color="#64748b" />
+              <Text className="text-white text-xl font-semibold mt-4">
+                No Future Dividends Found
+              </Text>
+              <Text className="text-slate-400 text-base mt-2 text-center px-8">
+                No stocks with ex-dividend dates of today or later.{"\n"}
+                Tap below to refresh with live data.
+              </Text>
+              <Pressable
+                onPress={() => refreshFromCSV(true)}
+                className="mt-4 bg-blue-600 px-6 py-3 rounded-xl"
+              >
+                <Text className="text-white font-semibold">Refresh Data</Text>
+              </Pressable>
+            </View>
+          )
         }
         initialNumToRender={20}
         maxToRenderPerBatch={10}
