@@ -6,6 +6,7 @@
  * - Last data refresh time
  * - Data source documentation
  * - Live data feed with progressive loading
+ * - Scheduled 3 AM update status
  */
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
@@ -29,6 +30,12 @@ import {
   type DataSourceStatus,
 } from "../api/live-dividend-service";
 import { fetchMarketNews, type YahooNews } from "../api/yahoo-finance";
+import {
+  forceRunDividendUpdate,
+  getLastScheduledUpdateTime,
+  getTimeUntilNextUpdate,
+  type DividendUpdateResult,
+} from "../api/scheduled-dividend-updater";
 import { useStockDataStore } from "../state/stockDataStore";
 import { TICKERS } from "../data/nanotickers";
 import { cn } from "../utils/cn";
@@ -91,12 +98,34 @@ export default function DataSourcesScreen({ navigation }: DataSourcesScreenProps
   const [isLoadingNews, setIsLoadingNews] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Scheduled update state
+  const [isRunningScheduledUpdate, setIsRunningScheduledUpdate] = useState(false);
+  const [scheduledUpdateProgress, setScheduledUpdateProgress] = useState({ phase: "", current: 0, total: 0, message: "" });
+  const [lastScheduledUpdate, setLastScheduledUpdate] = useState<number | null>(null);
+  const [nextUpdateTime, setNextUpdateTime] = useState({ hours: 0, minutes: 0 });
+
   const { stocks, setStocks, lastRefreshTime } = useStockDataStore();
 
-  // Check API status on mount
+  // Check API status and scheduled update info on mount
   useEffect(() => {
     checkApiStatus();
+    loadScheduledUpdateInfo();
   }, []);
+
+  // Update countdown every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNextUpdateTime(getTimeUntilNextUpdate());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadScheduledUpdateInfo = async () => {
+    const lastUpdate = await getLastScheduledUpdateTime();
+    setLastScheduledUpdate(lastUpdate);
+    setNextUpdateTime(getTimeUntilNextUpdate());
+  };
 
   // Load news when tab changes
   useEffect(() => {
@@ -119,6 +148,28 @@ export default function DataSourcesScreen({ navigation }: DataSourcesScreenProps
       console.error("Failed to load news:", error);
     } finally {
       setIsLoadingNews(false);
+    }
+  };
+
+  // Force run the scheduled update
+  const runScheduledUpdateNow = async () => {
+    if (isRunningScheduledUpdate) return;
+
+    setIsRunningScheduledUpdate(true);
+    setScheduledUpdateProgress({ phase: "starting", current: 0, total: 0, message: "Starting update..." });
+
+    try {
+      const result = await forceRunDividendUpdate((phase, current, total, message) => {
+        setScheduledUpdateProgress({ phase, current, total, message });
+      });
+
+      if (result.success) {
+        await loadScheduledUpdateInfo();
+      }
+    } catch (error) {
+      console.error("Scheduled update failed:", error);
+    } finally {
+      setIsRunningScheduledUpdate(false);
     }
   };
 
@@ -315,6 +366,74 @@ export default function DataSourcesScreen({ navigation }: DataSourcesScreenProps
         {/* API Documentation Tab */}
         {activeTab === "apis" && (
           <View className="pb-8">
+            {/* Scheduled Update Card - 3 AM Daily */}
+            <View className="bg-blue-900/30 border border-blue-600 rounded-xl p-4 mb-4">
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <Ionicons name="time" size={24} color="#60a5fa" />
+                  <View className="ml-3">
+                    <Text className="text-white font-bold text-lg">Scheduled Update</Text>
+                    <Text className="text-blue-400 text-xs">Runs daily at 3:00 AM</Text>
+                  </View>
+                </View>
+                <View className="bg-blue-600 px-2 py-1 rounded">
+                  <Text className="text-white text-xs font-semibold">AUTO</Text>
+                </View>
+              </View>
+
+              <Text className="text-slate-300 text-sm mb-3">
+                Fetches all dividend data from Polygon.io for stocks with ex-dividend dates from today onwards. Updates happen automatically at 3 AM local time.
+              </Text>
+
+              {/* Status Info */}
+              <View className="bg-slate-800/50 rounded-lg p-3 mb-3">
+                <View className="flex-row justify-between mb-2">
+                  <Text className="text-slate-400 text-xs">Last Scheduled Update</Text>
+                  <Text className="text-white text-xs font-semibold">
+                    {lastScheduledUpdate ? formatDate(lastScheduledUpdate) : "Never"}
+                  </Text>
+                </View>
+                <View className="flex-row justify-between">
+                  <Text className="text-slate-400 text-xs">Next Update In</Text>
+                  <Text className="text-emerald-400 text-xs font-semibold">
+                    {nextUpdateTime.hours}h {nextUpdateTime.minutes}m
+                  </Text>
+                </View>
+              </View>
+
+              {/* Progress or Button */}
+              {isRunningScheduledUpdate ? (
+                <View className="bg-slate-800 rounded-lg p-3">
+                  <View className="flex-row items-center mb-2">
+                    <ActivityIndicator size="small" color="#60a5fa" />
+                    <Text className="text-white font-semibold ml-2">
+                      {scheduledUpdateProgress.message}
+                    </Text>
+                  </View>
+                  {scheduledUpdateProgress.total > 0 && (
+                    <View className="bg-slate-700 h-2 rounded-full overflow-hidden">
+                      <View
+                        className="bg-blue-500 h-full"
+                        style={{
+                          width: `${(scheduledUpdateProgress.current / scheduledUpdateProgress.total) * 100}%`,
+                        }}
+                      />
+                    </View>
+                  )}
+                </View>
+              ) : (
+                <Pressable
+                  onPress={runScheduledUpdateNow}
+                  className="bg-blue-600 rounded-lg py-3 flex-row items-center justify-center active:bg-blue-700"
+                >
+                  <Ionicons name="cloud-download" size={20} color="white" />
+                  <Text className="text-white font-semibold ml-2">
+                    Run Update Now
+                  </Text>
+                </Pressable>
+              )}
+            </View>
+
             {/* Last Refresh Info */}
             <View className="bg-slate-800/50 rounded-xl p-4 mb-4">
               <View className="flex-row items-center justify-between">

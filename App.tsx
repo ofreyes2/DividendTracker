@@ -7,6 +7,7 @@ import RootNavigator from "./src/navigation/RootNavigator";
 import { registerBackgroundRefreshTask } from "./src/services/backgroundRefreshService";
 import { useStockDataStore } from "./src/state/stockDataStore";
 import { startAutomaticDailyRefresh } from "./src/api/comprehensive-stock-data";
+import { startDividendUpdateScheduler } from "./src/api/scheduled-dividend-updater";
 
 /*
 IMPORTANT NOTICE: DO NOT REMOVE
@@ -42,6 +43,10 @@ export default function App() {
       .catch((error) => {
         console.error("[App] Failed to register background refresh:", error);
       });
+
+    // Start the 3 AM scheduled dividend update scheduler
+    startDividendUpdateScheduler();
+    console.log("[App] 3 AM dividend update scheduler started");
 
     // Start automatic daily data refresh (checks every 6 hours, refreshes once per day)
     startAutomaticDailyRefresh(
