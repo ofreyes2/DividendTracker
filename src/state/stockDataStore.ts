@@ -44,6 +44,7 @@ interface StockDataState {
   lastWebSocketUpdate: number | null;
   isRefreshing: boolean;
   isLoadingPrices: boolean; // Separate loading state for price updates
+  isHydrated: boolean; // Track if store has loaded from AsyncStorage
   refreshProgress: { current: number; total: number; symbol: string; phase?: string };
   autoRefreshEnabled: boolean;
   refreshIntervalHours: number;
@@ -85,6 +86,7 @@ export const useStockDataStore = create<StockDataState>()(
       lastWebSocketUpdate: null,
       isRefreshing: false,
       isLoadingPrices: false,
+      isHydrated: false, // Will be set to true after AsyncStorage loads
       refreshProgress: { current: 0, total: 0, symbol: "" },
       autoRefreshEnabled: true,
       refreshIntervalHours: 24,
@@ -648,6 +650,18 @@ export const useStockDataStore = create<StockDataState>()(
     {
       name: "stock-data-storage",
       storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state, error) => {
+        // Called when storage has been loaded
+        if (error) {
+          console.error("[Store] Hydration error:", error);
+        }
+        // Use setTimeout to ensure the store is ready before setting isHydrated
+        setTimeout(() => {
+          useStockDataStore.setState({ isHydrated: true });
+          const currentState = useStockDataStore.getState();
+          console.log(`[Store] Hydrated with ${currentState.stocks?.length || 0} stocks from storage`);
+        }, 0);
+      },
       partialize: (state) => ({
         stocks: state.stocks,
         lastRefreshTime: state.lastRefreshTime,

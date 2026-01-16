@@ -56,6 +56,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
   const {
     stocks: storedStocks,
     isRefreshing,
+    isHydrated,
     refreshProgress,
     lastRefreshTime,
     lastDividendRefreshTime,
@@ -66,8 +67,14 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
     websocketConnected,
   } = useStockDataStore();
 
-  // Auto-load data on first launch - use CSV with API enrichment to get current data
+  // Auto-load data on first launch - wait for hydration first
   useEffect(() => {
+    // Don't do anything until store is hydrated from AsyncStorage
+    if (!isHydrated) {
+      console.log("Waiting for store hydration...");
+      return;
+    }
+
     if (storedStocks.length === 0 && !isRefreshing) {
       console.log("First launch - loading stocks from CSV with live price enrichment...");
       // Load CSV data WITH prices to get current data
@@ -84,7 +91,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         }
       }
     }
-  }, []);
+  }, [isHydrated]);
 
   // Use stored stocks or fallback to mock data
   const availableStocks = storedStocks.length > 0 ? storedStocks : ALL_DIVIDEND_STOCKS;
@@ -410,7 +417,7 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         </View>
 
         {/* Stale Data Warning - Show when we have stocks but none are current/future */}
-        {storedStocks.length > 0 && filteredStocks.length === 0 && !isRefreshing && (
+        {isHydrated && storedStocks.length > 0 && filteredStocks.length === 0 && !isRefreshing && (
           <View className="bg-red-900/30 border border-red-600 rounded-xl p-4 mb-3">
             <View className="flex-row items-start mb-2">
               <Ionicons name="alert-circle" size={24} color="#ef4444" />
@@ -442,8 +449,8 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         )}
 
         {/* Guide to Ticker Manager */}
-        {/* Show guidance only if NO stocks are loaded */}
-        {storedStocks.length === 0 && !isRefreshing && (
+        {/* Show guidance only if NO stocks are loaded AND store is hydrated */}
+        {isHydrated && storedStocks.length === 0 && !isRefreshing && (
           <View className="bg-amber-900/30 border border-amber-600 rounded-xl p-4 mb-3">
             <View className="flex-row items-start mb-2">
               <Ionicons name="warning" size={24} color="#f59e0b" />
@@ -746,16 +753,18 @@ export default function StockListScreen({ navigation }: StockListScreenProps) {
         keyExtractor={(item, index) => `${item.symbol}-${index}`}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: selectedStocks.length > 0 ? 120 : 20 }}
         ListEmptyComponent={
-          isRefreshing ? (
+          !isHydrated || isRefreshing ? (
             <View className="items-center py-20">
               <ActivityIndicator size="large" color="#60a5fa" />
               <Text className="text-white text-xl font-semibold mt-4">
-                Loading Dividend Data...
+                {!isHydrated ? "Loading Saved Data..." : "Loading Dividend Data..."}
               </Text>
               <Text className="text-slate-400 text-base mt-2 text-center">
-                {refreshProgress.phase || `Fetching ${refreshProgress.symbol || "stocks"}...`}
+                {!isHydrated
+                  ? "Retrieving your stocks from storage..."
+                  : (refreshProgress.phase || `Fetching ${refreshProgress.symbol || "stocks"}...`)}
               </Text>
-              {refreshProgress.total > 0 && (
+              {isHydrated && refreshProgress.total > 0 && (
                 <Text className="text-blue-400 text-sm mt-2">
                   {refreshProgress.current} / {refreshProgress.total}
                 </Text>
