@@ -14,6 +14,7 @@ import TickerManagerScreen from "../screens/TickerManagerScreen";
 import AboutScreen from "../screens/AboutScreen";
 import FeedbackScreen from "../screens/FeedbackScreen";
 import PortfolioHelpScreen from "../screens/PortfolioHelpScreen";
+import DataSourcesScreen from "../screens/DataSourcesScreen";
 import type { DividendStock } from "../api/comprehensive-stock-data";
 
 export type RootStackParamList = {
@@ -40,6 +41,7 @@ export type RootStackParamList = {
   About: undefined;
   Feedback: undefined;
   PortfolioHelp: undefined;
+  DataSources: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -83,6 +85,7 @@ export default function RootNavigator() {
       <Stack.Screen name="About" component={AboutScreen} />
       <Stack.Screen name="Feedback" component={FeedbackScreen} />
       <Stack.Screen name="PortfolioHelp" component={PortfolioHelpScreen} />
+      <Stack.Screen name="DataSources" component={DataSourcesScreen} />
     </Stack.Navigator>
   );
 }

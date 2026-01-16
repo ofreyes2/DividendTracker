@@ -2,15 +2,59 @@
 
 A professional daily dividend capture trading app with AI-powered stock screening and analysis. Find stocks with ex-dividend dates, calculate optimal positions to hit daily dividend targets, track trading opportunities, and execute a systematic buy-hold-sell rotation strategy.
 
-**🚀 NEW: Advanced Real-Time Data System with Background Refresh & WebSocket Updates** - Complete data management system with automatic scheduled refreshes, two-phase loading for 11,628 tickers, and real-time WebSocket price updates.
+**🚀 NEW: Multi-Source Live Data System with API Documentation** - Complete data management system with Polygon.io, Yahoo Finance (FREE), and local CSV data. Progressive loading shows tickers as they become available with all important data.
 
 ## Overview
 
-This app helps active traders execute a **daily dividend capture strategy**—buying stocks the day before their ex-dividend date, collecting the dividend payment, then selling and rotating capital to the next opportunity. Features comprehensive stock database with 11,628 dividend-eligible tickers, date-based filtering, AI-powered position sizing to hit daily targets (e.g., $1,000/day), volume analysis for safe exits, and real-time trading calculations with Polygon.io integration for live market data.
+This app helps active traders execute a **daily dividend capture strategy**—buying stocks the day before their ex-dividend date, collecting the dividend payment, then selling and rotating capital to the next opportunity. Features comprehensive stock database with 11,628 dividend-eligible tickers, date-based filtering, AI-powered position sizing to hit daily targets (e.g., $1,000/day), volume analysis for safe exits, and real-time trading calculations with multiple API integrations for live market data.
 
 ## Key Features
 
-### 0. **Advanced Real-Time Market Data System (NEW 🆕)**
+### 0. **Multi-Source Live Data System (NEW 🆕)**
+
+#### **Data Sources Page**
+Access via the green server icon in the header. Shows:
+- **API Status**: Real-time status of all data sources (Polygon.io, Yahoo Finance, Local CSV)
+- **Live Data Feed**: Progressive loading of dividend stocks as they become available
+- **Market News**: Latest dividend stock news from Yahoo Finance
+
+#### **Multiple Data Sources**
+1. **Polygon.io (Primary - Paid API with free tier)**
+   - Professional-grade stock market data
+   - Dividend calendar with ex-dates, amounts, payment dates
+   - Technical indicators (RSI, MACD, SMA 50/200)
+   - Real-time quotes (15-min delayed on free tier)
+   - Rate limit: 5 requests/second
+   - Endpoints used:
+     - `/v3/reference/dividends` - Dividend data
+     - `/v2/aggs/ticker/{symbol}/prev` - Previous day OHLCV
+     - `/v3/reference/tickers/{symbol}` - Company details
+     - `/v1/indicators/rsi` - RSI indicator
+     - `/v1/indicators/macd` - MACD indicator
+     - `/v1/indicators/sma` - Moving averages
+
+2. **Yahoo Finance (FREE - No API key required)**
+   - Free stock quotes and market data
+   - Stock news and analyst recommendations
+   - 52-week high/low, moving averages
+   - Dividend yields and ex-dates
+   - Endpoints used:
+     - `/v7/finance/quote` - Real-time quotes (batch)
+     - `/v1/finance/search` - News and search
+     - `/v10/finance/quoteSummary` - Detailed stock info
+
+3. **Local CSV Data (Offline fallback)**
+   - Pre-loaded dividend data for ~926 tickers
+   - Instant loading without API calls
+   - Complete dividend information
+   - Perfect for offline use
+
+#### **Progressive Loading UI**
+- Stocks appear on screen as they are fetched
+- Real-time progress indicator shows loading status
+- Filter for future ex-dividend dates only (today or later)
+- Each stock shows data source (Polygon/Yahoo/CSV)
+- All important metrics: price, 52W high/low, volume, yield, ex-date
 
 #### **Intelligent Data Management**
 - **Dual Data Sources** - Flexible data loading options:
