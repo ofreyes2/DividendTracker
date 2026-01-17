@@ -77,9 +77,14 @@ export async function fetchAllUpcomingDividends(
         url += `&cursor=${cursor}`;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+
       const response = await fetch(url, {
-        signal: AbortSignal.timeout(30000) // 30s timeout
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         if (response.status === 429) {
@@ -157,7 +162,10 @@ export async function enrichDividendsWithStockData(
     try {
       // Fetch quote data
       const quoteUrl = `${BASE_URL}/v2/aggs/ticker/${ticker}/prev?adjusted=true&apiKey=${POLYGON_API_KEY}`;
-      const quoteResponse = await fetch(quoteUrl, { signal: AbortSignal.timeout(10000) });
+      const quoteController = new AbortController();
+      const quoteTimeoutId = setTimeout(() => quoteController.abort(), 10000);
+      const quoteResponse = await fetch(quoteUrl, { signal: quoteController.signal });
+      clearTimeout(quoteTimeoutId);
 
       if (quoteResponse.ok) {
         const quoteData = await quoteResponse.json();
