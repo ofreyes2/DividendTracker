@@ -178,7 +178,10 @@ async function createStockFromCSV(
 
     try {
       const histUrl = `${BASE_URL}/v2/aggs/ticker/${csvData.ticker}/range/1/day/${oneYearAgoStr}/${today}?adjusted=true&sort=asc&limit=365&apiKey=${POLYGON_API_KEY}`;
-      const histResponse = await fetch(histUrl, { signal: AbortSignal.timeout(10000) });
+      const histController = new AbortController();
+      const histTimeoutId = setTimeout(() => histController.abort(), 10000);
+      const histResponse = await fetch(histUrl, { signal: histController.signal });
+      clearTimeout(histTimeoutId);
       const histData = await histResponse.json();
 
       if (histData.status === "OK" && histData.results && histData.results.length > 0) {

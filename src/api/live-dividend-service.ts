@@ -81,10 +81,13 @@ async function checkPolygonAvailability(): Promise<boolean> {
   }
 
   try {
+    const testController = new AbortController();
+    const testTimeoutId = setTimeout(() => testController.abort(), 5000);
     const response = await fetch(
       `https://api.polygon.io/v3/reference/tickers/AAPL?apiKey=${POLYGON_API_KEY}`,
-      { signal: AbortSignal.timeout(5000) }
+      { signal: testController.signal }
     );
+    clearTimeout(testTimeoutId);
 
     if (response.ok) {
       dataSourceStatus.set("polygon", {

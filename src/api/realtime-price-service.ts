@@ -27,7 +27,10 @@ export interface LivePriceData {
 export async function fetchLiveQuote(symbol: string): Promise<LivePriceData | null> {
   try {
     const url = `${BASE_URL}/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${POLYGON_API_KEY}`;
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     const data = await response.json();
 
     if (data.status === "OK" && data.results && data.results.length > 0) {
@@ -102,7 +105,10 @@ export async function fetchIntradayPrices(symbol: string): Promise<LivePriceData
     const today = new Date().toISOString().split("T")[0];
     const url = `${BASE_URL}/v2/aggs/ticker/${symbol}/range/1/minute/${today}/${today}?adjusted=true&sort=desc&limit=1&apiKey=${POLYGON_API_KEY}`;
 
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const response = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeoutId);
     const data = await response.json();
 
     if (data.status === "OK" && data.results && data.results.length > 0) {

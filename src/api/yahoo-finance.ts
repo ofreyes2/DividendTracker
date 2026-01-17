@@ -75,12 +75,15 @@ export async function fetchYahooQuotes(symbols: string[]): Promise<Map<string, Y
     const symbolsStr = symbols.join(",");
     const url = `${YAHOO_QUERY_URL}/v7/finance/quote?symbols=${symbolsStr}`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const response = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
-      signal: AbortSignal.timeout(15000),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.warn("[YahooFinance] Quote fetch failed:", response.status);
@@ -133,12 +136,15 @@ export async function fetchYahooNews(symbol: string, count: number = 10): Promis
   try {
     const url = `${YAHOO_QUERY_URL}/v1/finance/search?q=${symbol}&newsCount=${count}&quotesCount=0&enableFuzzyQuery=false`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     const response = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
-      signal: AbortSignal.timeout(10000),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.warn("[YahooFinance] News fetch failed:", response.status);
@@ -173,12 +179,15 @@ export async function fetchMarketNews(count: number = 20): Promise<YahooNews[]> 
   try {
     const url = `${YAHOO_QUERY_URL}/v1/finance/search?q=dividend%20stocks&newsCount=${count}&quotesCount=0`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     const response = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
-      signal: AbortSignal.timeout(10000),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       return [];
@@ -205,12 +214,15 @@ export async function fetchDividendCalendar(): Promise<YahooDividendInfo[]> {
     // Use Yahoo Finance screener for dividend stocks
     const url = `${YAHOO_QUERY_URL}/v1/finance/screener/predefined/saved?scrIds=day_gainers&count=50`;
 
+    const screenerController = new AbortController();
+    const screenerTimeoutId = setTimeout(() => screenerController.abort(), 15000);
     const response = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
-      signal: AbortSignal.timeout(15000),
+      signal: screenerController.signal,
     });
+    clearTimeout(screenerTimeoutId);
 
     if (!response.ok) {
       return dividendStocks;
@@ -258,12 +270,15 @@ export async function fetchAnalystRecommendations(symbol: string): Promise<Analy
   try {
     const url = `${YAHOO_QUERY_URL}/v10/finance/quoteSummary/${symbol}?modules=recommendationTrend`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     const response = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
-      signal: AbortSignal.timeout(10000),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       return [];
@@ -316,12 +331,15 @@ export async function fetchKeyStatistics(symbol: string): Promise<KeyStatistics 
   try {
     const url = `${YAHOO_QUERY_URL}/v10/finance/quoteSummary/${symbol}?modules=defaultKeyStatistics,financialData`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     const response = await fetch(url, {
       headers: {
         "User-Agent": "Mozilla/5.0",
       },
-      signal: AbortSignal.timeout(10000),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       return null;

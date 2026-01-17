@@ -67,7 +67,10 @@ interface PolygonTickerDetails {
 export async function fetchDividends(symbol: string): Promise<PolygonDividend[]> {
   try {
     const url = `${BASE_URL}/v3/reference/dividends?ticker=${symbol}&limit=10&apiKey=${POLYGON_API_KEY}`;
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) }); // 10s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const response = await fetch(url, { signal: controller.signal }); // 10s timeout
+    clearTimeout(timeoutId);
     const data = await response.json();
 
     if (data.status === "OK" && data.results) {
@@ -90,7 +93,10 @@ export async function fetchQuote(symbol: string): Promise<PolygonQuote | null> {
   try {
     // Get previous day's close
     const url = `${BASE_URL}/v2/aggs/ticker/${symbol}/prev?adjusted=true&apiKey=${POLYGON_API_KEY}`;
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) }); // 10s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const response = await fetch(url, { signal: controller.signal }); // 10s timeout
+    clearTimeout(timeoutId);
     const data = await response.json();
 
     if (data.status === "OK" && data.results && data.results.length > 0) {
@@ -112,7 +118,10 @@ export async function fetchQuote(symbol: string): Promise<PolygonQuote | null> {
 export async function fetchTickerDetails(symbol: string): Promise<PolygonTickerDetails | null> {
   try {
     const url = `${BASE_URL}/v3/reference/tickers/${symbol}?apiKey=${POLYGON_API_KEY}`;
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) }); // 10s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const response = await fetch(url, { signal: controller.signal }); // 10s timeout
+    clearTimeout(timeoutId);
     const data = await response.json();
 
     if (data.status === "OK" && data.results) {
@@ -313,7 +322,10 @@ export async function fetchCompleteStockData(symbol: string): Promise<DividendSt
 
     try {
       const histUrl = `${BASE_URL}/v2/aggs/ticker/${symbol}/range/1/day/${oneYearAgoStr}/${today}?adjusted=true&sort=asc&limit=365&apiKey=${POLYGON_API_KEY}`;
-      const histResponse = await fetch(histUrl, { signal: AbortSignal.timeout(10000) });
+      const histController = new AbortController();
+      const histTimeoutId = setTimeout(() => histController.abort(), 10000);
+      const histResponse = await fetch(histUrl, { signal: histController.signal });
+      clearTimeout(histTimeoutId);
       const histData = await histResponse.json();
 
       if (histData.status === "OK" && histData.results && histData.results.length > 0) {
