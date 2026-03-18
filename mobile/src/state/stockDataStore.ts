@@ -34,6 +34,7 @@ import {
   enrichMasterDataset,
 } from "../api/daily-data-fetcher";
 import { fetchLiveQuotesBatch, type LivePriceData } from "../api/realtime-price-service";
+import { fetchSupabaseDividendTickers, getLastDividendUpdate } from "../api/supabase-dividend-service";
 
 interface StockDataState {
   stocks: DividendStock[];
@@ -62,6 +63,7 @@ interface StockDataState {
   refreshFromTickers: (tickers: string[], chunked?: boolean) => Promise<void>;
   refreshFromCSV: (enrichWithPrices?: boolean) => Promise<void>;
   loadFromMasterDataset: () => Promise<void>;
+  loadFromSupabase: () => Promise<void>;
   refreshPrices: () => Promise<void>;
   setAutoRefresh: (enabled: boolean) => void;
   setRefreshInterval: (hours: number) => void;
@@ -172,6 +174,56 @@ export const useStockDataStore = create<StockDataState>()(
         updatedStocks[stockIndex] = updatedStock;
 
         set({ stocks: updatedStocks, lastPriceRefreshTime: Date.now() });
+      },
+
+      /**
+       * Load stocks from Supabase (primary data source)
+       * Supabase data is updated daily at 3 AM UTC via Edge Function + pg_cron
+       */
+      loadFromSupabase: async () => {
+        const state = get();
+        if (state.isRefreshing) {
+          console.log("[Store] Refresh already in progress");
+          return;
+        }
+
+        set({
+          isRefreshing: true,
+          refreshProgress: { current: 0, total: 1, symbol: "", phase: "Loading from Supabase..." },
+        });
+
+        try {
+          console.log("[Store] Fetching dividend data from Supabase...");
+
+          // Fetch stocks from Supabase
+          const stocks = await fetchSupabaseDividendTickers();
+
+          if (!stocks || stocks.length === 0) {
+            console.warn("[Store] No dividend data from Supabase, falling back to CSV");
+            await get().refreshFromCSV(false);
+            return;
+          }
+
+          set({
+            stocks,
+            lastRefreshTime: Date.now(),
+            lastDividendRefreshTime: Date.now(),
+            isRefreshing: false,
+            refreshProgress: { current: 0, total: 0, symbol: "", phase: "" },
+          });
+
+          console.log(`[Store] Loaded ${stocks.length} dividend stocks from Supabase`);
+
+          // Check when data was last updated
+          const lastUpdate = await getLastDividendUpdate();
+          if (lastUpdate) {
+            console.log(`[Store] Data last updated: ${lastUpdate.toISOString()}`);
+          }
+
+        } catch (error) {
+          console.error("[Store] Failed to load from Supabase:", error);
+          set({ isRefreshing: false });
+        }
       },
 
       /**
@@ -369,7 +421,14 @@ export const useStockDataStore = create<StockDataState>()(
       refreshStocks: async (_chunked = true) => {
         const state = get();
 
-        // If using new master dataset architecture, delegate to that
+        // Primary: Load from Supabase (data updated daily at 3 AM UTC)
+        if (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
+          console.log("[Store] Using Supabase as primary data source");
+          await get().loadFromSupabase();
+          return;
+        }
+
+        // Fallback: If using new master dataset architecture, delegate to that
         if (state.useMasterDataset) {
           await get().loadFromMasterDataset();
           return;

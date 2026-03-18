@@ -35,6 +35,20 @@ export default function App() {
   const websocketEnabled = useStockDataStore((s) => s.websocketEnabled);
 
   useEffect(() => {
+    const initializeApp = async () => {
+      try {
+        // Load dividend data from Supabase on app startup
+        const refreshStocks = useStockDataStore.getState().refreshStocks;
+        console.log("[App] Loading dividend data from Supabase...");
+        await refreshStocks();
+      } catch (error) {
+        console.error("[App] Failed to load dividend data:", error);
+      }
+    };
+
+    // Initialize app data
+    initializeApp();
+
     // Register background refresh task on app startup
     registerBackgroundRefreshTask()
       .then(() => {
